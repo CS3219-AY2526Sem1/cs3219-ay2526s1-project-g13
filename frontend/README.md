@@ -5,17 +5,20 @@ A Next.js frontend application for the PeerPrep project.
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 20.x or later
 - pnpm (recommended) or npm
 
 ### Installation & Setup
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Start development server:**
+
    ```bash
    pnpm dev
    ```
