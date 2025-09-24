@@ -1,5 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname "$0")/_/husky.sh"
-
-# Always run tools through the package manager to avoid PATH issues
 pnpm exec lint-staged
