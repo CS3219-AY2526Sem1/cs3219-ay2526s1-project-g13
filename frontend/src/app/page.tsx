@@ -1,5 +1,6 @@
 import AuthForm from "./AuthForm";
 import Navbar from "./NavBar";
+import VerifyAccountPage from "./verifyAcc";
 
 export default function Page() {
   return (
