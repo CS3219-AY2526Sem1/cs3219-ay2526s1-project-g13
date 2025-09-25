@@ -1,6 +1,5 @@
-import AuthForm from "./AuthForm";
-import Navbar from "./NavBar";
-import VerifyAccountPage from "./verifyAcc";
+import AuthForm from "../components/auth/auth-page";
+import Navbar from "../components/auth/nav-bar";
 
 export default function Page() {
   return (

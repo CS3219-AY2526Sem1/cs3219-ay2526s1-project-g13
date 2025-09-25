@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
-import PeerPrepImage from "@/images/peerprep.png";
 import { Eye, EyeOff } from "lucide-react";
 
 // Types for errors
@@ -113,7 +112,7 @@ export default function AuthPage() {
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
           Collaborate, learn, and prepare for your technical interviews with peers
         </h3>
-        <Image src={PeerPrepImage} alt="" width={400} height={400} />
+        <Image src="/peerprep.png" alt="PeerPrep" width={400} height={400} />
       </div>
       <div className="w-full max-w-sm flex-col gap-6 flex">
         <Tabs defaultValue="sign-in">
