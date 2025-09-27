@@ -1,14 +1,23 @@
-import AuthForm from "../components/auth/auth-page";
-import Navbar from "../components/auth/nav-bar";
+import Header from "@/components/ui/header";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function Page() {
+export default function LandingPage() {
   return (
     <main>
-      <div className="w-full bg-[#20222E] text-white flex items-center justify-between px-4 py-2">
-        <h1 className="text-xl font-bold">PeerPrep</h1>
-        <Navbar />
-      </div>
-      <AuthForm />
+      <Header />
+      <section className="bg-background min-h-screen flex flex-col items-center justify-center text-center p-6">
+        <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">Welcome to PeerPrep</h1>
+        <p className="text-lg sm:text-xl text-gray-700 mb-6 max-w-2xl">
+          Your personal platform to sharpen coding skills, practice technical interviews, and
+          prepare confidently for your next job. Solve challenges, track progress, and collaborate
+          with peers to level up your interview game.
+        </p>
+        {/* Button as a link */}
+        <Link href="/auth">
+          <Button className="w-full">Get Started</Button>
+        </Link>
+      </section>
     </main>
   );
 }
