@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   mongodb:
@@ -6,7 +6,7 @@ services:
     image: mongo:latest
     restart: always
     ports:
-      - '27017:27017'
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password

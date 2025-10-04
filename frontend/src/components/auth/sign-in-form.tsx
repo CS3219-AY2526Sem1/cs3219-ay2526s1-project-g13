@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -15,17 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
-type SignInFormProps = {
-  onSubmit: (e: FormEvent<HTMLFormElement>, username: string, password: string) => void;
-};
+const handleSubmit = () => {};
 
-export default function SignInForm({ onSubmit }: SignInFormProps) {
+export default function SignInForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form onSubmit={(e) => onSubmit(e, username, password)}>
+    <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
           <CardTitle>Sign In</CardTitle>
