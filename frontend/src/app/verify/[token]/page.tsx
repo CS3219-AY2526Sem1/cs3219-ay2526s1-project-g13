@@ -21,7 +21,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import MessageDialog from "@/components/ui/message-dialog";
 import { useRouter } from "next/navigation";
-import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import { Spinner } from "@/components/ui/spinner";
 
 type VerifyPayload = {
   verificationCode: number;

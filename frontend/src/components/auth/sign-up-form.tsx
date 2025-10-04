@@ -17,7 +17,7 @@ import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import MessageDialog from "../ui/message-dialog";
-import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import { Spinner } from "@/components/ui/spinner";
 
 type RegisterRequest = {
   username: string;
