@@ -157,7 +157,7 @@ export default function VerifyAccountPage() {
 
             <CardFooter>
               <Button type="submit" className="w-full">
-                {isVerifyLoading ? <Spinner variant="ellipsis" /> : "Verify"}
+                {isVerifyLoading ? <Spinner /> : "Verify"}
               </Button>
             </CardFooter>
             <CardFooter>
@@ -168,7 +168,7 @@ export default function VerifyAccountPage() {
                 onClick={handleResendCode}
                 className="w-full"
               >
-                {isResendLoading ? <Spinner variant="ellipsis" /> : "Resend code"}
+                {isResendLoading ? <Spinner /> : "Resend code"}
               </Button>
             </CardFooter>
             <Button

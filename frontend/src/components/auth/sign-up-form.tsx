@@ -216,7 +216,7 @@ export default function SignUpForm() {
           </CardContent>
 
           <CardFooter>
-            <Button type="submit">{isLoading ? <Spinner variant="ellipsis" /> : "Sign up"} </Button>
+            <Button type="submit">{isLoading ? <Spinner /> : "Sign up"} </Button>
           </CardFooter>
         </Card>
       </form>
