@@ -2,14 +2,14 @@ name: CI (backend - user service)
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, dev ]
     paths:
       - "backend/user-service/**"
       - "pnpm-lock.yaml"
       - "package.json"
       - ".github/workflows/ci-user-service.yml"
   push:
-    branches: [ main, master ]
+    branches: [ main, master, dev ]
     paths:
       - "backend/user-service/**"
       - "pnpm-lock.yaml"
