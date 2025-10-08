@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  user-service:
+    build: .
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    environment:
+      MONGO_URI: mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+    networks:
+      - user-service_cs3219-peerprep-network
+
+networks:
+  user-service_cs3219-peerprep-network:
+    external: true
