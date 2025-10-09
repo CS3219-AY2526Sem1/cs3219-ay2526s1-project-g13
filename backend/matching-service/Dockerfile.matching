@@ -1,0 +1,41 @@
+# Use Node.js 20 Alpine as base image
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm@10.17.1
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build the TypeScript code
+RUN pnpm run build
+
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S matching-service -u 1001
+
+# Change ownership of the app directory
+RUN chown -R matching-service:nodejs /app
+USER matching-service
+
+# Expose port
+EXPOSE 8002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+CMD node -e "require('http').get('http://localhost:8002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start the application
+CMD ["pnpm", "start"]
