@@ -1,6 +1,14 @@
 version: '3.9'
 
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cs3219-peerprep-network
   mongodb:
     container_name: mongodb
     image: mongo:latest
@@ -16,9 +24,27 @@ services:
     networks:
       - cs3219-peerprep-network
 
+  matching-service:
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile.matching
+    container_name: matching-service
+    restart: always
+    ports:
+      - '8002:8002'
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - QUESTION_SERVICE_URL=http://question-service:8003
+    depends_on:
+      - redis
+    networks:
+      - cs3219-peerprep-network
+
 networks:
   cs3219-peerprep-network:
     driver: bridge
 
 volumes:
   mongodb_data: {}
+  redis_data: {}
