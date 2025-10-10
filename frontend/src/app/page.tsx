@@ -13,16 +13,9 @@ export default function LandingPage() {
           prepare confidently for your next job. Solve challenges, track progress, and collaborate
           with peers to level up your interview game.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <Link href="/auth" className="flex-1">
-            <Button className="w-full">Get Started</Button>
-          </Link>
-          <Link href="/matching" className="flex-1">
-            <Button variant="outline" className="w-full">
-              Start Matching
-            </Button>
-          </Link>
-        </div>
+        <Link href="/auth">
+          <Button className="w-full">Get Started</Button>
+        </Link>
       </section>
     </main>
   );
