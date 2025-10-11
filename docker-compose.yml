@@ -16,6 +16,24 @@ services:
     networks:
       - cs3219-peerprep-network
 
+  collaboration-service:
+    build:
+      context: ./backend/collaboration-service
+      dockerfile: Dockerfile.collaboration
+    container_name: collaboration-service
+    restart: always
+    ports:
+      - '8004:8004'
+      - '8005:8005'
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      - HTTP_PORT=8004
+      - WS_PORT=8005
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+
 networks:
   cs3219-peerprep-network:
     driver: bridge
