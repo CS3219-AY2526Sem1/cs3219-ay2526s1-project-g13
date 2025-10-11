@@ -1,29 +1,29 @@
-name: CI (frontend)
+name: Frontend CI
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [ dev, staging, production ]
     paths:
       - "frontend/**"
       - "pnpm-lock.yaml"
       - "package.json"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/frontend-ci.yml"
   push:
-    branches: [ main, master ]
+    branches: [ dev, staging, production ]
     paths:
       - "frontend/**"
       - "pnpm-lock.yaml"
       - "package.json"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/frontend-ci.yml"
 
 # Cancel older runs on the same PR/branch
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: frontend-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-test:
-    name: Lint, Typecheck, Build
+  frontend-build-test:
+    name: Frontend Lint, Typecheck & Build
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20.x"
@@ -45,10 +45,10 @@ jobs:
           which pnpm
           pnpm -v
 
-      - name: Install deps (workspace root)
+      - name: Install dependencies (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # Optional: cache Next.js build cache for faster builds
+      # Cache Next.js build cache for faster frontend builds
       - name: Cache Next.js .next/cache
         uses: actions/cache@v4
         with:
@@ -57,12 +57,12 @@ jobs:
           restore-keys: |
             next-cache-${{ runner.os }}-node20-
 
-      - name: Lint
+      - name: Frontend Lint
         run: pnpm lint
-        # Your root scripts are already scoped with --filter frontend
+        # Root scripts are scoped with --filter frontend
 
-      - name: Typecheck
+      - name: Frontend Typecheck
         run: pnpm typecheck
 
-      - name: Build
+      - name: Frontend Build
         run: pnpm build
