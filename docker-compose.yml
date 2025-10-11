@@ -15,7 +15,17 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
-
+  execution-service:
+    build: ./backend/execution-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/execution-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
 networks:
   cs3219-peerprep-network:
     driver: bridge
