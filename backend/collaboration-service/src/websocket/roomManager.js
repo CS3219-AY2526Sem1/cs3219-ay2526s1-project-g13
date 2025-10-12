@@ -1,9 +1,11 @@
 import * as Y from "yjs";
+import config from "../config.js";
 
 class RoomManager {
   constructor() {
     this.roomDocs = new Map(); // roomId -> Y.Doc
     this.roomClients = new Map(); // roomId -> Set<WebSocket>
+    this.roomTimeouts = new Map(); // roomId -> setTimeout ID
   }
 
   /**
@@ -17,6 +19,7 @@ class RoomManager {
         const doc = new Y.Doc();
         this.roomDocs.set(roomId, doc);
         this.roomClients.set(roomId, new Set());
+        this.startRoomTimeout(roomId);
       }
       return true;
     } catch (error) {
@@ -34,6 +37,9 @@ class RoomManager {
     const clientsInRoom = this.roomClients.get(roomId);
     if (clientsInRoom) {
       clientsInRoom.add(ws);
+
+      // Clear any existing timeout since a client has joined
+      this.clearRoomTimeout(roomId);
     }
   }
 
@@ -46,6 +52,11 @@ class RoomManager {
     const clientsInRoom = this.roomClients.get(roomId);
     if (clientsInRoom) {
       clientsInRoom.delete(ws);
+
+      // If no clients remain, start the timeout for room closure
+      if (clientsInRoom.size === 0) {
+        this.startRoomTimeout(roomId);
+      }
     }
   }
 
@@ -65,6 +76,68 @@ class RoomManager {
    */
   getRoomDocument(roomId) {
     return this.roomDocs.get(roomId) || null;
+  }
+
+  /**
+   * Start timeout for room closure when no clients are connected
+   * @param {string} roomId - Room ID
+   */
+  startRoomTimeout(roomId) {
+    const timeoutId = setTimeout(
+      async () => {
+        try {
+          const clientsInRoom = this.roomClients.get(roomId);
+          if (!clientsInRoom || clientsInRoom.size === 0) {
+            await this.autoCloseRoom(roomId);
+          }
+        } catch (error) {
+          console.error(`Error during timeout closure of room ${roomId}:`, error);
+        }
+      },
+      config.ROOM_TIMEOUT_MINUTES * 60 * 1000,
+    );
+    this.roomTimeouts.set(roomId, timeoutId);
+  }
+
+  /**
+   * Clear the timeout for room closure
+   * @param {string} roomId - Room ID
+   */
+  clearRoomTimeout(roomId) {
+    const timeoutId = this.roomTimeouts.get(roomId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.roomTimeouts.delete(roomId);
+    }
+  }
+
+  /**
+   * Remove room from memory and broadcast closure, this is expected to be called by roomController
+   * @param {string} roomId - Room ID\
+   * @param {Object} closedAt - Timestamp of closure
+   */
+  async closeRoom(roomId, closedAt) {
+    // Clean up room data from memory
+    this.roomDocs.delete(roomId);
+    this.roomClients.delete(roomId);
+    this.clearRoomTimeout(roomId);
+
+    // Broadcast room closure to all connected clients
+    this.broadcastRoomClosure(roomId, closedAt);
+  }
+
+  /**
+   * Automatically close a room due to inactivity, needs to call roomController to update DB
+   * @param {string} roomId - Room ID
+   */
+  async autoCloseRoom(roomId) {
+    try {
+      // Import roomController here to avoid circular dependency
+      const { roomController } = await import("../controllers/roomController.js");
+      await roomController.closeRoom(roomId);
+    } catch (error) {
+      console.error(`Error during auto-closure of room ${roomId}:`, error);
+    }
   }
 
   /**

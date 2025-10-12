@@ -4,6 +4,8 @@ export const config = {
   HTTP_PORT: process.env.HTTP_PORT || 8004,
   // Database
   MONGO_URI: process.env.MONGODB_URI || "mongodb://localhost:27017/peerprep",
+  // Room Management
+  ROOM_TIMEOUT_MINUTES: parseInt(process.env.ROOM_TIMEOUT_MINUTES) || 10,
   // Yjs MongoDB Provider Persistence Settings
   PERSISTENCE_CONFIG: {
     multipleCollections: true, // each document gets an own collection in the database

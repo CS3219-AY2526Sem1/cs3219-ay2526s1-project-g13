@@ -91,7 +91,7 @@ class RoomController {
         throw new Error(`Room ${roomId} not found`);
       }
       const closedRoom = await room.closeRoom();
-      await roomManager.broadcastRoomClosure(roomId, closedRoom.closedAt);
+      await roomManager.closeRoom(roomId, closedRoom.closedAt);
       return closedRoom.toObject();
     } catch (error) {
       console.error(`Failed to close collaboration for ${roomId}:`, error);

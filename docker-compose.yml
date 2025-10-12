@@ -29,6 +29,7 @@ services:
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
       - HTTP_PORT=8004
       - WS_PORT=8005
+      - ROOM_TIMEOUT_MINUTES=10
     depends_on:
       - mongodb
     networks:
