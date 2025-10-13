@@ -15,20 +15,44 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
-  execution-service:
+  execution-api:
     build: ./backend/execution-service
     ports:
       - "8000:8000"
     volumes:
       - ./backend/execution-service:/app
       - /app/node_modules
+    env_file:
+      - ./.env
     depends_on:
       - mongodb
+    networks:
+      - cs3219-peerprep-network
+    command: pnpm run dev:api
+  execution-worker:
+    build: ./backend/execution-service
+    volumes:
+      - ./backend/execution-service:/app
+      - /app/node_modules
+    env_file:
+      - ./.env
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+    command: pnpm run dev:worker
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston-api
+    restart: always
+    privileged: true
+    volumes:
+      - piston_packages:/piston/packages 
     networks:
       - cs3219-peerprep-network
 networks:
   cs3219-peerprep-network:
     driver: bridge
-
 volumes:
   mongodb_data: {}
+  piston_packages: {}

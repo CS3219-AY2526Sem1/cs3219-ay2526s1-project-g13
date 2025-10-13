@@ -1,12 +1,7 @@
 const mongoose = require('mongoose');
 
-const DB_USER = 'admin';
-const DB_PASS = 'password';
-const DB_HOST = 'mongodb'; 
-const DB_PORT = '27017';
-const DB_NAME = 'execution_db'; 
 
-const MONGO_URI = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin`;
+const MONGO_URI = process.env.MONGO_URI;
 
 const connectDB = async () => {
     try {
