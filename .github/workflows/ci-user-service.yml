@@ -57,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: backend/user-service
-          file: backend/user-service/Dockerfile
+          file: backend/user-service/Dockerfile.user
           push: false
           tags: user-service:test
           cache-from: type=gha
