@@ -5,17 +5,25 @@ interface SocketConfig {
   options?: Partial<SocketOptions>;
 }
 
-class SocketManager {
-  private sockets: Map<string, Socket> = new Map();
+import { ServiceType } from "@/utils/enums";
 
-  getSocket(service: string): Socket | null {
+class SocketManager {
+  private sockets: Map<ServiceType, Socket> = new Map();
+
+  getSocket(service: ServiceType): Socket | null {
     return this.sockets.get(service) || null;
   }
 
-  createSocket(service: string, config: SocketConfig): Socket {
-    // Return existing socket if available
-    if (this.sockets.has(service)) {
-      return this.sockets.get(service)!;
+  createSocket(service: ServiceType, config: SocketConfig): Socket {
+    // Return existing socket if available and connected
+    const existingSocket = this.sockets.get(service);
+    if (existingSocket && existingSocket.connected) {
+      return existingSocket;
+    }
+
+    // Disconnect existing socket if it exists but not connected
+    if (existingSocket) {
+      existingSocket.disconnect();
     }
 
     const socket = io(config.url, {
@@ -23,6 +31,7 @@ class SocketManager {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       ...config.options,
     });
 
@@ -30,7 +39,39 @@ class SocketManager {
     return socket;
   }
 
-  disconnect(service: string) {
+  connect(service: ServiceType): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const socket = this.sockets.get(service);
+      if (!socket) {
+        reject(new Error(`Socket for service ${service} not found`));
+        return;
+      }
+
+      if (socket.connected) {
+        resolve();
+        return;
+      }
+
+      socket.connect();
+
+      const onConnect = () => {
+        socket.off("connect", onConnect);
+        socket.off("connect_error", onError);
+        resolve();
+      };
+
+      const onError = (error: Error) => {
+        socket.off("connect", onConnect);
+        socket.off("connect_error", onError);
+        reject(error);
+      };
+
+      socket.on("connect", onConnect);
+      socket.on("connect_error", onError);
+    });
+  }
+
+  disconnect(service: ServiceType) {
     const socket = this.sockets.get(service);
     if (socket) {
       socket.disconnect();
@@ -44,7 +85,7 @@ class SocketManager {
   }
 
   getConnectionState(
-    service: string,
+    service: ServiceType,
   ): "disconnected" | "connecting" | "connected" | "reconnecting" {
     const socket = this.sockets.get(service);
     if (!socket) return "disconnected";
@@ -52,6 +93,13 @@ class SocketManager {
     if (socket.connected) return "connected";
     if (socket.disconnected) return "disconnected";
     return "connecting";
+  }
+
+  // Get all active services
+  getActiveServices(): ServiceType[] {
+    return Array.from(this.sockets.keys()).filter(
+      (service) => this.getConnectionState(service) === "connected",
+    );
   }
 }
 

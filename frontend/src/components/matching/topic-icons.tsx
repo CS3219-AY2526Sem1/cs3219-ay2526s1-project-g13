@@ -20,6 +20,8 @@ import {
   FaTh,
 } from "react-icons/fa";
 
+import { SiGrapheneos } from "react-icons/si";
+
 export const ArrayIcon = () => <FaCode className="w-6 h-6" />;
 export const LinkedListIcon = () => <FaLink className="w-6 h-6" />;
 export const TreeIcon = () => <FaSitemap className="w-6 h-6" />;
@@ -38,12 +40,14 @@ export const DFSIcon = () => <FaTree className="w-6 h-6" />;
 export const StringIcon = () => <FaDatabase className="w-6 h-6" />;
 export const TwoPointersIcon = () => <FaNetworkWired className="w-6 h-6" />;
 export const QueueIcon = () => <FaTh className="w-6 h-6" />;
+export const GraphIcon = () => <SiGrapheneos className="w-6 h-6" />;
 
 export const topics = [
-  { id: "ARRAY", name: "Arrays & Strings", icon: ArrayIcon },
-  { id: "LINKEDLIST", name: "Linked Lists", icon: LinkedListIcon },
-  { id: "TREE", name: "Trees & Graphs", icon: TreeIcon },
-  { id: "DP", name: "Dynamic Programming", icon: DPIcon },
+  { id: "ARRAYS", name: "Arrays", icon: ArrayIcon },
+  { id: "LINKED_LISTS", name: "Linked Lists", icon: LinkedListIcon },
+  { id: "TREES", name: "Trees", icon: TreeIcon },
+  { id: "GRAPHS", name: "Graphs", icon: GraphIcon },
+  { id: "DYNAMIC_PROGRAMMING", name: "Dynamic Programming", icon: DPIcon },
   { id: "SORTING", name: "Sorting & Searching", icon: SortIcon },
   { id: "HEAP", name: "Heap", icon: HeapIcon },
   { id: "GREEDY", name: "Greedy", icon: GreedyIcon },
@@ -52,7 +56,7 @@ export const topics = [
   { id: "BINARYSEARCH", name: "Binary Search", icon: BinarySearchIcon },
   { id: "BACKTRACKING", name: "Backtracking", icon: BacktrackingIcon },
   { id: "STACK", name: "Stack", icon: StackIcon },
-  { id: "HASHTABLE", name: "Hash Table", icon: HashTableIcon },
+  { id: "HASH_TABLES", name: "Hash Table", icon: HashTableIcon },
   { id: "BFS", name: "Breadth-First Search", icon: BFSIcon },
   { id: "DFS", name: "Depth-First Search", icon: DFSIcon },
   { id: "STRING", name: "String", icon: StringIcon },

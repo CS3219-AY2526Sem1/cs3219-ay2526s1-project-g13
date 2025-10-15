@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
-import { DIFFICULTY } from "@/utils/enums";
+import { DIFFICULTY, ServiceType } from "@/utils/enums";
+import { socketManager } from "@/utils/socket-manager";
+import { useCollaborationStore } from "./collaboration-store";
 
 interface Question {
   id: string;
@@ -79,13 +81,10 @@ export const useMatchingStore = create<MatchingState>()(
           ? process.env.NEXT_PUBLIC_MATCHING_ENDPOINT
           : `http://localhost:8002`;
 
-      const newSocket = io(url || "", {
-        autoConnect: true,
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        forceNew: true,
+      // Create socket using socketManager
+      const newSocket = socketManager.createSocket(ServiceType.MATCHING, {
+        url: url || "",
+        options: {},
       });
 
       // Set the socket immediately so it's available
@@ -94,6 +93,9 @@ export const useMatchingStore = create<MatchingState>()(
         connectionState: "connecting",
         user,
       });
+
+      // Connect the socket
+      newSocket.connect();
 
       newSocket.on("connect", () => {
         set({ connectionState: "connected" });
@@ -143,7 +145,7 @@ export const useMatchingStore = create<MatchingState>()(
         set({ count: counter });
       });
 
-      newSocket.on("matchSuccess", (data) => {
+      newSocket.on("matchSuccess", async (data) => {
         toast.success("A match has been found!");
         set({
           count: null,
@@ -278,7 +280,7 @@ export const useMatchingStore = create<MatchingState>()(
       const { socket, roomId } = get();
       if (socket) {
         socket.removeAllListeners();
-        socket.disconnect();
+        socketManager.disconnect(ServiceType.MATCHING);
 
         // Only reset room-related state if we don't have an active room
         if (!roomId) {

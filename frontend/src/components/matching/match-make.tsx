@@ -19,9 +19,9 @@ import { topics } from "./topic-icons";
 
 const MatchMake = () => {
   const { refreshToken } = useAuth();
-  const { isMatching, selectedTopic } = useMatchingState();
+  const { isMatching, selectedTopic, matchFound } = useMatchingState();
   const { startMatch, setSelectedTopic } = useMatchingActions();
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY>(DIFFICULTY.EASY);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY | null>(null);
 
   const chunkTopics = (topicList: typeof topics, size: number) => {
     const chunks = [];
@@ -34,10 +34,12 @@ const MatchMake = () => {
   const topicChunks = chunkTopics(topics, 8);
 
   const findMatch = async () => {
-    await refreshToken(() => startMatch(selectedDifficulty, selectedTopic || undefined));
+    await refreshToken(() =>
+      startMatch(selectedDifficulty || DIFFICULTY.EASY, selectedTopic || undefined),
+    );
   };
 
-  if (isMatching) {
+  if (isMatching || (!isMatching && matchFound)) {
     return (
       <div className="max-w-4xl mx-auto px-6 pt-24">
         <div className="text-center">
@@ -60,19 +62,22 @@ const MatchMake = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6">
-      {/* Main Title */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-[#20222E] mb-2">Find your practice partner</h1>
         <p className="text-lg text-gray-600">
           Connect with peers to practice technical interviews together
         </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Choose at least one criteria: difficulty level, topic, or both
+        </p>
       </div>
 
-      {/* Main Card */}
       <Card className="bg-white p-8 rounded-2xl shadow-lg">
-        {/* Difficulty Selection */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-[#20222E] mb-4">Select difficulty level</h2>
+          <h2 className="text-xl font-semibold text-[#20222E] mb-2">Select difficulty level</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Choose a difficulty level, or skip to match with any difficulty
+          </p>
           <div className="flex gap-4 justify-between">
             {Object.values(DIFFICULTY).map((difficulty) => {
               const isSelected = selectedDifficulty === difficulty;
@@ -96,7 +101,7 @@ const MatchMake = () => {
               return (
                 <button
                   key={difficulty}
-                  onClick={() => setSelectedDifficulty(difficulty)}
+                  onClick={() => setSelectedDifficulty(isSelected ? null : difficulty)}
                   disabled={isMatching}
                   className={clsx(
                     "w-80 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-all",
@@ -115,9 +120,11 @@ const MatchMake = () => {
           </div>
         </div>
 
-        {/* Topic Selection */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-[#20222E] mb-4">Choose Topic</h2>
+          <h2 className="text-xl font-semibold text-[#20222E] mb-2">Choose Topic</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Select a specific topic, or skip to match with any topic
+          </p>
           <div className="relative">
             <Carousel
               opts={{
@@ -137,7 +144,7 @@ const MatchMake = () => {
                         return (
                           <button
                             key={topic.id}
-                            onClick={() => setSelectedTopic(topic.id)}
+                            onClick={() => setSelectedTopic(isSelected ? null : topic.id)}
                             disabled={isMatching}
                             className={clsx("p-3 rounded-lg text-center transition-all", {
                               "bg-blue-50 border-2 border-blue-500": isSelected,
@@ -164,13 +171,37 @@ const MatchMake = () => {
           </div>
         </div>
 
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Current Selection:</h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedDifficulty && (
+              <span className="px-3 py-1 bg-[#4A5568] text-white rounded-full text-sm">
+                Difficulty:{" "}
+                {selectedDifficulty.charAt(0) + selectedDifficulty.slice(1).toLowerCase()}
+              </span>
+            )}
+            {selectedTopic && (
+              <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-sm">
+                Topic: {topics.find((t) => t.id === selectedTopic)?.name}
+              </span>
+            )}
+            {!selectedDifficulty && !selectedTopic && (
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                No criteria selected - please choose at least one
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="text-center">
           <Button
             onClick={findMatch}
-            disabled={isMatching}
+            disabled={isMatching || (!selectedDifficulty && !selectedTopic)}
             className={clsx("px-8 py-3 rounded-lg font-medium transition-colors", {
-              "bg-[#20222E] text-white hover:bg-gray-700": !isMatching,
-              "bg-gray-400 text-gray-200 cursor-not-allowed": isMatching,
+              "bg-[#20222E] text-white hover:bg-gray-700":
+                !isMatching && (selectedDifficulty || selectedTopic),
+              "bg-gray-400 text-gray-200 cursor-not-allowed":
+                isMatching || (!selectedDifficulty && !selectedTopic),
             })}
           >
             {isMatching ? "Searching..." : "Find your practice partner"}

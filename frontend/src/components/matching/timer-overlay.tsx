@@ -34,11 +34,8 @@ export const TimerOverlay = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Handle manual cancel (when user clicks cancel button)
   useEffect(() => {
     if (!isMatching && timeLeft !== null && timeLeft > 0 && !matchFound) {
-      // This means matching was manually cancelled (not timed out or match found)
-      // The timeout toast is handled by the backend matchTimeout event
       setTimeout(() => {
         toast.info("Matching cancelled", {
           position: "top-center",
@@ -92,7 +89,6 @@ export const TimerOverlay = () => {
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="mt-3">
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
