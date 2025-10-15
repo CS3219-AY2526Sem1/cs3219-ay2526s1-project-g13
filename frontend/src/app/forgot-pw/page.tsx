@@ -1,23 +1,72 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Header from "@/components/ui/header";
 import MessageDialog from "@/components/ui/message-dialog";
+import { useMutation } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import { Spinner } from "@/components/ui/spinner";
+
+type ForgotPasswordPayload = {
+  email: string;
+};
+
+type ForgotPasswordResponse = {
+  message?: string;
+  resetToken: string;
+};
+
+type BackendError = {
+  error: string;
+};
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("");
 
-  const handleSendEmail = useCallback(async () => {
-    setIsEmailSent(true);
-  }, []);
+  const mutation = useMutation<
+    ForgotPasswordResponse,
+    AxiosError<BackendError>,
+    ForgotPasswordPayload
+  >({
+    mutationFn: async (payload) => {
+      const res = await axios.post<ForgotPasswordResponse>(
+        "http://localhost:8080/v1/forgot-password",
+        payload,
+      );
+      return res.data;
+    },
+    onSuccess: () => {
+      setOpen(true);
+      setTitle("Send reset password link successfully!");
+      setDescription("Please check your email for the reset link.");
+      setIcon("mail-check");
+    },
+    onError: (error) => {
+      setOpen(true);
+      setTitle("Send reset password link failed");
+      setIcon("circle-x");
+      const backendMessage = error.response?.data?.error;
+      setDescription(backendMessage || error.message);
+    },
+  });
 
-  const handleBackToLogin = useCallback(() => {
+  const handleSendEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutation.mutate({ email });
+  };
+
+  const handleBackToLogin = () => {
     router.push("/auth");
-  }, [router]);
+  };
+
+  const isLoading = mutation.isPending;
 
   return (
     <div>
@@ -31,12 +80,7 @@ export default function ForgotPasswordPage() {
             Enter your email to receive a password reset link.
           </p>
           <div className="space-y-4">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendEmail();
-              }}
-            >
+            <form onSubmit={handleSendEmail}>
               <Input
                 type="email"
                 placeholder="Email"
@@ -44,7 +88,7 @@ export default function ForgotPasswordPage() {
                 required
               />
               <Button className="mt-4 w-full" type="submit">
-                Send Email
+                {isLoading ? <Spinner /> : "Send Email"}
               </Button>
             </form>
             <Button variant="outline" className="w-full" onClick={handleBackToLogin}>
@@ -54,12 +98,12 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      {/* Email sent confirmation */}
       <MessageDialog
-        open={isEmailSent}
-        setOpen={setIsEmailSent}
-        title={`Email sent to ${email}`}
-        description="Please check your email for the password reset link."
+        open={open}
+        setOpen={setOpen}
+        title={title}
+        description={description}
+        icon={icon}
       />
     </div>
   );

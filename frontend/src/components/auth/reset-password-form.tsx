@@ -2,120 +2,56 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
+import { useParams, useRouter } from "next/navigation";
 
 type FormValues = {
-  username: string;
-  email: string;
   password: string;
   retypePassword: string;
 };
 
-type RegisterRequest = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-type RegisterResponse = {
-  message: string;
-  verificationToken?: string;
-};
-
-type BackendError = {
-  error: string;
-};
-
-export default function SignUpForm() {
+export default function ResetPasswordForm() {
   const router = useRouter();
+  const { token } = useParams<{ token: string }>();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
     getValues,
-    reset,
+    formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      username: "",
-      email: "",
       password: "",
       retypePassword: "",
     },
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRetypePassword, setShowRetypePassword] = useState(false);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [description, setDescription] = useState("");
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showRetypePassword, setShowRetypePassword] = useState(false);
   const [icon, setIcon] = useState("");
-
-  // mutation
-  const mutation = useMutation<RegisterResponse, AxiosError<BackendError>, RegisterRequest>({
-    mutationFn: async (newUser) => {
-      const res = await axios.post("http://localhost:8080/v1/register", newUser);
-      return res.data;
-    },
-    onSuccess: (data) => {
-      reset();
-      const verificationToken = data.verificationToken;
-      if (verificationToken) {
-        router.push(`/verify/${verificationToken}`);
-      }
-    },
-    onError: (error) => {
-      setOpen(true);
-      setMessage("Registration failed");
-      const backendMessage = error.response?.data?.error;
-      setDescription(backendMessage || error.message);
-      setIcon("circle-x");
-    },
-  });
-
-  const isLoading = mutation.isPending;
-
-  const usernameValidate = (value: string) => {
-    const email = getValues("email") || "";
-    if (value.trim() === email.trim()) return "Username cannot be the same as email";
-    if (!value || value.length < 6 || value.length > 32) return "Username must be 6–32 characters";
-    if (/^\d+$/.test(value)) return "Username cannot be only numbers";
-    return true;
-  };
-
-  const emailValidate = (value: string) => {
-    if (!value) return "Email is required";
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(value)) return "Enter a valid email";
-    return true;
-  };
 
   const passwordValidate = (value: string) => {
     if (!value || value.length < 12 || value.length > 64)
       return "Password must be 12–64 characters";
+
     const hasUpper = /[A-Z]/.test(value);
     const hasLower = /[a-z]/.test(value);
     const hasDigit = /[0-9]/.test(value);
     const hasSpecial = /[^\w\s]/.test(value);
     if (!(hasUpper && hasLower && hasDigit && hasSpecial))
       return "Password must include 1 uppercase, 1 lowercase, 1 number, and 1 special character";
+
     return true;
   };
 
@@ -124,57 +60,62 @@ export default function SignUpForm() {
     return true;
   };
 
+  const mutation = useMutation<
+    { success: boolean; message: string },
+    AxiosError<{ error: string }>,
+    { resetPasswordToken: string; newPassword: string }
+  >({
+    mutationFn: async (payload) => {
+      const res = await axios.post("http://localhost:8080/v1/reset-password", payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      setOpen(true);
+      setMessage("Password reset successful");
+      setDescription("You may now log in with your new password");
+      setIcon("circle-check");
+    },
+    onError: (error) => {
+      const backendMsg = error.response?.data?.error || error.message;
+      setOpen(true);
+      setMessage("Reset failed");
+      setDescription(backendMsg);
+      setIcon("circle-x");
+    },
+  });
+
   const onSubmit = (data: FormValues) => {
-    mutation.mutate({ username: data.username, email: data.email, password: data.password });
+    if (!token) {
+      setOpen(true);
+      setMessage("Reset password failed");
+      setDescription("Wrong reset password link");
+      return;
+    }
+    mutation.mutate({ resetPasswordToken: token, newPassword: data.password });
   };
 
+  const isLoading = mutation.isPending;
+
   return (
-    <div>
+    <div className="flex items-center justify-center">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Card>
+        <Card className="ml-20 mr-20 mt-10 w-[400px]">
           <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Create a new account.</CardDescription>
+            <CardTitle>Enter a new password to secure your account</CardTitle>
           </CardHeader>
 
           <CardContent className="grid gap-6">
-            {/* Username */}
-            <div className="grid gap-3">
-              <Label htmlFor="signup-username">Username</Label>
-              <Input
-                id="signup-username"
-                {...register("username", {
-                  required: "Username is required",
-                  validate: usernameValidate,
-                })}
-              />
-              {errors.username && <p className="text-red-600 text-sm">{errors.username.message}</p>}
-            </div>
-
-            {/* Email */}
-            <div className="grid gap-3">
-              <Label htmlFor="signup-email">Email</Label>
-              <Input
-                id="signup-email"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  validate: emailValidate,
-                })}
-              />
-              {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
-            </div>
-
-            {/* Password */}
+            {/* New Password */}
             <div className="grid gap-3 relative">
-              <Label htmlFor="signup-password">Password</Label>
+              <Label htmlFor="new-password">New Password</Label>
               <div className="relative">
                 <Input
-                  id="signup-password"
+                  id="new-password"
                   type={showPassword ? "text" : "password"}
                   className="pr-10"
                   onCopy={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
+                  aria-invalid={!!errors.password}
                   {...register("password", {
                     required: "Password is required",
                     validate: passwordValidate,
@@ -191,16 +132,16 @@ export default function SignUpForm() {
               {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
             </div>
 
-            {/* Retype Password */}
+            {/* Confirm New Password */}
             <div className="grid gap-3 relative">
-              <Label htmlFor="signup-retype-password">Retype password</Label>
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
               <div className="relative">
                 <Input
-                  id="signup-retype-password"
+                  id="confirm-password"
                   type={showRetypePassword ? "text" : "password"}
-                  className="pr-10"
                   onCopy={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
+                  aria-invalid={!!errors.retypePassword}
                   {...register("retypePassword", {
                     required: "Please retype your password",
                     validate: retypeValidate,
@@ -222,9 +163,19 @@ export default function SignUpForm() {
 
           <CardFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? <Spinner /> : "Sign up"}
+              {isLoading ? <Spinner /> : "Reset Password"}
             </Button>
           </CardFooter>
+
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            onClick={() => router.push("/auth")}
+            className="w-full"
+          >
+            Back to login
+          </Button>
         </Card>
       </form>
 

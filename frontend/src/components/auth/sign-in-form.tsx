@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Card,
   CardHeader,
@@ -18,6 +19,12 @@ import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
+
+type FormValues = {
+  username: string;
+  password: string;
+};
 
 type LoginRequest = {
   username: string;
@@ -26,7 +33,8 @@ type LoginRequest = {
 
 type LoginResponse = {
   message: string;
-  accessToken?: string;
+  userId: string;
+  accessToken: string;
 };
 
 type BackendError = {
@@ -34,43 +42,57 @@ type BackendError = {
 };
 
 export default function SignInForm() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormValues>({
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [description, setDescription] = useState("");
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [icon, setIcon] = useState("");
 
   const mutation = useMutation<LoginResponse, AxiosError<BackendError>, LoginRequest>({
     mutationFn: async (user) => {
-      const res = await axios.post("http://localhost:8080/v1/login", user);
+      const res = await axios.post(`http://localhost:8080/v1/login`, user);
       return res.data;
     },
     onSuccess: (data) => {
-      setAccessToken(data.accessToken ?? null);
-      console.log(accessToken);
+      localStorage.setItem("accessToken", data.accessToken);
       setOpen(true);
       setMessage("Login successful");
+      setIcon("circle-check");
+      reset();
+      router.push(`/account`);
     },
     onError: (error) => {
       setOpen(true);
       setMessage("Login failed");
       const backendMessage = error.response?.data?.error;
       setDescription(backendMessage || error.message);
+      setIcon("circle-x");
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate({ username, password });
+  const onSubmit = (data: FormValues) => {
+    mutation.mutate({ username: data.username, password: data.password });
   };
 
   const isLoading = mutation.isPending;
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
@@ -83,11 +105,10 @@ export default function SignInForm() {
               <Label htmlFor="signin-username">Username</Label>
               <Input
                 id="signin-username"
-                name="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
+                {...register("username", { required: "Username is required" })}
+                aria-invalid={!!errors.username}
               />
+              {errors.username && <p className="text-red-600 text-sm">{errors.username.message}</p>}
             </div>
 
             {/* Password */}
@@ -105,32 +126,39 @@ export default function SignInForm() {
               <div className="relative">
                 <Input
                   id="signin-password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-10"
+                  {...register("password", { required: "Password is required" })}
                   onCopy={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
-                  required
-                  className="pr-10"
                 />
                 <button
                   type="button"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((s) => !s)}
                 >
                   {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
               </div>
+              {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
             </div>
           </CardContent>
 
           <CardFooter>
-            <Button type="submit">{isLoading ? <Spinner /> : "Sign in"}</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Spinner /> : "Sign in"}
+            </Button>
           </CardFooter>
         </Card>
       </form>
-      <MessageDialog open={open} setOpen={setOpen} title={message} description={description} />
+
+      <MessageDialog
+        open={open}
+        setOpen={setOpen}
+        title={message}
+        description={description}
+        icon={icon}
+      />
     </div>
   );
 }

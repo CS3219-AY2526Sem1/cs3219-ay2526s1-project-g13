@@ -6,16 +6,21 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  logger: true, // <--- enables detailed logging
+  debug: true,
 });
 
 const sendVerificationEmail = async (username, email, verificationToken, verificationCode) => {
-  const verificationLink = `http://localhost:3000/verify/${verificationToken}`;
+  const verificationLink = `${process.env.WEB_BASE_URL}/verify/${verificationToken}`;
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: "PeerPrep Team <no-reply@peerprep.com>",
+
     to: email,
     subject: "PeerPrep Account Verification",
+
     text: `Hello ${username},
+    
 
   Thank you for creating an account on PeerPrep! 
 
@@ -37,6 +42,10 @@ const sendVerificationEmail = async (username, email, verificationToken, verific
   <p>If you did not request this, please ignore this email.</p>
   <br/>
   <p>Best regards,<br/>The PeerPrep Team</p>`,
+    envelope: {
+      from: process.env.EMAIL_USER,
+      to: email,
+    },
   };
 
   try {
@@ -48,4 +57,47 @@ const sendVerificationEmail = async (username, email, verificationToken, verific
   }
 };
 
-module.exports = { sendVerificationEmail };
+const sendResetPasswordEmail = async (username, email, resetPasswordToken) => {
+  const resetPasswordLink = `${process.env.WEB_BASE_URL}/forgot-pw/${resetPasswordToken}`;
+
+  const mailOptions = {
+    from: "PeerPrep Team <no-reply@peerprep.com>",
+    to: email,
+    subject: "PeerPrep - Reset Your Password",
+
+    text: `Hello ${username},
+
+You requested to reset your password on PeerPrep.
+
+Please click the link below to reset your password:
+Reset My Password: ${resetPasswordLink}
+
+This link will expire in 1 hour. If you did not request a password reset, please ignore this email.
+
+Best regards,
+The PeerPrep Team
+`,
+    html: `<p>Hello <strong>${username}</strong>,</p>
+<p>You requested to reset your password on <strong>PeerPrep</strong>.</p>
+<p>Please click the button below to reset your password:</p>
+<p><a href="${resetPasswordLink}" style="display:inline-block; padding:10px 20px; background-color:#4F46E5; color:white; text-decoration:none; border-radius:5px;">Reset My Password</a></p>
+<p><em>This link will expire in 1 hour.</em></p>
+<p>If you did not request a password reset, please ignore this email.</p>
+<br/>
+<p>Best regards,<br/>The PeerPrep Team</p>`,
+    envelope: {
+      from: process.env.EMAIL_USER,
+      to: email,
+    },
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Reset password email sent successfully");
+  } catch (error) {
+    console.error("Error sending reset password email: ", error);
+    throw new Error("Error sending reset password email");
+  }
+};
+
+module.exports = { sendVerificationEmail, sendResetPasswordEmail };

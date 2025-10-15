@@ -43,6 +43,7 @@ export default function VerifyAccountPage() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("");
   const router = useRouter();
 
   const mutation = useMutation<VerifyResponse, AxiosError<BackendError>, VerifyPayload>({
@@ -54,14 +55,14 @@ export default function VerifyAccountPage() {
       setOpen(true);
       setTitle("Verify account successfully!");
       setDescription(data.message || "You may now log in to your account.");
+      setIcon("user-round-check");
     },
     onError: (error) => {
       setOpen(true);
       setTitle("Verify account failed");
-
-      // Access backend error message safely
       const backendMessage = error.response?.data?.error;
       setDescription(backendMessage || error.message);
+      setIcon("circle-x");
     },
   });
 
@@ -96,7 +97,7 @@ export default function VerifyAccountPage() {
       console.log(data);
       setOpen(true);
       setTitle("Verification code resent!");
-      setDescription(data.message || "Please check your email for the new verification ode.");
+      setDescription(data.message || "Please check your email for the new verification code.");
     },
     onError: (error) => {
       setOpen(true);
@@ -156,7 +157,7 @@ export default function VerifyAccountPage() {
             </CardContent>
 
             <CardFooter>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isVerifyLoading}>
                 {isVerifyLoading ? <Spinner /> : "Verify"}
               </Button>
             </CardFooter>
@@ -167,6 +168,7 @@ export default function VerifyAccountPage() {
                 size="sm"
                 onClick={handleResendCode}
                 className="w-full"
+                disabled={isResendLoading}
               >
                 {isResendLoading ? <Spinner /> : "Resend code"}
               </Button>
@@ -184,7 +186,13 @@ export default function VerifyAccountPage() {
         </form>
       </div>
 
-      <MessageDialog open={open} setOpen={setOpen} title={title} description={description} />
+      <MessageDialog
+        open={open}
+        setOpen={setOpen}
+        title={title}
+        description={description}
+        icon={icon}
+      />
     </div>
   );
 }

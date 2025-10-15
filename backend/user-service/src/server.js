@@ -6,10 +6,15 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth-routes");
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.WEB_BASE_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Routes

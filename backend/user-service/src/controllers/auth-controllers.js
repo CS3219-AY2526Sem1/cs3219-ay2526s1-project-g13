@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const User = require("../model/user-model");
-const { sendVerificationEmail } = require("../utils/mailer");
+const { sendVerificationEmail, sendResetPasswordEmail } = require("../utils/mailer");
 
 // Helper to generate 6-digit code
 const generateCode = () => Math.floor(100000 + Math.random() * 900000);
@@ -64,13 +64,8 @@ exports.verifyUser = async (req, res) => {
       return res.status(400).json({ error: "Invalid verification code." });
 
     if (user.verificationCodeExpiry < Date.now()) {
-      const newCode = generateCode();
       return res.status(400).json({
         error: "Verification code expired.",
-        username: user.username,
-        email: user.email,
-        verificationToken: user.verificationToken,
-        verificationCode: newCode,
       });
     }
 
@@ -112,7 +107,7 @@ exports.loginUser = async (req, res) => {
     const user = await User.findOne({ username: username }).select("+password +verified");
     if (!user) {
       return res.status(404).json({ error: "User not found" });
-    } else if(!user.verified) {
+    } else if (!user.verified) {
       return res.status(401).json({ error: "User is not verified yet" });
     }
 
@@ -122,8 +117,10 @@ exports.loginUser = async (req, res) => {
     }
 
     // Successful login
-    const accessToken = user.generateJwtToken(2 * 60 * 60);
-    const refreshToken = user.generateJwtToken(7 * 24 * 60 * 60);
+    const accessToken = user.generateAccessToken(2 * 60 * 60);
+    const refreshToken = user.generateRefreshToken(7 * 24 * 60 * 60);
+    console.log("Access Token:", accessToken);
+    console.log("Refresh Token:", refreshToken);
 
     // Set HttpOnly cookies
     res.cookie("refresh_token", refreshToken, {
@@ -133,8 +130,9 @@ exports.loginUser = async (req, res) => {
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return res.status(200).json({ message: "Login successful", user: user, accessToken});
-
+    return res
+      .status(200)
+      .json({ message: "Login successful", userId: user._id, accessToken: accessToken });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
@@ -143,51 +141,48 @@ exports.loginUser = async (req, res) => {
 
 exports.logoutUser = async (req, res) => {
   try {
-    const userId = req.user?.id; // if you have auth middleware for access token
+    const userId = req.userId; // from auth middleware
     if (userId) {
-      // Invalidate all refresh tokens for this user:
+      // Invalidate all refresh tokens for this user
       await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
     }
-
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
-    // If you set access as cookie too, clear it:
-    res.clearCookie('access_token', { path: '/' });
-
-    return res.status(200).json({ message: 'Logged out' });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'Server error' });
+    res.clearCookie("refresh_token", { path: "/auth/refresh" });
+    return res.status(200).json({ message: "Logged out" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
   }
 };
 
 // auth.controller.js (refresh)
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 exports.refresh = async (req, res) => {
   try {
-    const token = req.cookies['refresh_token'];
-    if (!token) return res.status(401).json({ error: 'Missing refresh token' });
+    const token = req.cookies["refresh_token"];
+    if (!token) return res.status(401).json({ error: "Missing refresh token" });
 
     // Verify signature & expiry
     let payload;
     try {
       payload = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (e) {
-      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    } catch (err) {
+      console.log(err);
+      return res.status(401).json({ error: "Invalid or expired refresh token" });
     }
 
     // Enforce token type
-    if (payload.type !== 'refresh') {
-      return res.status(400).json({ error: 'Wrong token type' });
+    if (payload.type !== "refresh") {
+      return res.status(400).json({ error: "Wrong token type" });
     }
 
     // Load user and check tokenVersion to support rotation/revocation
-    const user = await User.findById(payload.userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const user = await User.findById(payload.userId).select("+tokenVersion");
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     // If user.tokenVersion changed, this refresh is no longer valid
     if (payload.tokenVersion !== user.tokenVersion) {
-      return res.status(401).json({ error: 'Refresh token revoked' });
+      return res.status(401).json({ error: "Refresh token revoked" });
     }
 
     // ——— Rotation strategy ———
@@ -198,15 +193,15 @@ exports.refresh = async (req, res) => {
     await user.save();
 
     // Issue new tokens
-    const newAccessToken  = user.generateJwtToken(2 * 60 * 60); // 2 hours
+    const newAccessToken = user.generateJwtToken(2 * 60 * 60); // 2 hours
     const newRefreshToken = user.generateJwtToken(7 * 24 * 60 * 60); // 7 days
 
     // Overwrite cookie with the rotated refresh token
-    res.cookie('refresh_token', newRefreshToken, {
+    res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',     // or 'none' if cross-site
-      path: '/auth/refresh',
+      sameSite: "lax", // or 'none' if cross-site
+      path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -214,9 +209,113 @@ exports.refresh = async (req, res) => {
     return res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: "Server error" });
   }
 };
 
+exports.getUserProfile = async (req, res) => {
+  try {
+    // const userId = req.params.userid;
+    const userId = req.userId; // from auth middleware
+    console.log("Fetching profile for userId:", userId);
+    if (!userId) {
+      return res.status(400).json({ error: "User ID required" });
+    }
+    const user = await User.findById(userId); // exclude password
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
+exports.sendPasswordResetEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ error: "User with this email does not exist." });
+    }
 
+    const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordTokenExpiry = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    await sendResetPasswordEmail(user.username, email, resetPasswordToken);
+    return res
+      .status(200)
+      .json({ message: "Password reset email sent successfully.", resetToken: resetPasswordToken });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { resetPasswordToken, newPassword } = req.body;
+    console.log("Resetting password with token:", resetPasswordToken);
+    const user = await User.findOne({ resetPasswordToken: resetPasswordToken }).select(
+      "+resetPasswordToken +resetPasswordTokenExpiry +password",
+    );
+    if (!user) {
+      return res.status(400).json({ error: "Invalid reset password link." });
+    }
+    if (user.resetPasswordTokenExpiry < Date.now()) {
+      return res.status(400).json({ error: "Expired reset password link." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordTokenExpiry = null;
+    await user.save();
+
+    return res.status(200).json({ message: "Password has been reset successfully." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.userId; // from auth middleware
+    const { username, currentPassword, newPassword } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "Login required" });
+    }
+    const currentUser = await User.findById(userId).select("+password +_id");
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Change password if both current and new passwords are provided
+    if (currentPassword && newPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, currentUser.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: "Invalid current password" });
+      }
+      currentUser.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Update username if provided
+    const user = await User.findOne({ username }).select("_id");
+    if (user && !currentUser._id.equals(user._id)) {
+      return res.status(409).json({ error: "Username already exists." });
+    }
+    if (username && username !== currentUser.username) {
+      currentUser.username = username;
+    }
+
+    await currentUser.save();
+    return res.status(200).json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
