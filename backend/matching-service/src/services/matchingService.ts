@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 
 export class MatchingService {
   private static readonly QUESTION_SERVICE_URL = process.env.QUESTION_SERVICE_URL || 'http://localhost:8003';
+  private static readonly COLLABORATION_SERVICE_URL = process.env.COLLABORATION_SERVICE_URL || 'http://localhost:8004';
 
   // Start matching process
   static async startMatching(socketId: string, request: MatchRequest): Promise<{
@@ -11,18 +12,34 @@ export class MatchingService {
     roomId?: string;
     waitingUser?: string;
     questions?: any[];
+    collaborationRoomId?: string;
   }> {
     try {
+      // Validate that at least one preference is provided
+      if (!request.difficulty && !request.topic) {
+        return { success: false };
+      }
+
       const matchResult = await QueueService.findMatch(socketId, request.difficulty, request.topic);
       
       if (matchResult.matched) {
-        const questions = await this.fetchQuestions(request.difficulty, request.topic);
+        // Create room in collaboration service
+        const collaborationRoom = await this.createCollaborationRoom();
+        
+        if (!collaborationRoom.success) {
+          console.error('Failed to create collaboration room:', collaborationRoom.error);
+          // Still proceed with matching but log the error
+        }
+        
+        // Use the final difficulty and topic determined by the matching logic
+        const questions = await this.fetchQuestions(matchResult.finalDifficulty, matchResult.finalTopic);
         
         return {
           success: true,
           roomId: matchResult.roomId,
           waitingUser: matchResult.waitingUser,
           questions,
+          collaborationRoomId: collaborationRoom.roomId,
         };
       } else {
         const roomId = await QueueService.addToQueue(socketId, request.difficulty, request.topic);
@@ -38,19 +55,54 @@ export class MatchingService {
     }
   }
 
-  // Fetch questions from question service
-  private static async fetchQuestions(difficulty: DIFFICULTY, topic: QUESTION_TOPIC): Promise<any[]> {
+  // Create room in collaboration service
+  private static async createCollaborationRoom(): Promise<{ success: boolean; roomId?: string; error?: string }> {
     try {
+      const response = await fetch(`${this.COLLABORATION_SERVICE_URL}/api/v1/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Collaboration service error: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { success: boolean; room?: { roomId: string } };
+      
+      if (data.success && data.room) {
+        return { success: true, roomId: data.room.roomId };
+      } else {
+        return { success: false, error: 'Failed to create room' };
+      }
+    } catch (error) {
+      console.error('Error creating collaboration room:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Fetch questions from question service
+  private static async fetchQuestions(difficulty?: DIFFICULTY, topic?: QUESTION_TOPIC): Promise<any[]> {
+    try {
+      const requestBody: any = {
+        count: 1, // Get 1 question
+      };
+
+      // Only include difficulty and topic if they are defined
+      if (difficulty) {
+        requestBody.difficulty = difficulty;
+      }
+      if (topic) {
+        requestBody.topic = topic;
+      }
+
       const response = await fetch(`${this.QUESTION_SERVICE_URL}/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          difficulty,
-          topic,
-          count: 1, // Get 1 question
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {

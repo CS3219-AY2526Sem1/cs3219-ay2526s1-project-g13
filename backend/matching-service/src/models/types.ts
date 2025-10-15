@@ -32,8 +32,8 @@ export enum DIFFICULTY {
   }
   
   export interface MatchRequest {
-    difficulty: DIFFICULTY;
-    topic: QUESTION_TOPIC;
+    difficulty?: DIFFICULTY;
+    topic?: QUESTION_TOPIC;
   }
   
   export interface MatchResult {
