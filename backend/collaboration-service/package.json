@@ -1,0 +1,29 @@
+{
+  "name": "collaboration-service",
+  "version": "1.0.0",
+  "description": "Collaboration service for PeerPrep",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "dependencies": {
+    "@y/websocket-server": "^0.1.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.1",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3",
+    "y-mongodb-provider": "^0.2.1",
+    "yjs": "^13.6.27"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
