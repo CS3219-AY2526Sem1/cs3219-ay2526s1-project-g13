@@ -4,7 +4,6 @@ import { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 import { DIFFICULTY, ServiceType } from "@/utils/enums";
 import { socketManager } from "@/utils/socket-manager";
-import { useCollaborationStore } from "./collaboration-store";
 
 interface Question {
   id: string;
