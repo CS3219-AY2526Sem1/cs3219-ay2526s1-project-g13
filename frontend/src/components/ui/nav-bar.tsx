@@ -16,28 +16,24 @@ export default function Navbar() {
       <nav className="px-4 py-2">
         <NavigationMenu>
           <NavigationMenuList className="flex gap-4">
-            {/* Home Link */}
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/">Home</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            {/* Practice Link */}
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/practice">Practice</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            {/* Account Link */}
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/account">Account</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
-            {/* Logout Button */}
             <NavigationMenuItem>
               <Button
                 variant="secondary"

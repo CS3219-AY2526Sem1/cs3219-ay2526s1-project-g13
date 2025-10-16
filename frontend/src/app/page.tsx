@@ -13,7 +13,6 @@ export default function LandingPage() {
           prepare confidently for your next job. Solve challenges, track progress, and collaborate
           with peers to level up your interview game.
         </p>
-        {/* Button as a link */}
         <Link href="/auth">
           <Button className="w-full">Get Started</Button>
         </Link>
