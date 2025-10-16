@@ -15,6 +15,26 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
+
+  collaboration-service:
+    build:
+      context: ./backend/collaboration-service
+      dockerfile: Dockerfile.collaboration
+    container_name: collaboration-service
+    restart: always
+    ports:
+      - '8004:8004'
+      - '8005:8005'
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      - HTTP_PORT=8004
+      - WS_PORT=8005
+      - ROOM_TIMEOUT_MINUTES=10
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+
   execution-api:
     build: ./backend/execution-service
     ports:
