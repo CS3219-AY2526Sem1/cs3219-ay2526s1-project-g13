@@ -117,7 +117,6 @@ export class QueueService {
       await redis.lPush(queueKey, JSON.stringify({
         socketId,
         roomId,
-        joinedAt: Date.now(),
       }));
       // Set queue expiration
       await redis.expire(queueKey, this.MATCH_TIMEOUT);
@@ -168,6 +167,10 @@ export class QueueService {
         await redis.rPush(queueKey, waitingUserData);
         continue;
       }
+
+      await this.removeFromQueue(waitingUser.socketId);
+    
+      await this.removeFromQueue(socketId);
       
       // Determine final difficulty and topic for the match
       const finalDifficulty = this.determineFinalDifficulty(difficulty, waitingUserPrefs.difficulty);
