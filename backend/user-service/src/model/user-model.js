@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
 
 userSchema.methods.generateAccessToken = function (expiresIn = "2h") {
   return jwt.sign(
-    { userId: this._id, username: this.username, type: "access" },
+    { userId: this._id, username: this.username, type: "access", iat_ms: Date.now() },
     process.env.JWT_SECRET,
     { expiresIn },
   );

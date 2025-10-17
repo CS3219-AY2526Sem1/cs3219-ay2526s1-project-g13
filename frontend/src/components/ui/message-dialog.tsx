@@ -15,6 +15,7 @@ interface MessageDialogProps {
   title: string;
   description?: string;
   icon?: string;
+  showCloseButton?: boolean;
 }
 
 // default icon mapping
@@ -31,12 +32,16 @@ export default function MessageDialog({
   title,
   description,
   icon,
+  showCloseButton = true,
 }: MessageDialogProps) {
   const IconComponent = icon ? iconMap[icon] || null : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="flex flex-col items-center justify-center space-y-1">
+      <DialogContent
+        className="flex flex-col items-center justify-center space-y-1"
+        showCloseButton={showCloseButton}
+      >
         {/* Icon */}
         {IconComponent && <IconComponent size={40} className="text-primary" />}
 

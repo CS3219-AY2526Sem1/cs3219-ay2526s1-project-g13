@@ -1,12 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth-routes");
 
 const app = express();
 const PORT = process.env.PORT;
+app.use(cookieParser());
 
 // Middleware
 app.use(
@@ -26,4 +28,9 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
+app.get("/", function (req, res) {
+  // Setting a simple cookie: 'name' = 'geeksforgeeks'
+  res.cookie("name", "geeksforgeeks");
+  res.send("Cookie Set");
+});
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

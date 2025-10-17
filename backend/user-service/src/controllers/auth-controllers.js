@@ -104,7 +104,9 @@ exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const user = await User.findOne({ username: username }).select("+password +verified");
+    const user = await User.findOne({ username: username }).select(
+      "+password +verified +tokenVersion",
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     } else if (!user.verified) {
@@ -117,7 +119,7 @@ exports.loginUser = async (req, res) => {
     }
 
     // Successful login
-    const accessToken = user.generateAccessToken(2 * 60 * 60);
+    const accessToken = user.generateAccessToken(5 * 60);
     const refreshToken = user.generateRefreshToken(7 * 24 * 60 * 60);
     console.log("Access Token:", accessToken);
     console.log("Refresh Token:", refreshToken);
@@ -125,10 +127,10 @@ exports.loginUser = async (req, res) => {
     // Set HttpOnly cookies
     res.cookie("refresh_token", refreshToken, {
       httpOnly: true,
-      secure: true,
+      path: "/",
+      secure: false,
       sameSite: "lax",
-      path: "/auth/refresh",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
     return res
       .status(200)
@@ -146,7 +148,7 @@ exports.logoutUser = async (req, res) => {
       // Invalidate all refresh tokens for this user
       await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
     }
-    res.clearCookie("refresh_token", { path: "/auth/refresh" });
+    res.clearCookie("refresh_token", { path: "/" });
     return res.status(200).json({ message: "Logged out" });
   } catch (err) {
     console.error(err);
@@ -154,12 +156,13 @@ exports.logoutUser = async (req, res) => {
   }
 };
 
-// auth.controller.js (refresh)
 const jwt = require("jsonwebtoken");
 
 exports.refresh = async (req, res) => {
   try {
     const token = req.cookies["refresh_token"];
+    console.log("Cookies in request:", req.cookies);
+    console.log("Refresh token from cookie:", token);
     if (!token) return res.status(401).json({ error: "Missing refresh token" });
 
     // Verify signature & expiry
@@ -175,35 +178,21 @@ exports.refresh = async (req, res) => {
     if (payload.type !== "refresh") {
       return res.status(400).json({ error: "Wrong token type" });
     }
-
+    console.log("Refresh token payload:", payload);
     // Load user and check tokenVersion to support rotation/revocation
     const user = await User.findById(payload.userId).select("+tokenVersion");
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // If user.tokenVersion changed, this refresh is no longer valid
     if (payload.tokenVersion !== user.tokenVersion) {
+      console.log(
+        `Token version mismatch: payload ${payload.tokenVersion} vs user ${user.tokenVersion}`,
+      );
       return res.status(401).json({ error: "Refresh token revoked" });
     }
 
-    // ——— Rotation strategy ———
-    // Bump user's tokenVersion so any previously issued refresh token becomes invalid.
-    // This gives you single-session semantics per refresh, strongest security.
-    // If you want multi-device sessions, skip the increment here and only increment on logout/all-sessions.
-    user.tokenVersion += 1;
-    await user.save();
-
     // Issue new tokens
-    const newAccessToken = user.generateJwtToken(2 * 60 * 60); // 2 hours
-    const newRefreshToken = user.generateJwtToken(7 * 24 * 60 * 60); // 7 days
-
-    // Overwrite cookie with the rotated refresh token
-    res.cookie("refresh_token", newRefreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax", // or 'none' if cross-site
-      path: "/auth/refresh",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    const newAccessToken = user.generateAccessToken(5 * 60); // 30 minutes
 
     // Return new access token
     return res.status(200).json({ accessToken: newAccessToken });

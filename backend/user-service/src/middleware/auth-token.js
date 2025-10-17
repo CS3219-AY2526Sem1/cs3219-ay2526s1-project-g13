@@ -23,7 +23,6 @@ const authenticate = async (req, res, next) => {
     req.userId = decoded.userId;
     console.log("Access token verified for userId:", req.userId);
 
-    // (Optional) confirm user exists
     const userExists = await User.exists({ _id: req.userId });
     if (!userExists) {
       return res.status(401).json({ error: "User not found" });

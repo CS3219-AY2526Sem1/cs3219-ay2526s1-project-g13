@@ -10,6 +10,7 @@ const {
   sendPasswordResetEmail,
   resetPassword,
   updateUserProfile,
+  refresh,
 } = require("../controllers/auth-controllers");
 const { authenticate } = require("../middleware/auth-token");
 
@@ -22,5 +23,6 @@ router.get("/account", authenticate, getUserProfile);
 router.post("/forgot-password", sendPasswordResetEmail);
 router.post("/reset-password", resetPassword);
 router.post("/update-account", authenticate, updateUserProfile);
+router.post("/auth/refresh", refresh);
 
 module.exports = router;
