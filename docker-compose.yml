@@ -35,6 +35,22 @@ services:
     networks:
       - cs3219-peerprep-network
 
+  question-service:
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile
+    container_name: question-service
+    restart: always
+    ports:
+      - '8003:8003'
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      - PORT=8003
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+
 networks:
   cs3219-peerprep-network:
     driver: bridge
