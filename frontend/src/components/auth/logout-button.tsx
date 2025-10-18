@@ -1,29 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LogoutButton() {
   const router = useRouter();
-  const [accessToken, setAccessToken] = useState<string>("");
-  useEffect(() => {
-    setAccessToken(localStorage.getItem("accessToken") || "");
-  }, []);
+  const { authRequest } = useAuth();
 
   const handleLogout = async () => {
     try {
-      const res = await axios.post(
-        `http://localhost:8080/v1/logout`,
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const res = await authRequest({
+        method: "POST",
+        url: "http://localhost:8080/v1/logout",
+        withCredentials: true,
+      });
 
       console.log("Logout successful:", res.data);
 

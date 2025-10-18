@@ -20,6 +20,7 @@ import axios, { AxiosError } from "axios";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
+import { DialogState, defaultDialogState } from "@/types/dialog";
 
 type FormValues = {
   username: string;
@@ -57,10 +58,7 @@ export default function SignInForm() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState("");
+  const [dialog, setDialog] = useState<DialogState>(defaultDialogState);
 
   const mutation = useMutation<LoginResponse, AxiosError<BackendError>, LoginRequest>({
     mutationFn: async (user) => {
@@ -71,19 +69,23 @@ export default function SignInForm() {
     },
     onSuccess: (data) => {
       localStorage.setItem("accessToken", data.accessToken);
-      setOpen(true);
-      setMessage("Login successful");
-      setDescription("");
-      setIcon("circle-check");
+      setDialog({
+        open: true,
+        message: "Login successful",
+        description: "",
+        icon: "circle-check",
+      });
       reset();
-      router.push(`/account`);
+      router.push(`/matching`);
     },
     onError: (error) => {
-      setOpen(true);
-      setMessage("Login failed");
       const backendMessage = error.response?.data?.error;
-      setDescription(backendMessage || error.message);
-      setIcon("circle-x");
+      setDialog({
+        open: true,
+        message: "Login failed",
+        description: backendMessage || error.message,
+        icon: "circle-x",
+      });
     },
   });
 
@@ -156,11 +158,11 @@ export default function SignInForm() {
       </form>
 
       <MessageDialog
-        open={open}
-        setOpen={setOpen}
-        title={message}
-        description={description}
-        icon={icon}
+        open={dialog.open}
+        setOpen={(open: boolean) => setDialog((prev) => ({ ...prev, open }))}
+        title={dialog.message}
+        description={dialog.description}
+        icon={dialog.icon}
       />
     </div>
   );

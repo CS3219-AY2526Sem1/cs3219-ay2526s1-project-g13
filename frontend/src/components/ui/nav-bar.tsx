@@ -24,7 +24,7 @@ export default function Navbar() {
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link href="/practice">Practice</Link>
+                <Link href="/matching">Practice</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 

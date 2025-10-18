@@ -19,6 +19,7 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
+import { DialogState, defaultDialogState } from "@/types/dialog";
 
 type FormValues = {
   username: string;
@@ -59,14 +60,10 @@ export default function SignUpForm() {
       retypePassword: "",
     },
   });
-
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [description, setDescription] = useState("");
+  const [dialog, setDialog] = useState<DialogState>(defaultDialogState);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showRetypePassword, setShowRetypePassword] = useState(false);
-  const [icon, setIcon] = useState("");
 
   // mutation
   const mutation = useMutation<RegisterResponse, AxiosError<BackendError>, RegisterRequest>({
@@ -82,11 +79,13 @@ export default function SignUpForm() {
       }
     },
     onError: (error) => {
-      setOpen(true);
-      setMessage("Registration failed");
       const backendMessage = error.response?.data?.error;
-      setDescription(backendMessage || error.message);
-      setIcon("circle-x");
+      setDialog({
+        open: true,
+        message: "Registration failed",
+        description: backendMessage || error.message,
+        icon: "circle-x",
+      });
     },
   });
 
@@ -229,11 +228,11 @@ export default function SignUpForm() {
       </form>
 
       <MessageDialog
-        open={open}
-        setOpen={setOpen}
-        title={message}
-        description={description}
-        icon={icon}
+        open={dialog.open}
+        setOpen={(open: boolean) => setDialog((prev) => ({ ...prev, open }))}
+        title={dialog.message}
+        description={dialog.description}
+        icon={dialog.icon}
       />
     </div>
   );
