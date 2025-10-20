@@ -25,10 +25,9 @@ export enum DIFFICULTY {
   
   export interface User {
     socketId: string;
-    status: USER_STATUS;
     difficulty?: DIFFICULTY;
     topic?: QUESTION_TOPIC;
-    joinedAt?: number;
+    requestedAt: string;
   }
   
   export interface MatchRequest {

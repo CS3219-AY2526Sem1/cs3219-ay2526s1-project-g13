@@ -23,6 +23,28 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports: ['2181:2181']
+    networks: [cs3219-peerprep-network]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks: [cs3219-peerprep-network]
 
   matching-service:
     build:
@@ -37,9 +59,19 @@ services:
       - REDIS_URL=redis://redis:6379
       - QUESTION_SERVICE_URL=http://question-service:8003
       - COLLABORATION_SERVICE_URL=http://collaboration-service:8004
+      - DB_REQUIRE_AUTH=true
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DATABASE_NAME=peerprepMatchingServiceDB
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
     depends_on:
       - redis
+      - mongodb
       - collaboration-service
+      - kafka
     networks:
       - cs3219-peerprep-network
 

@@ -31,6 +31,11 @@ class RedisConfig {
   async disconnect(): Promise<void> {
     await this.client.disconnect();
   }
+
+  async logQueueStatus(): Promise<void> {
+    const items = await this.client.zRangeWithScores('matching_queue', 0, -1);
+    console.log('matching_queue:', items);
+  }
 }
 
 export const redisConfig = new RedisConfig();
