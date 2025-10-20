@@ -28,7 +28,7 @@ RUN chown -R question-service:nodejs /app
 USER question-service
 
 # Expose port the service uses
-EXPOSE 8003
+EXPOSE 8004
 
 # Start the application
 CMD ["pnpm", "run", "dev"]
