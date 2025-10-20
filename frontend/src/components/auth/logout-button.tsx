@@ -13,7 +13,7 @@ export default function LogoutButton() {
     try {
       const res = await authRequest({
         method: "POST",
-        url: "http://localhost:8080/v1/logout",
+        url: "http://localhost:8001/v1/logout",
         withCredentials: true,
       });
 

@@ -101,7 +101,7 @@ export function useAccountForm({ email, originalUsername, setDialog }: UseAccoun
   >({
     mutationFn: async (payload) => {
       const accessToken = localStorage.getItem("accessToken");
-      const res = await axios.post("http://localhost:8080/v1/update-account", payload, {
+      const res = await axios.post("http://localhost:8001/v1/update-account", payload, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       return res.data;

@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
   >({
     mutationFn: async (payload) => {
       const res = await axios.post<ForgotPasswordResponse>(
-        "http://localhost:8080/v1/forgot-password",
+        "http://localhost:8001/v1/forgot-password",
         payload,
       );
       return res.data;

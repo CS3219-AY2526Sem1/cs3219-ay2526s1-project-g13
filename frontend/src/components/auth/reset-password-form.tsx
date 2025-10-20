@@ -66,7 +66,7 @@ export default function ResetPasswordForm() {
     { resetPasswordToken: string; newPassword: string }
   >({
     mutationFn: async (payload) => {
-      const res = await axios.post("http://localhost:8080/v1/reset-password", payload);
+      const res = await axios.post("http://localhost:8001/v1/reset-password", payload);
       return res.data;
     },
     onSuccess: () => {

@@ -27,7 +27,7 @@ export default function MatchingPage() {
       try {
         const res = await authRequest({
           method: "GET",
-          url: "http://localhost:8080/v1/account",
+          url: "http://localhost:8001/v1/account",
           withCredentials: true,
         });
         const authUser = res.data;

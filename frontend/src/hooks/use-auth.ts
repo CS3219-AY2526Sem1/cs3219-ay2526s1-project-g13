@@ -6,7 +6,7 @@ export function useAuth() {
   const refreshAccessToken = useCallback(async () => {
     try {
       const res = await axios.post(
-        "http://localhost:8080/v1/auth/refresh",
+        "http://localhost:8001/v1/auth/refresh",
         {},
         { withCredentials: true },
       );

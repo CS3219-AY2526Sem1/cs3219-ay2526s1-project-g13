@@ -68,7 +68,7 @@ export default function SignUpForm() {
   // mutation
   const mutation = useMutation<RegisterResponse, AxiosError<BackendError>, RegisterRequest>({
     mutationFn: async (newUser) => {
-      const res = await axios.post("http://localhost:8080/v1/register", newUser);
+      const res = await axios.post("http://localhost:8001/v1/register", newUser);
       return res.data;
     },
     onSuccess: (data) => {

@@ -48,7 +48,7 @@ export default function VerifyAccountPage() {
 
   const mutation = useMutation<VerifyResponse, AxiosError<BackendError>, VerifyPayload>({
     mutationFn: async (payload) => {
-      const res = await axios.post<VerifyResponse>("http://localhost:8080/v1/verify", payload);
+      const res = await axios.post<VerifyResponse>("http://localhost:8001/v1/verify", payload);
       return res.data;
     },
     onSuccess: (data) => {
@@ -90,7 +90,7 @@ export default function VerifyAccountPage() {
     { verificationToken: string }
   >({
     mutationFn: async (payload) => {
-      const res = await axios.post("http://localhost:8080/v1/resend", payload);
+      const res = await axios.post("http://localhost:8001/v1/resend", payload);
       return res.data;
     },
     onSuccess: (data) => {
