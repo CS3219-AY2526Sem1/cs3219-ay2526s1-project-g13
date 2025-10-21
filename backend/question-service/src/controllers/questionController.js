@@ -9,6 +9,35 @@ const fetchAllQuestions = async (req, res) => {
     res.status(200).json(questions)
 }
 
+const getQuestionById = async (req, res) => {
+    try {
+        const id = req.params.id
+        const mongoose = require('mongoose')
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid question id' })
+        }
+
+        const q = await Question.findById(id)
+        if (!q) return res.status(404).json({ error: 'Question not found' })
+
+        const resp = {
+            _id: q._id,
+            title: q.title,
+            description: q.description,
+            difficulty: q.difficulty,
+            topic: q.topic,
+            examples: q.examples || [],
+            templates: q.templates || [],
+            link: q.link || null,
+        }
+
+        return res.status(200).json(resp)
+    } catch (err) {
+        console.error('getQuestionById error', err)
+        return res.status(500).json({ error: 'Internal server error' })
+    }
+}
+
 /**
  * GET /v1/questions/pick?topic=&difficulty=
  * Selection rules:
@@ -65,6 +94,7 @@ const pickQuestion = async (req, res) => {
 module.exports = {
     fetchAllQuestions,
     pickQuestion,
+    getQuestionById,
     seedQuestions: async (req, res) => {
         try {
             await Question.deleteMany({})
