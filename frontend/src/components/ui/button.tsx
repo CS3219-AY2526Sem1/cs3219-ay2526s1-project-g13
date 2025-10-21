@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-background hover:cursor-pointer w-full",
         ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline p-0 m-0 gap-0 hover:cursor-pointer",
+        logout:
+          "bg-background text-secondary-foreground hover:bg-destructive hover:text-white hover:cursor-pointer w-full",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
