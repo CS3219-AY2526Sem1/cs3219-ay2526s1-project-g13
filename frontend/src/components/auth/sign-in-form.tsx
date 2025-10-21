@@ -69,6 +69,7 @@ export default function SignInForm() {
     },
     onSuccess: (data) => {
       localStorage.setItem("accessToken", data.accessToken);
+      localStorage.removeItem("logout");
       setDialog({
         open: true,
         message: "Login successful",

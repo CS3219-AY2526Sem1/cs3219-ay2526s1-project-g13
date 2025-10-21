@@ -33,6 +33,10 @@ export function useAuth() {
   const authRequest = useCallback(
     async (config: AxiosRequestConfig) => {
       config.withCredentials = true;
+      const isLoggedOut = localStorage.getItem("logout");
+      if (isLoggedOut) {
+        throw new Error("User is logged out");
+      }
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) throw new Error("No access token found");
 

@@ -6,9 +6,15 @@ import SignUpForm from "@/components/auth/sign-up-form";
 import { useRouter } from "next/navigation";
 import Header from "@/components/ui/header";
 import { Home } from "lucide-react";
+import { use, useEffect } from "react";
 
 export default function AuthPage() {
   const router = useRouter();
+  useEffect(() => {
+    if (localStorage.getItem("accessToken")) {
+      router.push("/matching");
+    }
+  }, [router]);
 
   return (
     <div>

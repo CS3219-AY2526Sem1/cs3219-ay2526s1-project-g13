@@ -39,9 +39,15 @@ export default function MatchingPage() {
         }
       } catch (err) {
         console.error("Failed to fetch user:", err);
+        let message = "";
+        if (err instanceof Error && err.message === "User is logged out") {
+          message = "Login session expired, please log in again.";
+        } else if (err instanceof Error && err.message === "No access token found") {
+          message = "Please log in to use PeerPrep";
+        }
         setDialog({
           open: true,
-          message: "Login session expired, please log in again.",
+          message: message,
           description: "Redirecting to login page in 5 seconds...",
           icon: "circle-x",
           setOpen: () => {},

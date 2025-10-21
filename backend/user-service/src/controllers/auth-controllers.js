@@ -73,8 +73,22 @@ exports.verifyUser = async (req, res) => {
     user.verificationCode = null;
     user.verificationCodeExpiry = null;
     await user.save();
+    const accessToken = user.generateAccessToken(5 * 60);
+    const refreshToken = user.generateRefreshToken(7 * 24 * 60 * 60);
+    console.log("Access Token:", accessToken);
+    console.log("Refresh Token:", refreshToken);
 
-    return res.status(200).json({ message: "User verified successfully" });
+    // Set HttpOnly cookies
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      path: "/",
+      secure: false,
+      sameSite: "lax",
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    
+
+    return res.status(200).json({ message: "User verified and logged in successfully", accessToken: accessToken });
   } catch (err) {
     console.error(err);
     return res.status(400).json({ message: "Please try again" });
@@ -204,13 +218,12 @@ exports.refresh = async (req, res) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-    // const userId = req.params.userid;
     const userId = req.userId; // from auth middleware
     console.log("Fetching profile for userId:", userId);
     if (!userId) {
       return res.status(400).json({ error: "User ID required" });
     }
-    const user = await User.findById(userId); // exclude password
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
