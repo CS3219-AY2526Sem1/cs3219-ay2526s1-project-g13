@@ -86,9 +86,10 @@ exports.verifyUser = async (req, res) => {
       sameSite: "lax",
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-    
 
-    return res.status(200).json({ message: "User verified and logged in successfully", accessToken: accessToken });
+    return res
+      .status(200)
+      .json({ message: "User verified and logged in successfully", accessToken: accessToken });
   } catch (err) {
     console.error(err);
     return res.status(400).json({ message: "Please try again" });
