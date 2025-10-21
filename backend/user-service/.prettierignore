@@ -3,4 +3,6 @@ dist
 build
 coverage
 .next
-.env
+/.vercel
+*.lock
+pnpm-lock.yaml
