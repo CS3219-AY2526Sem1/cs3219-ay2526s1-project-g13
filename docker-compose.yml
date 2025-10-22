@@ -15,23 +15,6 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
-  user-service:
-    build: 
-      context: ./backend/user-service
-      dockerfile: Dockerfile.user
-    container_name: user-service
-    ports:
-      - "8001:8001"
-    env_file:
-      - ./backend/user-service/.env
-    environment:
-      MONGO_URI: mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
-      WEB_BASE_URL: http://localhost:3000
-      API_BASE_URL: http://localhost:8001
-      PORT: 8001
-      EMAIL_USER: peerprep.team@gmail.com
-    networks:
-      - cs3219-peerprep-network
 
   collaboration-service:
     build:
