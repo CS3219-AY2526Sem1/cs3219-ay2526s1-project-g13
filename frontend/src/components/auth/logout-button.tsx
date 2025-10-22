@@ -18,11 +18,9 @@ export default function LogoutButton() {
       });
 
       console.log("Logout successful:", res.data);
-
-      // Optionally remove token if using JWT
       localStorage.removeItem("accessToken");
+      localStorage.setItem("logout", Date.now().toString());
 
-      // Redirect to login
       router.push("/");
     } catch (err: unknown) {
       const error = err as AxiosError;

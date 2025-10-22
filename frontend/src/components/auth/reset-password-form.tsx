@@ -72,8 +72,11 @@ export default function ResetPasswordForm() {
     onSuccess: () => {
       setOpen(true);
       setMessage("Password reset successful");
-      setDescription("You may now log in with your new password");
+      setDescription("Redirecting to login page in 5 seconds...");
       setIcon("circle-check");
+      setTimeout(() => {
+        router.push("/auth");
+      }, 5000);
     },
     onError: (error) => {
       const backendMsg = error.response?.data?.error || error.message;

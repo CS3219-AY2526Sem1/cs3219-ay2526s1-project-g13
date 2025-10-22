@@ -25,15 +25,20 @@ export default function AccountPage() {
           url: "http://localhost:8001/v1/account",
           withCredentials: true,
         });
-
         setUsername(res.data.username);
         setEmail(res.data.email);
       } catch (err) {
+        let message = "";
+        if (err instanceof Error && err.message === "User is logged out") {
+          message = "Login session expired, please log in again.";
+        } else if (err instanceof Error && err.message === "No access token found") {
+          message = "Please log in to use PeerPrep";
+        }
         console.error("Failed to fetch user:", err);
         setDialog({
           open: true,
-          message: "Login session expired",
-          description: "Please log in again.",
+          message: message,
+          description: "Redirecting to login page in 5 seconds...",
           icon: "circle-x",
           setOpen: () => {},
           showCloseButton: false,

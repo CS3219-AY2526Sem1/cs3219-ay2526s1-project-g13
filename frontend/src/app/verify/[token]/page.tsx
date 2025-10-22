@@ -30,6 +30,7 @@ type VerifyPayload = {
 
 type VerifyResponse = {
   message?: string;
+  accessToken?: string;
 };
 
 type BackendError = {
@@ -54,8 +55,20 @@ export default function VerifyAccountPage() {
     onSuccess: (data) => {
       setOpen(true);
       setTitle("Verify account successfully!");
-      setDescription(data.message || "You may now log in to your account.");
-      setIcon("user-round-check");
+      console.log(data.message);
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.removeItem("logout");
+        setDescription("Redirecting to matching page in 5 seconds...");
+        setIcon("user-round-check");
+        setTimeout(() => {
+          router.push("/matching");
+        }, 5000);
+      } else {
+        console.log("No access token received upon verification.");
+        setDescription("You can now log in to your account.");
+        setIcon("circle-check");
+      }
     },
     onError: (error) => {
       setOpen(true);
