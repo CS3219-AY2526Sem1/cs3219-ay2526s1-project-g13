@@ -6,8 +6,8 @@ import {
   NavigationMenuList,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import LogoutButton from "../auth/logout-button";
 
 export default function Navbar() {
   return (
@@ -24,7 +24,7 @@ export default function Navbar() {
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link href="/practice">Practice</Link>
+                <Link href="/matching">Practice</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
@@ -35,16 +35,7 @@ export default function Navbar() {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
-              <Button
-                variant="secondary"
-                className="text-black"
-                onClick={() => {
-                  // Handle logout logic here
-                  console.log("Logout clicked");
-                }}
-              >
-                Logout
-              </Button>
+              <LogoutButton />
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>

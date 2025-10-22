@@ -2,24 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MatchMake from "@/components/matching/match-make";
-import { useMatchingStore } from "@/stores/matching-store";
-import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/ui/nav-bar";
 import MessageDialog from "@/components/ui/message-dialog";
+import AccountForm from "@/components/auth/account-form";
+import { useAuth } from "@/hooks/use-auth";
 import { DialogState, defaultDialogState } from "@/types/dialog";
 
-export default function MatchingPage() {
+export default function AccountPage() {
   const router = useRouter();
-  const { authRequest } = useAuth();
-  const { roomId, matchFound, initializeSocket, setUser, cleanup } = useMatchingStore();
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [dialog, setDialog] = useState<DialogState>(defaultDialogState);
 
-  useEffect(() => {
-    if (matchFound && roomId) {
-      router.push("/room");
-    }
-  }, [matchFound, roomId, router]);
+  const { authRequest } = useAuth();
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -30,19 +25,15 @@ export default function MatchingPage() {
           url: "http://localhost:8001/v1/account",
           withCredentials: true,
         });
-        const authUser = res.data;
-        setUser(authUser);
-        initializeSocket(authUser);
-        if (timeout) {
-          clearTimeout(timeout);
-          timeout = null;
-        }
+
+        setUsername(res.data.username);
+        setEmail(res.data.email);
       } catch (err) {
         console.error("Failed to fetch user:", err);
         setDialog({
           open: true,
-          message: "Login session expired, please log in again.",
-          description: "Redirecting to login page in 5 seconds...",
+          message: "Login session expired",
+          description: "Please log in again.",
           icon: "circle-x",
           setOpen: () => {},
           showCloseButton: false,
@@ -56,25 +47,12 @@ export default function MatchingPage() {
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [authRequest, initializeSocket, setUser, router]);
-
-  // Cleanup socket when component unmounts
-  useEffect(() => {
-    return () => {
-      // Only cleanup if we're not in a matching state and don't have a room
-      const { isMatching, roomId } = useMatchingStore.getState();
-      if (!isMatching && !roomId) {
-        cleanup();
-      }
-    };
-  }, [cleanup]);
+  }, [authRequest, router]);
 
   return (
-    <div className="min-h-screen bg-[#d4eaf8]">
+    <div>
       <Navbar />
-      <main className="pt-8">
-        <MatchMake />
-      </main>
+      <AccountForm email={email} originalUsername={username} setDialog={setDialog} />
       <MessageDialog
         open={dialog.open}
         setOpen={dialog.setOpen || ((open: boolean) => setDialog((prev) => ({ ...prev, open })))}
