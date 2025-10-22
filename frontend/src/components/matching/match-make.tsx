@@ -18,7 +18,7 @@ import { LeafIcon, FlameIcon, LightningIcon } from "./difficulty-icons";
 import { topics } from "./topic-icons";
 
 const MatchMake = () => {
-  const { authRequest } = useAuth();
+  const { refreshToken } = useAuth();
   const { isMatching, selectedTopic, matchFound } = useMatchingState();
   const { startMatch, setSelectedTopic } = useMatchingActions();
   const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY | null>(null);
@@ -34,19 +34,9 @@ const MatchMake = () => {
   const topicChunks = chunkTopics(topics, 8);
 
   const findMatch = async () => {
-    try {
-      const res = await authRequest({
-        method: "GET",
-        url: "http://localhost:8001/v1/account",
-        withCredentials: true,
-      });
-      const authUser = res.data;
-      if (authUser) {
-        startMatch(selectedDifficulty || DIFFICULTY.EASY, selectedTopic || undefined);
-      }
-    } catch (err) {
-      console.error("User expired before matchmaking:", err);
-    }
+    await refreshToken(() =>
+      startMatch(selectedDifficulty || DIFFICULTY.EASY, selectedTopic || undefined),
+    );
   };
 
   if (isMatching || (!isMatching && matchFound)) {
