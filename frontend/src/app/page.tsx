@@ -1,8 +1,17 @@
+"use client";
 import Header from "@/components/ui/header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
+  const router = useRouter();
+  useEffect(() => {
+    if (!localStorage.getItem("logout")) {
+      router.push("/matching");
+    }
+  }, [router]);
   return (
     <main>
       <Header />
