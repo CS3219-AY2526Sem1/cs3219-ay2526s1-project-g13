@@ -73,6 +73,8 @@ exports.verifyUser = async (req, res) => {
     user.verificationCode = null;
     user.verificationCodeExpiry = null;
     await user.save();
+
+    // Log in the user upon successful verification
     const accessToken = user.generateAccessToken(5 * 60);
     const refreshToken = user.generateRefreshToken(7 * 24 * 60 * 60);
     console.log("Access Token:", accessToken);

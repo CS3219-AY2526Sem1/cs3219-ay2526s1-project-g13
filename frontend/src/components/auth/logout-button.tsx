@@ -21,7 +21,6 @@ export default function LogoutButton() {
       localStorage.removeItem("accessToken");
       localStorage.setItem("logout", Date.now().toString());
 
-      // Redirect to login
       router.push("/");
     } catch (err: unknown) {
       const error = err as AxiosError;
