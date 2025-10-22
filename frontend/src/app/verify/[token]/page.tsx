@@ -22,6 +22,8 @@ import axios, { AxiosError } from "axios";
 import MessageDialog from "@/components/ui/message-dialog";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
+import PublicRoute from "@/components/auth/public-route";
+import { useAuthContext } from "@/contexts/auth-context";
 
 type VerifyPayload = {
   verificationCode: number;
@@ -46,19 +48,20 @@ export default function VerifyAccountPage() {
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("");
   const router = useRouter();
+  const { checkAuth } = useAuthContext();
 
   const mutation = useMutation<VerifyResponse, AxiosError<BackendError>, VerifyPayload>({
     mutationFn: async (payload) => {
       const res = await axios.post<VerifyResponse>("http://localhost:8001/v1/verify", payload);
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setOpen(true);
       setTitle("Verify account successfully!");
       console.log(data.message);
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
-        localStorage.removeItem("logout");
+        await checkAuth(); // Update auth context
         setDescription("Redirecting to matching page in 5 seconds...");
         setIcon("user-round-check");
         setTimeout(() => {
@@ -128,84 +131,86 @@ export default function VerifyAccountPage() {
   const isResendLoading = resendMutation.isPending;
 
   return (
-    <div>
-      <Header />
-      <div className="min-h-screen flex flex-col items-center justify-center gap-10">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-            Account Verification
-          </h1>
-        </div>
+    <PublicRoute>
+      <div>
+        <Header />
+        <div className="min-h-screen flex flex-col items-center justify-center gap-10">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+              Account Verification
+            </h1>
+          </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-sm">
-          <Card>
-            <CardHeader className="items-center text-center">
-              <CardTitle>We have sent a verification code to your email address.</CardTitle>
-              <CardDescription>Enter the code below to verify your account</CardDescription>
-            </CardHeader>
+          <form onSubmit={handleSubmit} className="w-full max-w-sm">
+            <Card>
+              <CardHeader className="items-center text-center">
+                <CardTitle>We have sent a verification code to your email address.</CardTitle>
+                <CardDescription>Enter the code below to verify your account</CardDescription>
+              </CardHeader>
 
-            <CardContent className="grid gap-6">
-              <div className="grid gap-3">
-                <InputOTP
-                  maxLength={6}
-                  onChange={(value: string) => {
-                    const numericValue = value.replace(/\D/g, "");
-                    setOtp(numericValue);
-                  }}
+              <CardContent className="grid gap-6">
+                <div className="grid gap-3">
+                  <InputOTP
+                    maxLength={6}
+                    onChange={(value: string) => {
+                      const numericValue = value.replace(/\D/g, "");
+                      setOtp(numericValue);
+                    }}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  {error && <p className="text-red-600 text-sm">{error}</p>}
+                </div>
+              </CardContent>
+
+              <CardFooter>
+                <Button type="submit" className="w-full" disabled={isVerifyLoading}>
+                  {isVerifyLoading ? <Spinner /> : "Verify"}
+                </Button>
+              </CardFooter>
+              <CardFooter>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleResendCode}
+                  className="w-full"
+                  disabled={isResendLoading}
                 >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-                {error && <p className="text-red-600 text-sm">{error}</p>}
-              </div>
-            </CardContent>
-
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isVerifyLoading}>
-                {isVerifyLoading ? <Spinner /> : "Verify"}
-              </Button>
-            </CardFooter>
-            <CardFooter>
+                  {isResendLoading ? <Spinner /> : "Resend code"}
+                </Button>
+              </CardFooter>
               <Button
                 type="button"
-                variant="default"
+                variant="link"
                 size="sm"
-                onClick={handleResendCode}
+                onClick={() => router.push("/auth")}
                 className="w-full"
-                disabled={isResendLoading}
               >
-                {isResendLoading ? <Spinner /> : "Resend code"}
+                Back to login
               </Button>
-            </CardFooter>
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              onClick={() => router.push("/auth")}
-              className="w-full"
-            >
-              Back to login
-            </Button>
-          </Card>
-        </form>
-      </div>
+            </Card>
+          </form>
+        </div>
 
-      <MessageDialog
-        open={open}
-        setOpen={setOpen}
-        title={title}
-        description={description}
-        icon={icon}
-      />
-    </div>
+        <MessageDialog
+          open={open}
+          setOpen={setOpen}
+          title={title}
+          description={description}
+          icon={icon}
+        />
+      </div>
+    </PublicRoute>
   );
 }

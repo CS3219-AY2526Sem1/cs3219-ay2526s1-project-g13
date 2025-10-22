@@ -1,20 +1,15 @@
 "use client";
-import Header from "@/components/ui/header";
+import Navbar from "@/components/ui/nav-bar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/contexts/auth-context";
 
 export default function LandingPage() {
-  const router = useRouter();
-  useEffect(() => {
-    if (!localStorage.getItem("logout")) {
-      router.push("/matching");
-    }
-  }, [router]);
+  const { isAuthenticated } = useAuthContext();
+
   return (
     <main>
-      <Header />
+      <Navbar />
       <section className="bg-background min-h-screen flex flex-col items-center justify-center text-center p-6">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">Welcome to PeerPrep</h1>
         <p className="text-lg sm:text-xl text-gray-700 mb-6 max-w-2xl">
@@ -22,9 +17,15 @@ export default function LandingPage() {
           prepare confidently for your next job. Solve challenges, track progress, and collaborate
           with peers to level up your interview game.
         </p>
-        <Link href="/auth">
-          <Button className="w-full">Get Started</Button>
-        </Link>
+        {isAuthenticated ? (
+          <Link href="/matching">
+            <Button className="w-full">Go to Matching</Button>
+          </Link>
+        ) : (
+          <Link href="/auth">
+            <Button className="w-full">Get Started</Button>
+          </Link>
+        )}
       </section>
     </main>
   );

@@ -21,10 +21,11 @@ export function useAuth() {
         err.response?.status === 401 &&
         err.response?.data?.error === "Invalid or expired refresh token"
       ) {
-        console.error("Refresh token has expired:", err);
+        console.log("Refresh token has expired, user needs to log in again");
         localStorage.removeItem("accessToken");
+      } else {
+        console.error("Failed to refresh access token:", err);
       }
-      console.error("Failed to refresh access token:", err);
       return null;
     }
   }, []);
