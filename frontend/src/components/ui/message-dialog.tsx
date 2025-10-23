@@ -3,28 +3,55 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { MailCheck, UserRoundCheck, CircleCheck, CircleX } from "lucide-react";
 
 interface MessageDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   title: string;
   description?: string;
+  icon?: string;
+  showCloseButton?: boolean;
 }
 
-export default function MessageDialog({ open, setOpen, title, description }: MessageDialogProps) {
+// default icon mapping
+const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  "mail-check": MailCheck,
+  "user-round-check": UserRoundCheck,
+  "circle-check": CircleCheck,
+  "circle-x": CircleX,
+};
+
+export default function MessageDialog({
+  open,
+  setOpen,
+  title,
+  description,
+  icon,
+  showCloseButton = true,
+}: MessageDialogProps) {
+  const IconComponent = icon ? iconMap[icon] || null : null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent
+        className="flex flex-col items-center justify-center space-y-1"
+        showCloseButton={showCloseButton}
+      >
+        {/* Icon */}
+        {IconComponent && <IconComponent size={40} className="text-primary" />}
+
+        {/* Text */}
+        <div className="flex flex-col items-center text-center space-y-1">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        <DialogFooter></DialogFooter>
+        </div>
+
+        <DialogFooter />
       </DialogContent>
     </Dialog>
   );

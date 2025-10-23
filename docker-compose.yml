@@ -74,6 +74,23 @@ services:
       - kafka
     networks:
       - cs3219-peerprep-network
+  user-service:
+    build: 
+      context: ./backend/user-service
+      dockerfile: Dockerfile.user
+    container_name: user-service
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/user-service/.env
+    environment:
+      MONGO_URI: mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      WEB_BASE_URL: http://localhost:3000
+      API_BASE_URL: http://localhost:8001
+      PORT: 8001
+      EMAIL_USER: peerprep.team@gmail.com
+    networks:
+      - cs3219-peerprep-network
 
   collaboration-service:
     build:
@@ -89,6 +106,22 @@ services:
       - HTTP_PORT=8004
       - WS_PORT=8005
       - ROOM_TIMEOUT_MINUTES=10
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+
+  question-service:
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile.question
+    container_name: question-service
+    restart: always
+    ports:
+      - '8003:8003'
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
+      - PORT=8003
     depends_on:
       - mongodb
     networks:

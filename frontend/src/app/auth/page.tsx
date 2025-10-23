@@ -1,5 +1,4 @@
 "use client";
-import { useState, useCallback, FormEvent } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import SignInForm from "@/components/auth/sign-in-form";
@@ -8,91 +7,8 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/ui/header";
 import { Home } from "lucide-react";
 
-// Types for errors
-type SignUpErrors = {
-  username?: string;
-  email?: string;
-  password?: string;
-  retypePassword?: string;
-};
-
 export default function AuthPage() {
   const router = useRouter();
-  const [signUpErrors, setSignUpErrors] = useState<SignUpErrors>({});
-
-  // Dummy submit function
-  const submitForm = useCallback(
-    async (payload: Record<string, string> & { type: "sign-in" | "sign-up" }) => {
-      console.log("Submitting payload:", payload);
-      await new Promise((res) => setTimeout(res, 700));
-      return { ok: true, message: "Submitted (dummy)" };
-    },
-    [],
-  );
-
-  // Validation
-  const validateSignUp = (username: string, password: string, retypePassword: string) => {
-    const errors: SignUpErrors = {};
-
-    if (!username || username.length < 6 || username.length > 32)
-      errors.username = "Username must be 6–32 characters";
-    else if (/^\d+$/.test(username)) errors.username = "Username cannot be only numbers";
-
-    if (!password || password.length < 12 || password.length > 64)
-      errors.password = "Password must be 12–64 characters";
-    else {
-      const hasUpper = /[A-Z]/.test(password);
-      const hasLower = /[a-z]/.test(password);
-      const hasDigit = /[0-9]/.test(password);
-      const hasSpecial = /[^\w\s]/.test(password);
-      if (!(hasUpper && hasLower && hasDigit && hasSpecial))
-        errors.password =
-          "Password must include 1 uppercase, 1 lowercase, 1 number, and 1 special character";
-    }
-
-    if (password !== retypePassword) errors.retypePassword = "Passwords do not match";
-
-    return errors;
-  };
-
-  const handleSignInSubmit = async (e: FormEvent, username: string, password: string) => {
-    e.preventDefault();
-    const res = await submitForm({
-      type: "sign-in",
-      username,
-      password,
-    });
-    if (res.ok) {
-      alert("Signed in (dummy)");
-    }
-  };
-
-  const handleSignUpSubmit = async (
-    e: FormEvent,
-    username: string,
-    email: string,
-    password: string,
-    retypePassword: string,
-  ) => {
-    e.preventDefault();
-    const errors = validateSignUp(username, password, retypePassword);
-    if (Object.keys(errors).length > 0) {
-      setSignUpErrors(errors);
-      return;
-    }
-    setSignUpErrors({});
-    const res = await submitForm({
-      type: "sign-up",
-      username,
-      email,
-      password,
-      retypePassword,
-    });
-    if (res.ok) {
-      // Redirect to verification page (dummy)
-      router.push("/verify/1");
-    }
-  };
 
   return (
     <div>
@@ -126,12 +42,12 @@ export default function AuthPage() {
 
             {/* Sign In */}
             <TabsContent value="sign-in">
-              <SignInForm onSubmit={handleSignInSubmit} />
+              <SignInForm />
             </TabsContent>
 
             {/* Sign Up */}
             <TabsContent value="sign-up">
-              <SignUpForm onSubmit={handleSignUpSubmit} errors={signUpErrors} />
+              <SignUpForm />
             </TabsContent>
           </Tabs>
         </div>
