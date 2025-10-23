@@ -3,7 +3,8 @@
 import { useRef, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Editor } from "@monaco-editor/react";
-import { editor } from "monaco-editor";
+import type { editor } from "monaco-editor";
+import * as monaco from "monaco-editor";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import { MonacoBinding } from "y-monaco";
@@ -48,6 +49,7 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
   const { changeLanguage, updateLanguage } = useCollaborationActions();
 
   const [editorInstance, setEditorInstance] = useState<editor.IStandaloneCodeEditor | null>(null);
+  const [monacoInstance, setMonacoInstance] = useState<typeof monaco | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionState>(
     ConnectionState.DISCONNECTED,
   );
@@ -101,12 +103,10 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
       try {
         const message = JSON.parse(event.data);
         if (message.type === "language-change-notification") {
-          console.log("Language changed to:", message.data.language);
           const programmingLanguage = message.data.language as ProgrammingLanguage;
           updateLanguage(programmingLanguage);
           toast.info(`Language changed to ${programmingLanguageDisplayMap[programmingLanguage]}`);
         } else if (message.type === "room-close-notification") {
-          console.log("Room closed at:", message.data.closedAt);
           toast.warn("The collaboration room has been closed");
         }
       } catch {
@@ -126,13 +126,13 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
 
   // Update Monaco language when room language changes
   useEffect(() => {
-    if (editorInstance && monacoLanguage) {
+    if (editorInstance && monacoLanguage && monacoInstance) {
       const model = editorInstance.getModel();
       if (model) {
-        editor.setModelLanguage(model, monacoLanguage);
+        monacoInstance.editor.setModelLanguage(model, monacoLanguage);
       }
     }
-  }, [editorInstance, monacoLanguage]);
+  }, [editorInstance, monacoLanguage, monacoInstance]);
 
   // Handle language change from dropdown
   const handleLanguageChange = async (language: ProgrammingLanguage) => {
@@ -143,8 +143,12 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
   };
 
   // Handle editor mount
-  const handleEditorDidMount = (editorRef: editor.IStandaloneCodeEditor) => {
+  const handleEditorDidMount = (
+    editorRef: editor.IStandaloneCodeEditor,
+    monacoRef: typeof monaco,
+  ) => {
     setEditorInstance(editorRef);
+    setMonacoInstance(monacoRef);
 
     // Set document content for read-only mode
     if (readOnly && documentContent) {

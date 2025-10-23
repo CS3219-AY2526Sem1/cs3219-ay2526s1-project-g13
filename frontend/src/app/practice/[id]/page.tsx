@@ -2,15 +2,20 @@
 
 import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import Header from "@/components/ui/header";
 import QuestionPanel from "@/components/practice/question-panel";
-import CodeEditorPanel from "@/components/practice/code-editor-panel";
 import CommunicationPanel from "@/components/practice/communication-panel";
 import CodeOutputPanel from "@/components/practice/code-output-panel";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
+
+const CodeEditorPanel = dynamic(() => import("@/components/practice/code-editor-panel"), {
+  ssr: false,
+  loading: () => <div className="h-full flex items-center justify-center">Loading editor...</div>,
+});
 
 export default function PracticePage() {
   const router = useRouter();
@@ -72,11 +77,6 @@ export default function PracticePage() {
     <div className="h-screen w-full flex flex-col">
       <Header>
         <div className="flex items-center gap-4">
-          {/* {isReadOnly && (
-            <span className="text-sm text-muted-foreground px-3 py-1 bg-muted rounded">
-              Read-Only Mode
-            </span>
-          )} */}
           <Button variant={"destructive"} onClick={handleLeaveSession}>
             Leave Room
           </Button>
