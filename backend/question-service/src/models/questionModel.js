@@ -51,6 +51,10 @@ const questionSchema = mongoose.Schema({
       },
     ],
   },
+  link: {
+    type: String,
+    required: false,
+  }
 })
 
 // Export to be used in the controller
