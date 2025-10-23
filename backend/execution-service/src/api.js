@@ -3,7 +3,7 @@ const axios = require('axios');
 const connectDB = require(`./config/db`)
 const Submission = require(`./models/submissionModel`)
 const app = express()
-const PORT = 8000
+const PORT = 8010
 
 // connect the mongodb db
 connectDB()

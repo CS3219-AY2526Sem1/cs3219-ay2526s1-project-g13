@@ -1,11 +1,31 @@
-FROM node:18-slim
+# Use Node.js 20 Alpine as base image
+FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install -g pnpm
-RUN pnpm install
+# Install pnpm globally
+RUN npm install -g pnpm@10.17.1
 
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Copy source code
 COPY . .
 
-CMD ["pnpm", "run", "dev"]
+# Remove dev dependencies to reduce image size
+RUN pnpm prune --prod
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S execution-service -u 1011
+
+# Change ownership of the app directory
+RUN chown -R execution-service:nodejs /app
+USER execution-service
+
+# Start the application
+CMD ["pnpm", "start"]

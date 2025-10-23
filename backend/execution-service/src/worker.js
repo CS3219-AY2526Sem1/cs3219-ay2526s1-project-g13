@@ -22,7 +22,11 @@ async function callPistonAPI(language, source_code) {
         const response = await axios.post(pistonURL, payload)
         return response.data
     } catch (error) {
-        console.error("Error when calling Piston API:", error.message);
+        if (error.response) {
+            console.error("Error from Piston API: ", error.response.data);
+        } else {
+            console.error("Error when calling Piston API:", error.message);
+        }
         throw new Error("Piston API execution failed");
     }
 }
