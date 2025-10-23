@@ -121,3 +121,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Yjs Awareness Cursor Styles */
+.yRemoteSelection {
+  background-color: var(--selection-color, oklch(0.7 0.2 150 / 0.3));
+}
+
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid var(--cursor-color, oklch(0.7 0.2 150 / 0.3));
+  border-top: 2px solid var(--cursor-color, oklch(0.7 0.2 150 / 0.3));
+  border-bottom: 2px solid var(--cursor-color, oklch(0.7 0.2 150 / 0.3));
+  height: 100%;
+}
