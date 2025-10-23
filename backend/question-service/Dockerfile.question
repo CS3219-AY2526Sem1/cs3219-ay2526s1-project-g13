@@ -10,14 +10,11 @@ RUN npm install -g pnpm@10.17.1
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies
+# Install dependencies (including dev dependencies for development)
 RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY . .
-
-# Remove dev dependencies to reduce image size
-RUN pnpm prune --prod
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs

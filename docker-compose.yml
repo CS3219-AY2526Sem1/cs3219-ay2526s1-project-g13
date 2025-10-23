@@ -55,13 +55,13 @@ services:
   question-service:
     build:
       context: ./backend/question-service
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.question
     container_name: question-service
     restart: always
     ports:
       - '8003:8003'
     environment:
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
       - PORT=8003
     depends_on:
       - mongodb

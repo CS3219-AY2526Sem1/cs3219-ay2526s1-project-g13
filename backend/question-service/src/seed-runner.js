@@ -5,7 +5,7 @@ const Question = require('./models/questionModel')
 
 const seedFile = path.join(__dirname, 'data', 'seed.json')
 
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DB_URI || 'mongodb://admin:password@localhost:27017/question-service?authSource=admin'
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DB_URI || 'mongodb://admin:password@localhost:27017/peerprepQuestionServiceDB?authSource=admin'
 
 async function run() {
   if (!fs.existsSync(seedFile)) {
