@@ -17,7 +17,8 @@ app.post('/v1/execution/submit', async (req, res) => {
   try {
     // take parameters
     const {language, source_code} = req.body
-    console.log(language, source_code)
+    console.log(">>> Language: ", language)
+    console.log(">>> Source code: ", source_code)
 
     // add new submission in database
     const newSubmission = await Submission.create({

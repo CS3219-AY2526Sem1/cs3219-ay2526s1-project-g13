@@ -58,7 +58,7 @@ services:
     ports:
       - "8010:8010"
     env_file:
-      - ./.env
+      - ./backend/execution-service/.env
     depends_on:
       - mongodb
     networks:
@@ -68,7 +68,7 @@ services:
     build: ./backend/execution-service
     container_name: execution-worker
     env_file:
-      - ./.env
+      - ./backend/execution-service/.env
     depends_on:
       - mongodb
     networks:
