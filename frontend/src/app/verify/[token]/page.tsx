@@ -190,15 +190,6 @@ export default function VerifyAccountPage() {
                   {isResendLoading ? <Spinner /> : "Resend code"}
                 </Button>
               </CardFooter>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={() => router.push("/auth")}
-                className="w-full"
-              >
-                Back to login
-              </Button>
             </Card>
           </form>
         </div>

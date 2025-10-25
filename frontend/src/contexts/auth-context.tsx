@@ -15,12 +15,15 @@ interface User {
   _id: string;
   username: string;
   email: string;
+  role: "user" | "admin";
 }
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
+  isAdmin: boolean;
+  isUser: boolean;
   checkAuth: () => Promise<void>;
   logout: () => void;
 }
@@ -93,6 +96,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isLoading,
     user,
+    isAdmin: user?.role === "admin",
+    isUser: user?.role === "user",
     checkAuth,
     logout,
   };
