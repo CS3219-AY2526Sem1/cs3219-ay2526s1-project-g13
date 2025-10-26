@@ -21,6 +21,7 @@ import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { DialogState, defaultDialogState } from "@/types/dialog";
+import { useAuthContext } from "@/contexts/auth-context";
 
 type FormValues = {
   username: string;
@@ -44,6 +45,7 @@ type BackendError = {
 
 export default function SignInForm() {
   const router = useRouter();
+  const { checkAuth } = useAuthContext();
 
   const {
     register,
@@ -67,8 +69,9 @@ export default function SignInForm() {
       });
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       localStorage.setItem("accessToken", data.accessToken);
+      await checkAuth(); // Update auth context
       setDialog({
         open: true,
         message: "Login successful",
@@ -139,7 +142,7 @@ export default function SignInForm() {
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 z-10"
                   onClick={() => setShowPassword((s) => !s)}
                 >
                   {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
