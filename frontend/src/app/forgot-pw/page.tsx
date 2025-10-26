@@ -8,6 +8,7 @@ import MessageDialog from "@/components/ui/message-dialog";
 import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import { Spinner } from "@/components/ui/spinner";
+import PublicRoute from "@/components/auth/public-route";
 
 type ForgotPasswordPayload = {
   email: string;
@@ -69,42 +70,44 @@ export default function ForgotPasswordPage() {
   const isLoading = mutation.isPending;
 
   return (
-    <div>
-      <Header />
-      <h1 className="mt-40 text-center text-3xl sm:text-4xl font-extrabold tracking-tight">
-        Forgot your password?
-      </h1>
-      <div className="mt-20 flex items-center justify-center ">
-        <div className="w-full max-w-md rounded-2xl bg-white shadow-lg sm:p-8 space-y-6">
-          <p className="text-center text-sm sm:text-base font-medium text-gray-600">
-            Enter your email to receive a password reset link.
-          </p>
-          <div className="space-y-4">
-            <form onSubmit={handleSendEmail}>
-              <Input
-                type="email"
-                placeholder="Email"
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button className="mt-4 w-full" type="submit">
-                {isLoading ? <Spinner /> : "Send Email"}
+    <PublicRoute>
+      <div>
+        <Header />
+        <h1 className="mt-40 text-center text-3xl sm:text-4xl font-extrabold tracking-tight">
+          Forgot your password?
+        </h1>
+        <div className="mt-20 flex items-center justify-center ">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-lg sm:p-8 space-y-6">
+            <p className="text-center text-sm sm:text-base font-medium text-gray-600">
+              Enter your email to receive a password reset link.
+            </p>
+            <div className="space-y-4">
+              <form onSubmit={handleSendEmail}>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <Button className="mt-4 w-full" type="submit">
+                  {isLoading ? <Spinner /> : "Send Email"}
+                </Button>
+              </form>
+              <Button variant="outline" className="w-full" onClick={handleBackToLogin}>
+                Back to login
               </Button>
-            </form>
-            <Button variant="outline" className="w-full" onClick={handleBackToLogin}>
-              Back to login
-            </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <MessageDialog
-        open={open}
-        setOpen={setOpen}
-        title={title}
-        description={description}
-        icon={icon}
-      />
-    </div>
+        <MessageDialog
+          open={open}
+          setOpen={setOpen}
+          title={title}
+          description={description}
+          icon={icon}
+        />
+      </div>
+    </PublicRoute>
   );
 }
