@@ -1,7 +1,6 @@
 import { Kafka, Admin, Consumer, Producer, EachMessagePayload } from 'kafkajs';
 
 export const MATCH_TOPIC = 'match_topic';
-export const COLLAB_TOPIC = 'collaboration_topic';
 export const QUESTION_TOPIC = 'question_topic';
 
 type MessageHandler = (message: { key?: string | null; value?: string | null }) => Promise<void> | void;
@@ -11,6 +10,7 @@ export class KafkaManager {
   private admin: Admin;
   private producer: Producer;
   private consumer: Consumer;
+  private isConnected = false;
 
   constructor() {
     console.log('KafkaManager constructor');
@@ -34,6 +34,11 @@ export class KafkaManager {
   }
 
   async initWithRetry(maxRetries = 5, retryDelayMs = 2000): Promise<void> {
+    if (this.isConnected) {
+      console.log('Already connected to Kafka');
+      return;
+    }
+    
     let attempt = 0;
     // retry with linear backoff
     while (attempt < maxRetries) {
@@ -45,9 +50,6 @@ export class KafkaManager {
 
         if (!existing.includes(MATCH_TOPIC)) {
           topicsToCreate.push({ topic: MATCH_TOPIC, numPartitions: 1, replicationFactor: 1 });
-        }
-        if (!existing.includes(COLLAB_TOPIC)) {
-          topicsToCreate.push({ topic: COLLAB_TOPIC, numPartitions: 1, replicationFactor: 1 });
         }
         if (!existing.includes(QUESTION_TOPIC)) {
           topicsToCreate.push({ topic: QUESTION_TOPIC, numPartitions: 1, replicationFactor: 1 });
@@ -63,6 +65,7 @@ export class KafkaManager {
         await this.admin.disconnect();
         await this.producer.connect();
         await this.consumer.connect();
+        this.isConnected = true; 
         console.log('Connected to Kafka');
         return;
       } catch (err) {
@@ -86,18 +89,10 @@ export class KafkaManager {
   }): Promise<void> {
     await this.initWithRetry();
 
-    await this.consumer.subscribe({ topic: COLLAB_TOPIC, fromBeginning: true });
-    await this.consumer.subscribe({ topic: QUESTION_TOPIC, fromBeginning: true });
+    await this.consumer.subscribe({ topic: QUESTION_TOPIC, fromBeginning: false });
 
-    await this.consumer.run({
+    this.consumer.run({
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
-        if (topic === COLLAB_TOPIC && handlers.onCollabMessage) {
-          await handlers.onCollabMessage({
-            key: message.key?.toString(),
-            value: message.value?.toString(),
-          });
-          return;
-        }
         if (topic === QUESTION_TOPIC && handlers.onQuestionMessage) {
           await handlers.onQuestionMessage({
             key: message.key?.toString(),
@@ -108,6 +103,64 @@ export class KafkaManager {
     });
   }
 
+  async clearAllTopics(): Promise<void> {
+    try {
+      console.log('Clearing Kafka topics...');
+      
+      if (!this.isConnected) {
+        await this.admin.connect();
+      }
+      
+      const topicsToDelete = [MATCH_TOPIC, QUESTION_TOPIC];
+      const existingTopics = await this.admin.listTopics();
+      const topicsToRemove = topicsToDelete.filter(topic => existingTopics.includes(topic));
+      
+      if (topicsToRemove.length > 0) {
+        await this.admin.deleteTopics({
+          topics: topicsToRemove,
+          timeout: 5000
+        });
+        console.log(`Deleted Kafka topics: ${topicsToRemove.join(', ')}`);
+      } else {
+        console.log('No Kafka topics to delete');
+      }
+      
+      console.log('Kafka topics cleared');
+    } catch (error) {
+      console.error('Error clearing Kafka topics:', error);
+    }
+  }
+
+  async resetConsumerOffsets(): Promise<void> {
+    try {
+      console.log('Resetting Kafka consumer offsets...');
+      
+      if (!this.isConnected) {
+        await this.admin.connect();
+      }
+      
+      const groupId = 'matching-service-group';
+      const topics = [MATCH_TOPIC, QUESTION_TOPIC];
+      
+      for (const topic of topics) {
+        try {
+          await this.admin.resetOffsets({
+            groupId,
+            topic,
+            earliest: false 
+          });
+          console.log(`Reset offsets for topic: ${topic}`);
+        } catch (error) {
+          console.log(`No offsets to reset for topic: ${topic}`);
+        }
+      }
+      
+      console.log('Kafka consumer offsets reset');
+    } catch (error) {
+      console.error('Error resetting Kafka consumer offsets:', error);
+    }
+  }
+
   async disconnect(): Promise<void> {
     try { await this.consumer.disconnect(); } catch {}
     try { await this.producer.disconnect(); } catch {}
@@ -115,5 +168,4 @@ export class KafkaManager {
   }
 }
 
-// Optional singleton instance for convenience
 export const kafkaManager = new KafkaManager();

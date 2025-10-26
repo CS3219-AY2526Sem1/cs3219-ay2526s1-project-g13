@@ -9,7 +9,16 @@ const router = express.Router();
  */
 router.post("/", async (req, res) => {
   try {
-    const room = await roomController.create();
+    const { questionId, userIds, programmingLanguage } = req.body;
+    
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "userIds is required and must be a non-empty array",
+      });
+    }
+    
+    const room = await roomController.create(null, questionId, userIds, programmingLanguage);
     res.json({
       success: true,
       room,

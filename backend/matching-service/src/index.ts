@@ -1,48 +1,39 @@
 import dotenv from 'dotenv';
-import path from 'path';
 
 dotenv.config();
 
 import express from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 import cors from 'cors';
 
 import { redisConfig } from './config/redis';
-import { initSocket } from './utils/socket';
-import matchingRoutes from './routes/matchingRoutes';
+import { initSocket } from './config/socket';
 import { startMatchingWorker } from './workers/matchingWorker';
 import { kafkaManager } from './config/kafka';
-import { handleCollabMessage, handleQuestionMessage } from './workers/matchingWorker';
-import { connectMongo, disconnectMongo } from './config/mongo';
+import { handleQuestionMessage } from './workers/matchingWorker';
+import { matchingController, cleanupConsumerGroup } from './controllers/matchingController';
 
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const httpServer = createServer(app);
-const io = initSocket(httpServer);
-
-app.use('/api/match', matchingRoutes);
-
-// Health check endpoint
 app.get('/health', (_req: any, res: any) => {
   res.json({ status: 'OK', service: 'matching-service' });
 });
 
-// Initialize Redis connection
 async function startServer() {
   try {
-    await connectMongo();
+    const httpServer = createServer(app);
+    await initSocket(httpServer);
     await redisConfig.connect();
-
+    await matchingController.setupSocketListeners();
+    await matchingController.setupSubscriber();
     // Start background matching worker
     startMatchingWorker();
 
-    // Subscribe to Kafka topics for collab/question services
+    // Subscribe to Kafka topics for question services
     await kafkaManager.setupSubscribers({
-      onCollabMessage: handleCollabMessage,
       onQuestionMessage: handleQuestionMessage,
     });
 
@@ -58,8 +49,22 @@ async function startServer() {
 
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
-  await redisConfig.disconnect();
-  await disconnectMongo();
+  
+  try {
+    await redisConfig.clearAllMatchingData();
+    await cleanupConsumerGroup();
+    
+    await kafkaManager.resetConsumerOffsets();
+    await kafkaManager.clearAllTopics();
+    
+    await redisConfig.disconnect();
+    await kafkaManager.disconnect();
+    
+    console.log('Shutdown completed successfully');
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+  }
+  
   process.exit(0);
 });
 

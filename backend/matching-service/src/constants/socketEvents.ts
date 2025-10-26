@@ -4,4 +4,8 @@ export const SOCKET_EVENTS = {
     DISCONNECT: 'disconnect',
     MATCH_SUCCESS: 'matchSuccess',
     MATCH_ERROR: 'matchError',
+    MATCH_COUNTDOWN: 'matchCountdown',
+    MATCH_TIMEOUT: 'matchTimeout',
+    MATCH_CANCELLED: 'matchCancelled',
+    ROOM_PREPARING: 'roomPreparing',
 }
