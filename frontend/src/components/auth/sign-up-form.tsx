@@ -64,8 +64,8 @@ export default function SignUpForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showRetypePassword, setShowRetypePassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // mutation
   const mutation = useMutation<RegisterResponse, AxiosError<BackendError>, RegisterRequest>({
     mutationFn: async (newUser) => {
       const res = await axios.post("http://localhost:8001/v1/register", newUser);
@@ -75,10 +75,24 @@ export default function SignUpForm() {
       reset();
       const verificationToken = data.verificationToken;
       if (verificationToken) {
-        router.push(`/verify/${verificationToken}`);
+        setIsRedirecting(true);
+        setDialog({
+          open: true,
+          message: "Registration successful!",
+          description:
+            "Please check your email for the verification code. Redirecting to verification page...",
+          icon: "circle-check",
+          setOpen: () => {},
+          showCloseButton: false,
+        });
+
+        setTimeout(() => {
+          router.push(`/verify/${verificationToken}`);
+        }, 1500);
       }
     },
     onError: (error) => {
+      setIsRedirecting(false);
       const backendMessage = error.response?.data?.error;
       setDialog({
         open: true,
@@ -181,7 +195,7 @@ export default function SignUpForm() {
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 z-10"
                   onClick={() => setShowPassword((s) => !s)}
                 >
                   {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
@@ -207,7 +221,7 @@ export default function SignUpForm() {
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 z-10"
                   onClick={() => setShowRetypePassword((s) => !s)}
                 >
                   {showRetypePassword ? <Eye size={20} /> : <EyeOff size={20} />}
@@ -220,8 +234,20 @@ export default function SignUpForm() {
           </CardContent>
 
           <CardFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? <Spinner /> : "Sign up"}
+            <Button type="submit" disabled={isLoading || isRedirecting}>
+              {isLoading ? (
+                <>
+                  <Spinner />
+                  <span className="ml-2">Creating account...</span>
+                </>
+              ) : isRedirecting ? (
+                <>
+                  <Spinner />
+                  <span className="ml-2">Redirecting...</span>
+                </>
+              ) : (
+                "Sign up"
+              )}
             </Button>
           </CardFooter>
         </Card>
