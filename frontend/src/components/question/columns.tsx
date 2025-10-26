@@ -2,48 +2,102 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash } from "lucide-react";
+import { Eye, Trash, Archive } from "lucide-react";
 import { Question } from "@/types/question";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { archiveQuestion, deleteQuestion } from "@/hooks/use-question";
 
 function ActionCell({ question }: { question: Question }) {
   const router = useRouter();
 
-  const handleEdit = () => {
+  const handleView = () => {
     router.push(`/question/${question.id}`);
   };
 
+  const handleArchive = () => {
+    archiveQuestion(question);
+  };
+
   const handleDelete = () => {
-    console.log("Delete clicked:", question);
+    deleteQuestion(question);
   };
 
   return (
     <div className="flex space-x-4">
-      <Button variant="outline" size="sm" className="w-20" onClick={handleEdit}>
-        <Pencil className="h-4 w-4 mr-1" />
-        Edit
-      </Button>
-      <Button variant="destructive" size="sm" className="w-20" onClick={handleDelete}>
-        <Trash className="h-4 w-4 mr-1" />
-        Delete
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button className="w-15" variant="outline" size="sm" onClick={handleView}>
+            <Eye className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>View</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button className="w-15" variant="default" size="sm" onClick={handleArchive}>
+            <Archive className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Archive</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button className="w-15" variant="destructive" size="sm" onClick={handleDelete}>
+            <Trash className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Delete</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
 
+const difficultyOrder: Record<string, number> = {
+  Easy: 0,
+  Medium: 1,
+  Hard: 2,
+};
+
 export const columns: ColumnDef<Question>[] = [
+  {
+    id: "index",
+    header: "No.",
+    cell: ({ row }) => <span>{row.index + 1}</span>,
+    enableSorting: false,
+    enableHiding: false,
+    size: 50,
+  },
   {
     accessorKey: "title",
     header: "Question Title",
+    enableSorting: true,
   },
   {
     accessorKey: "topic",
     header: "Topic",
+    enableSorting: true,
   },
   {
     accessorKey: "difficulty",
     header: "Difficulty",
+    enableSorting: true,
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = String(rowA.getValue(columnId));
+      const b = String(rowB.getValue(columnId));
+      const ai = difficultyOrder[a] ?? Number.POSITIVE_INFINITY;
+      const bi = difficultyOrder[b] ?? Number.POSITIVE_INFINITY;
+      return ai - bi;
+    },
     cell: ({ getValue }) => {
       const difficulty = getValue() as Question["difficulty"];
 
@@ -59,6 +113,7 @@ export const columns: ColumnDef<Question>[] = [
   {
     accessorKey: "actions",
     header: "Actions",
+    enableSorting: false,
     cell: ({ row }) => <ActionCell question={row.original} />,
   },
 ];

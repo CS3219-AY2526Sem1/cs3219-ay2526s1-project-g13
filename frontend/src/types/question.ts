@@ -6,3 +6,12 @@ export type Question = {
   details?: string;
   suggestedSolution?: string;
 };
+
+export const emptyQuestionState: Question = {
+  id: "",
+  title: "",
+  topic: "",
+  difficulty: "Easy",
+  details: "",
+  suggestedSolution: "",
+};
