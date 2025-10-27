@@ -2,6 +2,8 @@ import { Kafka, Admin, Consumer, Producer, EachMessagePayload } from 'kafkajs';
 
 export const MATCH_TOPIC = 'match_topic';
 export const QUESTION_TOPIC = 'question_topic';
+export const ROOM_CREATION_TOPIC = 'room_creation_topic';
+export const ROOM_CREATED_TOPIC = 'room_created_topic';
 
 type MessageHandler = (message: { key?: string | null; value?: string | null }) => Promise<void> | void;
 
@@ -10,6 +12,7 @@ export class KafkaManager {
   private admin: Admin;
   private producer: Producer;
   private consumer: Consumer;
+  private consumer2: Consumer;
   private isConnected = false;
 
   constructor() {
@@ -31,6 +34,7 @@ export class KafkaManager {
     this.admin = this.kafka.admin();
     this.producer = this.kafka.producer();
     this.consumer = this.kafka.consumer({ groupId: 'matching-service-group' });
+    this.consumer2 = this.kafka.consumer({ groupId: 'matching-service-group-2' });
   }
 
   async initWithRetry(maxRetries = 5, retryDelayMs = 2000): Promise<void> {
@@ -54,6 +58,12 @@ export class KafkaManager {
         if (!existing.includes(QUESTION_TOPIC)) {
           topicsToCreate.push({ topic: QUESTION_TOPIC, numPartitions: 1, replicationFactor: 1 });
         }
+        if (!existing.includes(ROOM_CREATION_TOPIC)) {
+          topicsToCreate.push({ topic: ROOM_CREATION_TOPIC, numPartitions: 1, replicationFactor: 1 });
+        }
+        if (!existing.includes(ROOM_CREATED_TOPIC)) {
+          topicsToCreate.push({ topic: ROOM_CREATED_TOPIC, numPartitions: 1, replicationFactor: 1 });
+        }
 
         if (topicsToCreate.length > 0) {
           await this.admin.createTopics({ topics: topicsToCreate });
@@ -65,6 +75,7 @@ export class KafkaManager {
         await this.admin.disconnect();
         await this.producer.connect();
         await this.consumer.connect();
+        await this.consumer2.connect();
         this.isConnected = true; 
         console.log('Connected to Kafka');
         return;
@@ -86,6 +97,7 @@ export class KafkaManager {
   async setupSubscribers(handlers: {
     onCollabMessage?: MessageHandler;
     onQuestionMessage?: MessageHandler;
+    onRoomCreatedMessage?: MessageHandler;
   }): Promise<void> {
     await this.initWithRetry();
 
@@ -95,6 +107,19 @@ export class KafkaManager {
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
         if (topic === QUESTION_TOPIC && handlers.onQuestionMessage) {
           await handlers.onQuestionMessage({
+            key: message.key?.toString(),
+            value: message.value?.toString(),
+          });
+        }
+      },
+    });
+
+    await this.consumer2.subscribe({ topic: ROOM_CREATED_TOPIC, fromBeginning: false });
+
+    this.consumer2.run({
+      eachMessage: async ({ topic, message }: EachMessagePayload) => {
+        if (topic === ROOM_CREATED_TOPIC && handlers.onRoomCreatedMessage) {
+          await handlers.onRoomCreatedMessage({
             key: message.key?.toString(),
             value: message.value?.toString(),
           });
@@ -111,7 +136,7 @@ export class KafkaManager {
         await this.admin.connect();
       }
       
-      const topicsToDelete = [MATCH_TOPIC, QUESTION_TOPIC];
+      const topicsToDelete = [MATCH_TOPIC, QUESTION_TOPIC, ROOM_CREATION_TOPIC, ROOM_CREATED_TOPIC];
       const existingTopics = await this.admin.listTopics();
       const topicsToRemove = topicsToDelete.filter(topic => existingTopics.includes(topic));
       
@@ -163,6 +188,7 @@ export class KafkaManager {
 
   async disconnect(): Promise<void> {
     try { await this.consumer.disconnect(); } catch {}
+    try { await this.consumer2.disconnect(); } catch {}
     try { await this.producer.disconnect(); } catch {}
     try { await this.admin.disconnect(); } catch {}
   }

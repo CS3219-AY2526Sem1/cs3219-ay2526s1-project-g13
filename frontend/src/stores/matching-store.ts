@@ -2,15 +2,8 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
-import { DIFFICULTY, ServiceType } from "@/utils/enums";
+import { ServiceType } from "@/utils/enums";
 import { socketManager } from "@/utils/socket-manager";
-
-interface Question {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: DIFFICULTY;
-}
 
 interface User {
   _id: string;
@@ -23,19 +16,18 @@ interface MatchingState {
   connectionState: "disconnected" | "connecting" | "connected" | "reconnecting";
 
   isMatching: boolean;
+  isRoomPreparing: boolean;
   count: number | null;
   roomId: string | null;
-  questions: Question[];
+  questionId: string | null;
   selectedTopic: string | null;
-  matchFound: boolean; // Flag to track if match was found
+  matchFound: boolean;
 
   user: User | null;
 
-  initializeSocket: (user: User) => void;
-  startMatch: (difficulty: DIFFICULTY, topic?: string) => void;
+  initializeSocket: (user: User, refreshAccessToken?: () => Promise<string | null>) => void;
+  startMatch: (difficulty: string, topic: string) => void;
   stopQueuing: () => void;
-  leaveRoom: () => void;
-  endSession: () => void;
   reset: () => void;
   setUser: (user: User | null) => void;
   setSelectedTopic: (topic: string | null) => void;
@@ -49,9 +41,10 @@ const initialState = {
   socket: null,
   connectionState: "disconnected" as const,
   isMatching: false,
+  isRoomPreparing: false,
   count: null,
   roomId: null,
-  questions: [],
+  questionId: null,
   selectedTopic: null,
   matchFound: false,
   user: null,
@@ -62,7 +55,7 @@ export const useMatchingStore = create<MatchingState>()(
     ...initialState,
 
     // Initialize socket connection
-    initializeSocket: (user: User) => {
+    initializeSocket: (user: User, refreshAccessToken?: () => Promise<string | null>) => {
       const { socket } = get();
 
       if (socket && socket.connected) {
@@ -80,10 +73,14 @@ export const useMatchingStore = create<MatchingState>()(
           ? process.env.NEXT_PUBLIC_MATCHING_ENDPOINT
           : `http://localhost:8002`;
 
+      // Get access token for authentication
+      const accessToken = localStorage.getItem("accessToken");
+
       // Create socket using socketManager
       const newSocket = socketManager.createSocket(ServiceType.MATCHING, {
         url: url || "",
         options: {},
+        token: accessToken || undefined,
       });
 
       // Set the socket immediately so it's available
@@ -93,15 +90,46 @@ export const useMatchingStore = create<MatchingState>()(
         user,
       });
 
-      // Connect the socket
       newSocket.connect();
 
       newSocket.on("connect", () => {
         set({ connectionState: "connected" });
       });
 
-      newSocket.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
+      newSocket.on("connect_error", async (error) => {
+        // Check if this is an authentication error
+        const errorMessage = error.message?.toLowerCase() || "";
+        const isAuthError =
+          errorMessage.includes("expired") ||
+          errorMessage.includes("authentication failed") ||
+          errorMessage.includes("invalid token") ||
+          errorMessage.includes("missing authorization");
+
+        if (isAuthError && refreshAccessToken) {
+          console.log("Authentication error detected, attempting token refresh...");
+          try {
+            const newToken = await refreshAccessToken();
+            if (newToken) {
+              console.log("Token refreshed successfully, updating socket auth and reconnecting...");
+              // Update socket auth with new token
+              socketManager.updateSocketAuth(ServiceType.MATCHING, newToken);
+              // Reconnect with new token
+              newSocket.connect();
+              return;
+            } else {
+              console.log("Token refresh failed, user needs to log in again");
+              toast.error("Session expired. Please log in again.");
+              set({ connectionState: "disconnected" });
+              return;
+            }
+          } catch (refreshError) {
+            console.error("Token refresh error:", refreshError);
+            toast.error("Session expired. Please log in again.");
+            set({ connectionState: "disconnected" });
+            return;
+          }
+        }
+
         set({ connectionState: "disconnected" });
       });
 
@@ -144,27 +172,31 @@ export const useMatchingStore = create<MatchingState>()(
         set({ count: counter });
       });
 
+      newSocket.on("roomPreparing", () => {
+        set({
+          isRoomPreparing: true,
+          isMatching: false,
+          count: null,
+        });
+      });
+
       newSocket.on("matchSuccess", async (data) => {
         toast.success("A match has been found!");
         set({
           count: null,
           roomId: data.roomId,
-          questions: data.questions,
+          questionId: data.questionId,
           isMatching: false,
+          isRoomPreparing: false,
           matchFound: true,
         });
       });
 
-      newSocket.on("matchLeave", () => {
-        get().reset();
-        toast.warn("The other user has left!");
-      });
-
-      newSocket.on("matchTimeout", () => {
+      newSocket.on("matchTimeout", (data) => {
         set({ count: null, isMatching: false });
 
-        toast.error("No match found! Please try again.", {
-          position: "top-center",
+        toast.error(data.message, {
+          position: "top-right",
           autoClose: 3000,
         });
       });
@@ -176,7 +208,7 @@ export const useMatchingStore = create<MatchingState>()(
     },
 
     // Start matching process
-    startMatch: (difficulty: DIFFICULTY, topic?: string) => {
+    startMatch: (difficulty: string, topic: string) => {
       const { socket, user } = get();
 
       if (!socket || !user) {
@@ -184,24 +216,27 @@ export const useMatchingStore = create<MatchingState>()(
         return;
       }
 
+      // Store null in state for empty topic, keep empty string for socket
+      const selectedTopicForState = topic || null;
+
       if (!socket.connected) {
         socket.connect();
 
         // Wait for connection before sending match request
         socket.once("connect", () => {
-          set({ isMatching: true, count: 30, selectedTopic: topic || null, matchFound: false });
+          set({ isMatching: true, selectedTopic: selectedTopicForState, matchFound: false });
           socket.emit("matchStart", {
             difficulty,
-            topic: topic || null,
+            topic,
           });
         });
         return;
       }
 
-      set({ isMatching: true, count: 30, selectedTopic: topic || null, matchFound: false });
+      set({ isMatching: true, selectedTopic: selectedTopicForState, matchFound: false });
       socket.emit("matchStart", {
         difficulty,
-        topic: topic || null,
+        topic,
       });
     },
 
@@ -210,29 +245,19 @@ export const useMatchingStore = create<MatchingState>()(
       const { socket } = get();
       socket?.emit("stopQueuing");
       set({ isMatching: false, count: null });
-    },
-
-    // Leave room
-    leaveRoom: () => {
-      const { socket } = get();
-      socket?.emit("matchLeave");
-      get().reset();
-    },
-
-    // End session
-    endSession: () => {
-      const { socket, roomId } = get();
-      socket?.emit("matchEndSession", roomId);
-      get().reset();
-      toast.success("The coding session has successfully ended.");
+      toast.error("You've cancelled your matching request", {
+        position: "top-center",
+        autoClose: 3000,
+      });
     },
 
     // Reset state
     reset: () => {
       set({
         roomId: null,
-        questions: [],
+        questionId: null,
         isMatching: false,
+        isRoomPreparing: false,
         count: null,
         selectedTopic: null,
         matchFound: false,
@@ -268,7 +293,7 @@ export const useMatchingStore = create<MatchingState>()(
           isMatching: false,
           count: null,
           roomId: null,
-          questions: [],
+          questionId: null,
           selectedTopic: null,
         });
       }
@@ -287,9 +312,10 @@ export const useMatchingStore = create<MatchingState>()(
             socket: null,
             connectionState: "disconnected",
             isMatching: false,
+            isRoomPreparing: false,
             count: null,
             roomId: null,
-            questions: [],
+            questionId: null,
             selectedTopic: null,
             matchFound: false,
             user: null,
@@ -300,6 +326,7 @@ export const useMatchingStore = create<MatchingState>()(
             socket: null,
             connectionState: "disconnected",
             isMatching: false,
+            isRoomPreparing: false,
             count: null,
             selectedTopic: null,
             matchFound: false,
@@ -312,18 +339,20 @@ export const useMatchingStore = create<MatchingState>()(
 
 export const useMatchingState = () => {
   const isMatching = useMatchingStore((state) => state.isMatching);
+  const isRoomPreparing = useMatchingStore((state) => state.isRoomPreparing);
   const count = useMatchingStore((state) => state.count);
   const roomId = useMatchingStore((state) => state.roomId);
-  const questions = useMatchingStore((state) => state.questions);
+  const questionId = useMatchingStore((state) => state.questionId);
   const selectedTopic = useMatchingStore((state) => state.selectedTopic);
   const connectionState = useMatchingStore((state) => state.connectionState);
   const matchFound = useMatchingStore((state) => state.matchFound);
 
   return {
     isMatching,
+    isRoomPreparing,
     count,
     roomId,
-    questions,
+    questionId,
     selectedTopic,
     connectionState,
     matchFound,
@@ -334,8 +363,6 @@ export const useMatchingActions = () => {
   const initializeSocket = useMatchingStore((state) => state.initializeSocket);
   const startMatch = useMatchingStore((state) => state.startMatch);
   const stopQueuing = useMatchingStore((state) => state.stopQueuing);
-  const leaveRoom = useMatchingStore((state) => state.leaveRoom);
-  const endSession = useMatchingStore((state) => state.endSession);
   const reset = useMatchingStore((state) => state.reset);
   const setUser = useMatchingStore((state) => state.setUser);
   const setSelectedTopic = useMatchingStore((state) => state.setSelectedTopic);
@@ -347,8 +374,6 @@ export const useMatchingActions = () => {
     initializeSocket,
     startMatch,
     stopQueuing,
-    leaveRoom,
-    endSession,
     reset,
     setUser,
     setSelectedTopic,

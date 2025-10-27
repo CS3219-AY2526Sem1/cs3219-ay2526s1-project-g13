@@ -74,127 +74,24 @@ class MatchingController {
         const userKey = `user:${socketId}`;
         this.clearTimerFor(socketId);
 
-        const pipeline = redis.multi();
-        pipeline.zRem('matching_queue', userKey);
-        pipeline.del(userKey);
-        await pipeline.exec();
-
+        try {
+          const pipeline = redis.multi();
+          pipeline.zRem('matching_queue', userKey);
+          pipeline.del(userKey);
+          await pipeline.exec();
+          console.log('Removed user from queue on disconnect:', socketId);
+        } catch (error) {
+          console.error('Error removing user from queue on disconnect:', error);
+        }
       });
     });
-  }
-
-  
-  async setupSubscriber() {
-    const streamKey = 'match_events';
-    const consumerGroup = 'match_consumers';
-    const consumerName = `consumer_${process.pid}`;
-  
-    const groups = await redis.xInfoGroups(streamKey).catch(() => []);
-    const exists = groups.some((g: any) => g.name === consumerGroup);
-  
-    if (!exists) {
-      await redis.xGroupCreate(streamKey, consumerGroup, '0', { MKSTREAM: true });
-      console.log(`Created Redis consumer group: ${consumerGroup}`);
-    } else {
-      console.log(`Redis consumer group '${consumerGroup}' already exists. Using the existing one.`);
-    }
-  
-    this.processMatchEvents(streamKey, consumerGroup, consumerName);
-  }
-  private async processMatchEvents(streamKey: string, consumerGroup: string, consumerName: string) {
-    while (true) {
-      try {
-        const streams = await redis.xReadGroup(consumerGroup, consumerName, [{ key: streamKey, id: '>' }], {
-          COUNT: 10,
-          BLOCK: 5000,
-        });
-
-        if (streams) {
-          for (const stream of streams) {
-            for (const message of stream.messages) {
-              const id = message.id;
-              const fields = JSON.parse(message.message.data);
-
-              const user1 = JSON.parse(fields.user1);
-              const user2 = JSON.parse(fields.user2);
-              const roomId = fields.roomId;
-              const matchId = fields.matchId;
-              const questionId = fields.questionId;
-
-              console.log('Processing match event:', { user1: user1.socketId, user2: user2.socketId, roomId, matchId, questionId });
-
-              this.handleMatchEvent(user1, user2, roomId, matchId, questionId);
-
-              const pipeline = redis.multi();
-              pipeline.xAck(streamKey, consumerGroup, id);
-              pipeline.xDel(streamKey, id);
-              await pipeline.exec();
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error processing match events:', err);
-      }
-      await new Promise((resolve) => setImmediate(resolve));
-    }
-  }
-
-  private async handleMatchEvent(user1: any, user2: any, roomId: string, matchId: string, questionId: string) {
-    try {
-      // Check if this match has already been processed to prevent duplicate events
-      const processedKey = `match_processed:${matchId}`;
-      const alreadyProcessed = await redis.get(processedKey);
-      if (alreadyProcessed) {
-        console.log('Match already processed, skipping duplicate matchSuccess events:', matchId);
-        return;
-      }
-
-      // Mark this match as processed with a TTL of 1 hour
-      await redis.setEx(processedKey, 3600, '1');
-
-      const io = getSocket();
-      const socket1 = io.sockets.sockets.get(user1.socketId);
-      const socket2 = io.sockets.sockets.get(user2.socketId);
-      if (socket1) {
-        socket1.emit(SOCKET_EVENTS.MATCH_SUCCESS, {
-          message: `You have been matched with User ID: ${user2.userId}`,
-          topic: user1.topic || user2.topic || 'all',
-          difficulty: user1.difficulty || user2.difficulty || 'all',
-          attemptStartedAt: Date.now(),
-          matchId,
-          roomId,
-          matchUserId: user2.userId,
-          questionId,
-        });
-
-        this.clearTimerFor(user1.socketId);
-        console.log(`Sending matchSuccess events for matchId: ${matchId} to sockets: ${user1.socketId}`);
-      }
-      if (socket2) {
-        socket2.emit(SOCKET_EVENTS.MATCH_SUCCESS, {
-          message: `You have been matched with User ID: ${user1.userId}`,
-          topic: user2.topic || user1.topic || 'all',
-          difficulty: user2.difficulty || user1.difficulty || 'all',
-          attemptStartedAt: Date.now(),
-          matchId,
-          roomId,
-          matchUserId: user1.userId,
-          questionId,
-        });
-       
-        this.clearTimerFor(user2.socketId);
-        console.log(`Sending matchSuccess events for matchId: ${matchId} to sockets: ${user2.socketId}`);
-      }
-    } catch (error) {
-      console.error('Error in handleMatchEvent:', error);
-    }
   }
 
   private async startCountdown(socketId: string) {
     this.clearTimerFor(socketId);
     let counter = Number(process.env.MATCH_COUNTDOWN_SECONDS) || 60;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const io = getSocket();
 
       const socket = io.sockets.sockets.get(socketId);
@@ -212,12 +109,17 @@ class MatchingController {
       counter--;
       if (counter < 0) {
         this.clearTimerFor(socketId);
-        socket.emit(SOCKET_EVENTS.MATCH_TIMEOUT, { message: 'Match timed out. Please try again.' })
+        const queueLength = await redis.zCard('matching_queue');
+        if (queueLength == 1) {
+          socket.emit(SOCKET_EVENTS.MATCH_TIMEOUT, { message: 'There are no active match requests. Please try at another time' })
+        } else {
+          socket.emit(SOCKET_EVENTS.MATCH_TIMEOUT, { message: 'There are no active match requests that is suitable for your criteria. Please try with a different criteria.' })
+        }
         const userKey = `user:${socketId}`;
         const pipeline = redis.multi();
         pipeline.zRem('matching_queue', userKey);
         pipeline.del(userKey);
-        pipeline.exec();
+        await pipeline.exec();
         
       }
     }, 1000);
@@ -249,6 +151,5 @@ class MatchingController {
 
 export const matchingController = new MatchingController();
 export const setupSocketListeners = matchingController.setupSocketListeners.bind(matchingController);
-export const setupSubscriber = matchingController.setupSubscriber.bind(matchingController);
 export const clearMatchCountdownFor = matchingController.clearTimerFor.bind(matchingController);
 export const cleanupConsumerGroup = matchingController.cleanupConsumerGroup.bind(matchingController);

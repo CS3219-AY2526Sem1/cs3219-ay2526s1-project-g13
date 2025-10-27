@@ -10,7 +10,7 @@ import { redisConfig } from './config/redis';
 import { initSocket } from './config/socket';
 import { startMatchingWorker } from './workers/matchingWorker';
 import { kafkaManager } from './config/kafka';
-import { handleQuestionMessage } from './workers/matchingWorker';
+import { handleQuestionMessage, handleRoomCreatedMessage } from './workers/matchingWorker';
 import { matchingController, cleanupConsumerGroup } from './controllers/matchingController';
 
 
@@ -28,13 +28,13 @@ async function startServer() {
     await initSocket(httpServer);
     await redisConfig.connect();
     await matchingController.setupSocketListeners();
-    await matchingController.setupSubscriber();
     // Start background matching worker
     startMatchingWorker();
 
-    // Subscribe to Kafka topics for question services
+    // Subscribe to Kafka topics for question services and room creation
     await kafkaManager.setupSubscribers({
       onQuestionMessage: handleQuestionMessage,
+      onRoomCreatedMessage: handleRoomCreatedMessage,
     });
 
     const port = Number(process.env.PORT) || 8002;

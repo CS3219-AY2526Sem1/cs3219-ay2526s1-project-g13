@@ -54,6 +54,8 @@ services:
     restart: always
     ports:
       - '8002:8002'
+    env_file:
+      - ./backend/matching-service/.env
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://redis:6379
@@ -67,10 +69,14 @@ services:
       - DATABASE_NAME=peerprepMatchingServiceDB
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
+      - DEBUG_MODE=false
+      - DEBUG_MATCHING=false
     depends_on:
       - redis
       - mongodb
       - collaboration-service
+      - question-service
       - kafka
     networks:
       - cs3219-peerprep-network
@@ -106,8 +112,12 @@ services:
       - HTTP_PORT=8004
       - WS_PORT=8005
       - ROOM_TIMEOUT_MINUTES=10
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
     depends_on:
       - mongodb
+      - kafka
     networks:
       - cs3219-peerprep-network
 
@@ -122,8 +132,12 @@ services:
     environment:
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
       - PORT=8003
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
     depends_on:
       - mongodb
+      - kafka
     networks:
       - cs3219-peerprep-network
 

@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import MatchMake from "@/components/matching/match-make";
 import { useMatchingStore } from "@/stores/matching-store";
 import { useAuthContext } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 import Navbar from "@/components/ui/nav-bar";
 import ProtectedRoute from "@/components/auth/protected-route";
 
 export default function MatchingPage() {
   const router = useRouter();
   const { user, isUser } = useAuthContext();
+  const { refreshAccessToken } = useAuth();
   const { roomId, matchFound, initializeSocket, setUser, cleanup } = useMatchingStore();
 
   useEffect(() => {
@@ -28,9 +30,9 @@ export default function MatchingPage() {
   useEffect(() => {
     if (user) {
       setUser(user);
-      initializeSocket(user);
+      initializeSocket(user, refreshAccessToken);
     }
-  }, [user, setUser, initializeSocket]);
+  }, [user, setUser, initializeSocket, refreshAccessToken]);
 
   // Cleanup socket when component unmounts
   useEffect(() => {

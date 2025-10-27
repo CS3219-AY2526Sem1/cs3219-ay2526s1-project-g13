@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useMatchingStore } from "@/stores/matching-store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "react-toastify";
 
 export const TimerOverlay = () => {
-  const { isMatching, count, stopQueuing, matchFound } = useMatchingStore();
+  const { isMatching, isRoomPreparing, count, stopQueuing } = useMatchingStore();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -34,17 +33,6 @@ export const TimerOverlay = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  useEffect(() => {
-    if (!isMatching && timeLeft !== null && timeLeft > 0 && !matchFound) {
-      setTimeout(() => {
-        toast.info("Matching cancelled", {
-          position: "top-center",
-          autoClose: 2000,
-        });
-      }, 100);
-    }
-  }, [isMatching, timeLeft, matchFound]);
-
   const handleCancel = () => {
     stopQueuing();
   };
@@ -54,6 +42,34 @@ export const TimerOverlay = () => {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  if (isMatching && timeLeft === null) {
+    return (
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <Card className="bg-white shadow-lg border-2 border-blue-200 p-4 min-w-[280px]">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-700">Sending your match request...</span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isRoomPreparing) {
+    return (
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <Card className="bg-white shadow-lg border-2 border-green-200 p-4 min-w-[280px]">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-700">
+              Match found! Preparing your room...
+            </span>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isMatching || timeLeft === null) {
     return null;
@@ -71,9 +87,6 @@ export const TimerOverlay = () => {
 
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600 mb-1">{formatTime(timeLeft)}</div>
-              <div className="text-xs text-gray-500">
-                {timeLeft > 10 ? "Searching for partners" : "Almost done..."}
-              </div>
             </div>
           </div>
 
@@ -86,17 +99,6 @@ export const TimerOverlay = () => {
             >
               Cancel
             </Button>
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-linear"
-              style={{
-                width: `${((30 - timeLeft) / 30) * 100}%`,
-              }}
-            ></div>
           </div>
         </div>
       </Card>

@@ -19,7 +19,7 @@ import { topics } from "./topic-icons";
 
 const MatchMake = () => {
   const { authRequest } = useAuth();
-  const { isMatching, selectedTopic, matchFound } = useMatchingState();
+  const { isMatching, isRoomPreparing, selectedTopic, matchFound } = useMatchingState();
   const { startMatch, setSelectedTopic } = useMatchingActions();
   const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY | null>(null);
 
@@ -42,29 +42,36 @@ const MatchMake = () => {
       });
       const authUser = res.data;
       if (authUser) {
-        startMatch(selectedDifficulty || DIFFICULTY.EASY, selectedTopic || undefined);
+        const difficulty = selectedDifficulty || "";
+        const topic = selectedTopic || "";
+        startMatch(difficulty, topic);
       }
     } catch (err) {
       console.error("User expired before matchmaking:", err);
     }
   };
 
-  if (isMatching || (!isMatching && matchFound)) {
+  if (isMatching || isRoomPreparing || (!isMatching && matchFound)) {
+    const displayMessage = isRoomPreparing
+      ? "Preparing your room..."
+      : "Finding your practice partner...";
+    const displaySubmessage = isRoomPreparing
+      ? "Match found! Setting up your collaboration space..."
+      : "Please wait while we search for a match. You can navigate to other pages while waiting.";
+
     return (
       <div className="max-w-4xl mx-auto px-6 pt-24">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-[#20222E] mb-4">
-            Finding your practice partner...
-          </h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Please wait while we search for a match. You can navigate to other pages while waiting.
-          </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-            <p className="text-sm text-blue-800">
-              💡 The timer will stay visible on all pages until a match is found or you cancel the
-              search.
-            </p>
-          </div>
+          <h1 className="text-4xl font-bold text-[#20222E] mb-4">{displayMessage}</h1>
+          <p className="text-lg text-gray-600 mb-6">{displaySubmessage}</p>
+          {!isRoomPreparing && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-sm text-blue-800">
+                💡 The timer will stay visible on all pages until a match is found or you cancel the
+                search.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -78,7 +85,7 @@ const MatchMake = () => {
           Connect with peers to practice technical interviews together
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          Choose at least one criteria: difficulty level, topic, or both
+          Choose difficulty level, topic, or both (leave blank for &quot;all&quot;)
         </p>
       </div>
 
@@ -149,12 +156,12 @@ const MatchMake = () => {
                     <div className="grid grid-cols-4 gap-3">
                       {chunk.map((topic: (typeof topics)[0]) => {
                         const IconComponent = topic.icon;
-                        const isSelected = selectedTopic === topic.id;
+                        const isSelected = selectedTopic === topic.name;
 
                         return (
                           <button
                             key={topic.id}
-                            onClick={() => setSelectedTopic(isSelected ? null : topic.id)}
+                            onClick={() => setSelectedTopic(isSelected ? null : topic.name)}
                             disabled={isMatching}
                             className={clsx("p-3 rounded-lg text-center transition-all", {
                               "bg-blue-50 border-2 border-blue-500": isSelected,
@@ -184,34 +191,25 @@ const MatchMake = () => {
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Current Selection:</h3>
           <div className="flex flex-wrap gap-2">
-            {selectedDifficulty && (
-              <span className="px-3 py-1 bg-[#4A5568] text-white rounded-full text-sm">
-                Difficulty:{" "}
-                {selectedDifficulty.charAt(0) + selectedDifficulty.slice(1).toLowerCase()}
-              </span>
-            )}
-            {selectedTopic && (
-              <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-sm">
-                Topic: {topics.find((t) => t.id === selectedTopic)?.name}
-              </span>
-            )}
-            {!selectedDifficulty && !selectedTopic && (
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                No criteria selected - please choose at least one
-              </span>
-            )}
+            <span className="px-3 py-1 bg-[#4A5568] text-white rounded-full text-sm">
+              Difficulty:{" "}
+              {selectedDifficulty
+                ? selectedDifficulty.charAt(0) + selectedDifficulty.slice(1).toLowerCase()
+                : "All"}
+            </span>
+            <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-sm">
+              Topic: {selectedTopic ? topics.find((t) => t.name === selectedTopic)?.name : "All"}
+            </span>
           </div>
         </div>
 
         <div className="text-center">
           <Button
             onClick={findMatch}
-            disabled={isMatching || (!selectedDifficulty && !selectedTopic)}
+            disabled={isMatching}
             className={clsx("px-8 py-3 rounded-lg font-medium transition-colors", {
-              "bg-[#20222E] text-white hover:bg-gray-700":
-                !isMatching && (selectedDifficulty || selectedTopic),
-              "bg-gray-400 text-gray-200 cursor-not-allowed":
-                isMatching || (!selectedDifficulty && !selectedTopic),
+              "bg-[#20222E] text-white hover:bg-gray-700": !isMatching,
+              "bg-gray-400 text-gray-200 cursor-not-allowed": isMatching,
             })}
           >
             {isMatching ? "Searching..." : "Find your practice partner"}

@@ -3,6 +3,7 @@ import { io, Socket, SocketOptions } from "socket.io-client";
 interface SocketConfig {
   url: string;
   options?: Partial<SocketOptions>;
+  token?: string;
 }
 
 import { ServiceType } from "@/utils/enums";
@@ -32,6 +33,7 @@ class SocketManager {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      auth: config.token ? { authorization: `Bearer ${config.token}` } : undefined,
       ...config.options,
     });
 
@@ -93,6 +95,14 @@ class SocketManager {
     if (socket.connected) return "connected";
     if (socket.disconnected) return "disconnected";
     return "connecting";
+  }
+
+  // Update socket auth token
+  updateSocketAuth(service: ServiceType, token: string) {
+    const socket = this.sockets.get(service);
+    if (socket) {
+      socket.auth = { authorization: `Bearer ${token}` };
+    }
   }
 
   // Get all active services

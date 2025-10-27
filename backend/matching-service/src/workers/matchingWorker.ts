@@ -1,10 +1,9 @@
 import { redis, redisConfig } from '../config/redis';
 import { getSocket } from '../config/socket';
-import { kafkaManager, MATCH_TOPIC } from '../config/kafka';
+import { kafkaManager, MATCH_TOPIC, ROOM_CREATION_TOPIC } from '../config/kafka';
 import { User } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { SOCKET_EVENTS } from '../constants/socketEvents';
-import fetch from 'node-fetch';
 import { clearMatchCountdownFor } from '../controllers/matchingController';
 import { acquireLock, releaseLock } from '../config/redislock';
 import { MATCHING_INTERVAL_MS, MATCHING_LOCK_KEY, MATCHING_LOCK_TTL } from '../constants/matchingStatus';
@@ -136,15 +135,37 @@ export async function runMatchingOnce(): Promise<void> {
         }
       }
       
+      const io = getSocket();
+      
       if (process.env.DEBUG_MATCHING === 'true' || userKeys.length > 0) {
         console.log('Users in queue details:');
-        const io = getSocket();
         for (const user of users) {
           const socket = io.sockets.sockets.get(user.data.socketId);
           const isConnected = socket && socket.connected;
           console.log(`  ${user.userKey}: socketId=${user.data.socketId}, userId=${user.data.userId}, connected=${isConnected}, topic=${user.data.topic}, difficulty=${user.data.difficulty}`);
         }
       }
+      
+      // Clean up disconnected users
+      const cleanupPipeline = redis.multi();
+      let cleanedUp = false;
+      
+      for (const user of users) {
+        const socket = io.sockets.sockets.get(user.data.socketId);
+        const isConnected = socket && socket.connected;
+        
+        if (!isConnected) {
+          console.log(`Cleaning up disconnected user: ${user.userKey}`);
+          cleanupPipeline.zRem('matching_queue', user.userKey);
+          cleanupPipeline.del(user.userKey);
+          cleanedUp = true;
+        }
+      }
+      
+      if (cleanedUp) {
+        await cleanupPipeline.exec();
+      }
+      
       const matched = new Set<string>();
 
       for (let i = 0; i < users.length; i++) {
@@ -207,67 +228,131 @@ export async function handleQuestionMessage(message: { key?: string | null; valu
   
   await redis.hSet(matchId, 'data', JSON.stringify(roomObject));
 
-  // Call collaboration service to create room
+  // Send room creation request to Kafka for collab service to consume
   try {
-    const collaborationServiceUrl = process.env.COLLABORATION_SERVICE_URL || 'http://localhost:8003';
-    
     const u1 = JSON.parse(roomObject.user1);
     const u2 = JSON.parse(roomObject.user2);
     const userIds = [u1.userId, u2.userId];
     
-    const requestBody = {
+    const roomCreationRequest = {
+      matchId: matchId,
       questionId: roomObject.questionId,
       userIds: userIds,
       programmingLanguage: 'python'
     };
     
-    const response = await fetch(`${collaborationServiceUrl}/api/v1/rooms`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    const producer = kafkaManager.getProducer();
+    await producer.send({
+      topic: ROOM_CREATION_TOPIC,
+      messages: [
+        {
+          key: matchId,
+          value: JSON.stringify(roomCreationRequest),
+        },
+      ],
     });
+    
+    console.log('Sent room creation request to Kafka:', roomCreationRequest);
 
-    if (!response.ok) {
-      console.error('Failed to create room in collaboration service:', response.status, response.statusText);
-      const io = getSocket();
-      const socket_1 = io.sockets.sockets.get(u1.socketId);
-      const socket_2 = io.sockets.sockets.get(u2.socketId);
-      if (socket_1) {
-        socket_1.emit(SOCKET_EVENTS.MATCH_CANCELLED, { message: 'Match cancelled. Please try again.' });
-      }
-      if (socket_2) {
-        socket_2.emit(SOCKET_EVENTS.MATCH_CANCELLED, { message: 'Match cancelled. Please try again.' });
-      }
+  } catch (error) {
+    console.error('Error sending room creation request to Kafka:', error);
+    const io = getSocket();
+    const u1 = JSON.parse(roomObject.user1);
+    const u2 = JSON.parse(roomObject.user2);
+    const socket_1 = io.sockets.sockets.get(u1.socketId);
+    const socket_2 = io.sockets.sockets.get(u2.socketId);
+    if (socket_1) {
+      socket_1.emit(SOCKET_EVENTS.MATCH_CANCELLED, { message: 'Match cancelled. Please try again.' });
+    }
+    if (socket_2) {
+      socket_2.emit(SOCKET_EVENTS.MATCH_CANCELLED, { message: 'Match cancelled. Please try again.' });
+    }
+  }
+}
+
+export async function handleRoomCreatedMessage(message: { key?: string | null; value?: string | null }) {
+  const matchId = message.key || undefined;
+  const roomData = message.value || undefined;
+  console.log('handleRoomCreatedMessage:', { matchId, roomData });
+  
+  if (!matchId || !roomData) return;
+
+  try {
+    const data = await redis.hGet(matchId, 'data');
+    if (!data) {
+      console.error('Match data not found in Redis:', matchId);
       return;
     }
 
-    const roomData = await response.json();
-    const roomId = roomData.room?.roomId;
+    const roomObject = JSON.parse(data);
+    
+    if (roomObject.roomId) {
+      console.log('Room already processed for match:', matchId);
+      return;
+    }
+
+    const parsedRoomData = JSON.parse(roomData);
+    const roomId = parsedRoomData.roomId;
     
     if (!roomId) {
-      console.error('No room ID returned from collaboration service');
+      console.error('No room ID in Kafka message:', parsedRoomData);
       return;
     }
+
+    // Check if this match has already been processed to prevent duplicate events
+    const processedKey = `match_processed:${matchId}`;
+    const alreadyProcessed = await redis.get(processedKey);
+    if (alreadyProcessed) {
+      console.log('Match already processed, skipping duplicate matchSuccess events:', matchId);
+      return;
+    }
+
+    // Mark this match as processed with a TTL of 1 hour
+    await redis.setEx(processedKey, 3600, '1');
 
     roomObject.roomId = roomId;
     await redis.hSet(matchId, 'data', JSON.stringify(roomObject));
     
-    const streamData = {
-      user1: JSON.stringify(u1),
-      user2: JSON.stringify(u2),
-      roomId: roomId,
-      matchId: matchId,
-      questionId: roomObject.questionId,
-      topic: roomObject.topic,
-      difficulty: roomObject.difficulty,
-    };
+    const u1 = JSON.parse(roomObject.user1);
+    const u2 = JSON.parse(roomObject.user2);
+    
+    const io = getSocket();
+    const socket1 = io.sockets.sockets.get(u1.socketId);
+    const socket2 = io.sockets.sockets.get(u2.socketId);
+    
+    if (socket1) {
+      socket1.emit(SOCKET_EVENTS.MATCH_SUCCESS, {
+        message: `You have been matched with User ID: ${u2.userId}`,
+        topic: roomObject.topic || 'all',
+        difficulty: roomObject.difficulty || 'all',
+        attemptStartedAt: Date.now(),
+        matchId,
+        roomId,
+        matchUserId: u2.userId,
+        questionId: roomObject.questionId,
+      });
+      clearMatchCountdownFor(u1.socketId);
+      console.log(`Sending matchSuccess event for matchId: ${matchId} to socket: ${u1.socketId}`);
+    }
+    
+    if (socket2) {
+      socket2.emit(SOCKET_EVENTS.MATCH_SUCCESS, {
+        message: `You have been matched with User ID: ${u1.userId}`,
+        topic: roomObject.topic || 'all',
+        difficulty: roomObject.difficulty || 'all',
+        attemptStartedAt: Date.now(),
+        matchId,
+        roomId,
+        matchUserId: u1.userId,
+        questionId: roomObject.questionId,
+      });
+      clearMatchCountdownFor(u2.socketId);
+      console.log(`Sending matchSuccess event for matchId: ${matchId} to socket: ${u2.socketId}`);
+    }
 
-    await redis.xAdd('match_events', '*', { data: JSON.stringify(streamData) });
-    console.log('Added match event to Redis stream:', streamData);
+    console.log('Match success events sent directly to users');
 
   } catch (error) {
-    console.error('Error creating room or adding to stream:', error);
+    console.error('Error processing room created message:', error);
   }
 }

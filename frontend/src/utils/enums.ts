@@ -1,7 +1,7 @@
 export enum DIFFICULTY {
-  EASY = "EASY",
-  MEDIUM = "MEDIUM",
-  HARD = "HARD",
+  EASY = "Easy",
+  MEDIUM = "Medium",
+  HARD = "Hard",
 }
 
 export enum ServiceType {
