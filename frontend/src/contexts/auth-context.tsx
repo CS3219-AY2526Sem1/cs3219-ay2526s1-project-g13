@@ -24,7 +24,7 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isUser: boolean;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
   logout: () => void;
 }
 
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!accessToken) {
         setIsAuthenticated(false);
         setUser(null);
-        return;
+        return null;
       }
 
       const res = await authRequest({
@@ -70,12 +70,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = res.data;
       setUser(userData);
       setIsAuthenticated(true);
+      return userData;
     } catch (err) {
       console.log("Authentication failed, clearing session", err);
       setIsAuthenticated(false);
       setUser(null);
 
       localStorage.removeItem("accessToken");
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -96,8 +98,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isLoading,
     user,
-    isAdmin: user?.role === "admin",
-    isUser: user?.role === "user",
+    isAdmin: user?.role == "admin",
+    isUser: user?.role == "user",
     checkAuth,
     logout,
   };

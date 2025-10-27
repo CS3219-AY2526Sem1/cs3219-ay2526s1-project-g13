@@ -71,7 +71,8 @@ export default function SignInForm() {
     },
     onSuccess: async (data) => {
       localStorage.setItem("accessToken", data.accessToken);
-      await checkAuth(); // Update auth context
+      const userData = await checkAuth(); // Update auth context
+      console.log(userData);
       setDialog({
         open: true,
         message: "Login successful",
@@ -79,7 +80,13 @@ export default function SignInForm() {
         icon: "circle-check",
       });
       reset();
-      router.push(`/matching`);
+      if (userData?.role == "admin") {
+        router.push("/question");
+      } else if (userData?.role == "user") {
+        router.push("/matching");
+      } else {
+        router.push("/");
+      }
     },
     onError: (error) => {
       const backendMessage = error.response?.data?.error;

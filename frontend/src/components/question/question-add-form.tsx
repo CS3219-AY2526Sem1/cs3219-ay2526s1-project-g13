@@ -23,6 +23,7 @@ import {
 import { Plus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { addQuestion } from "@/hooks/use-question";
+import Image from "next/image";
 
 export function QuestionForm() {
   const [open, setOpen] = useState(false);
@@ -162,7 +163,7 @@ export function QuestionForm() {
               {previews.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {previews.map((src, idx) => (
-                    <img
+                    <Image
                       key={idx}
                       src={src}
                       alt={`preview-${idx}`}
