@@ -23,7 +23,7 @@ export default function MatchingPage() {
 
   useEffect(() => {
     if (matchFound && roomId) {
-      router.push("/room");
+      router.push(`/practice/${roomId}`);
     }
   }, [matchFound, roomId, router]);
 
