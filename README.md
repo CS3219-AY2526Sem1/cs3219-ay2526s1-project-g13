@@ -107,3 +107,16 @@ docker exec mongodb mongorestore --username admin --password password /data/back
 ### Note: 
 - You are required to develop individual microservices within separate folders within this repository.
 - The teaching team should be given access to the repositories as we may require viewing the history of the repository in case of any disputes or disagreements. 
+
+## Note for execution service
+- After run docker compose-up, run the next commands in terminal
+```bash
+chmod +x init-piston-languages.sh
+# Install language packages for Piston
+./init-piston-languages.sh 
+```
+- APIs
+```bash
+POST /v1/execution/submit # submit language, code -> submit_id
+GET /v1/execution/submit/{submit_id} # get result -> submit_status = {pending | processing | done}, result
+```
