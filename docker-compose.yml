@@ -53,7 +53,9 @@ services:
       - cs3219-peerprep-network
 
   execution-api:
-    build: ./backend/execution-service
+    build: 
+      context: ./backend/execution-service
+      dockerfile: Dockerfile.execution
     container_name: execution-api
     ports:
       - "8010:8010"
@@ -65,7 +67,9 @@ services:
       - cs3219-peerprep-network
     command: pnpm run start:api
   execution-worker:
-    build: ./backend/execution-service
+    build: 
+      context: ./backend/execution-service
+      dockerfile: Dockerfile.execution
     container_name: execution-worker
     env_file:
       - ./backend/execution-service/.env
