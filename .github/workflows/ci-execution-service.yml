@@ -32,7 +32,7 @@ jobs:
         ports:
           - 27017:27017
         
-steps:
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 
