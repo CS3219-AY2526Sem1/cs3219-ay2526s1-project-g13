@@ -3,6 +3,7 @@ version: '3.9'
 services:
   redis:
     image: redis:7-alpine
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -25,17 +26,22 @@ services:
       - cs3219-peerprep-network
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports: ['2181:2181']
-    networks: [cs3219-peerprep-network]
+    networks: 
+      - cs3219-peerprep-network
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
     ports:
       - "9092:9092"
       - "29092:29092"
+    depends_on:
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -44,7 +50,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks: [cs3219-peerprep-network]
+    networks: 
+      - cs3219-peerprep-network
 
   matching-service:
     build:
@@ -70,7 +77,7 @@ services:
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
       - KAFKA_BROKERS=kafka:9092
-      - DEBUG_MODE=false
+      - DEBUG_MODE=true
       - DEBUG_MATCHING=false
     depends_on:
       - redis

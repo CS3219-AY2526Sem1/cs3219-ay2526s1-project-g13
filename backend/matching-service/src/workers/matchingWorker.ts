@@ -238,7 +238,6 @@ export async function handleQuestionMessage(message: { key?: string | null; valu
       matchId: matchId,
       questionId: roomObject.questionId,
       userIds: userIds,
-      programmingLanguage: 'python'
     };
     
     const producer = kafkaManager.getProducer();

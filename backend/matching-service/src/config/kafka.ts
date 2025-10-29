@@ -11,8 +11,8 @@ export class KafkaManager {
   private kafka: Kafka;
   private admin: Admin;
   private producer: Producer;
-  private consumer: Consumer;
-  private consumer2: Consumer;
+  private consumer_of_question_topic: Consumer;
+  private consumer_of_room_created_topic: Consumer;
   private isConnected = false;
 
   constructor() {
@@ -33,8 +33,8 @@ export class KafkaManager {
 
     this.admin = this.kafka.admin();
     this.producer = this.kafka.producer();
-    this.consumer = this.kafka.consumer({ groupId: 'matching-service-group' });
-    this.consumer2 = this.kafka.consumer({ groupId: 'matching-service-group-2' });
+    this.consumer_of_question_topic = this.kafka.consumer({ groupId: 'matching-service-group' });
+    this.consumer_of_room_created_topic = this.kafka.consumer({ groupId: 'matching-service-group-2' });
   }
 
   async initWithRetry(maxRetries = 5, retryDelayMs = 2000): Promise<void> {
@@ -74,8 +74,8 @@ export class KafkaManager {
 
         await this.admin.disconnect();
         await this.producer.connect();
-        await this.consumer.connect();
-        await this.consumer2.connect();
+        await this.consumer_of_question_topic.connect();
+        await this.consumer_of_room_created_topic.connect();
         this.isConnected = true; 
         console.log('Connected to Kafka');
         return;
@@ -101,9 +101,9 @@ export class KafkaManager {
   }): Promise<void> {
     await this.initWithRetry();
 
-    await this.consumer.subscribe({ topic: QUESTION_TOPIC, fromBeginning: false });
+    await this.consumer_of_question_topic.subscribe({ topic: QUESTION_TOPIC, fromBeginning: false });
 
-    this.consumer.run({
+    this.consumer_of_question_topic.run({
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
         if (topic === QUESTION_TOPIC && handlers.onQuestionMessage) {
           await handlers.onQuestionMessage({
@@ -114,9 +114,9 @@ export class KafkaManager {
       },
     });
 
-    await this.consumer2.subscribe({ topic: ROOM_CREATED_TOPIC, fromBeginning: false });
+    await this.consumer_of_room_created_topic.subscribe({ topic: ROOM_CREATED_TOPIC, fromBeginning: false });
 
-    this.consumer2.run({
+    this.consumer_of_room_created_topic.run({
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
         if (topic === ROOM_CREATED_TOPIC && handlers.onRoomCreatedMessage) {
           await handlers.onRoomCreatedMessage({
@@ -187,8 +187,8 @@ export class KafkaManager {
   }
 
   async disconnect(): Promise<void> {
-    try { await this.consumer.disconnect(); } catch {}
-    try { await this.consumer2.disconnect(); } catch {}
+    try { await this.consumer_of_question_topic.disconnect(); } catch {}
+    try { await this.consumer_of_room_created_topic.disconnect(); } catch {}
     try { await this.producer.disconnect(); } catch {}
     try { await this.admin.disconnect(); } catch {}
   }
