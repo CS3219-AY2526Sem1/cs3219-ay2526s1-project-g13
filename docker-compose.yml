@@ -128,6 +128,43 @@ services:
     networks:
       - cs3219-peerprep-network
 
+  execution-api:
+    build: 
+      context: ./backend/execution-service
+      dockerfile: Dockerfile.execution
+    container_name: execution-api
+    ports:
+      - "8010:8010"
+    env_file:
+      - ./backend/execution-service/.env
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+    command: pnpm run start:api
+  execution-worker:
+    build: 
+      context: ./backend/execution-service
+      dockerfile: Dockerfile.execution
+    container_name: execution-worker
+    env_file:
+      - ./backend/execution-service/.env
+    depends_on:
+      - mongodb
+    networks:
+      - cs3219-peerprep-network
+    command: pnpm run start:worker
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston-api
+    restart: always
+    ports:
+      - '2000:2000'
+    privileged: true
+    volumes:
+      - piston_packages:/piston/packages 
+    networks:
+      - cs3219-peerprep-network
   question-service:
     build:
       context: ./backend/question-service
@@ -151,7 +188,7 @@ services:
 networks:
   cs3219-peerprep-network:
     driver: bridge
-
 volumes:
   mongodb_data: {}
   redis_data: {}
+  piston_packages: {}
