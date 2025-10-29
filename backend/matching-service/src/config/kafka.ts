@@ -5,6 +5,9 @@ export const QUESTION_TOPIC = 'question_topic';
 export const ROOM_CREATION_TOPIC = 'room_creation_topic';
 export const ROOM_CREATED_TOPIC = 'room_created_topic';
 
+export const CONSUMER_GROUP_QUESTION = 'matching.question-consumer';
+export const CONSUMER_GROUP_ROOM_CREATED = 'matching.room-created-consumer';
+
 type MessageHandler = (message: { key?: string | null; value?: string | null }) => Promise<void> | void;
 
 export class KafkaManager {
@@ -33,8 +36,8 @@ export class KafkaManager {
 
     this.admin = this.kafka.admin();
     this.producer = this.kafka.producer();
-    this.consumer_of_question_topic = this.kafka.consumer({ groupId: 'matching-service-group' });
-    this.consumer_of_room_created_topic = this.kafka.consumer({ groupId: 'matching-service-group-2' });
+    this.consumer_of_question_topic = this.kafka.consumer({ groupId: CONSUMER_GROUP_QUESTION });
+    this.consumer_of_room_created_topic = this.kafka.consumer({ groupId: CONSUMER_GROUP_ROOM_CREATED });
   }
 
   async initWithRetry(maxRetries = 5, retryDelayMs = 2000): Promise<void> {
