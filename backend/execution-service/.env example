@@ -1,1 +1,4 @@
-MONGO_URI=mongodb://admin:password@mongodb:27017/peerprepExecutionServiceDB?authSource=admin
+RABBITMQ_URL="amqp://user:password@rabbitmq"
+QUEUE_NAME="execution_jobs"
+CALLBACK_URL="http://collaboration-service:8004/api/v1/code/execute-callback"
+PISTON_URL="http://piston:2000/api/v2/execute"
