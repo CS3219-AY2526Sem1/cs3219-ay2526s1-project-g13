@@ -10,14 +10,14 @@ import ProtectedRoute from "@/components/auth/protected-route";
 
 export default function MatchingPage() {
   const router = useRouter();
-  const { user, isUser } = useAuthContext();
+  const { user, isUser, isLoading } = useAuthContext();
   const { roomId, matchFound, initializeSocket, setUser, cleanup } = useMatchingStore();
 
   useEffect(() => {
-    if (!isUser) {
+    if (!isLoading && !isUser) {
       router.push("/");
     }
-  }, [isUser, router]);
+  }, [isUser, isLoading, router]);
 
   useEffect(() => {
     if (matchFound && roomId) {

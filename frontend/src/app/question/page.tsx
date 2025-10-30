@@ -10,13 +10,13 @@ import { useEffect } from "react";
 
 export default function QuestionPage() {
   const router = useRouter();
-  const { user, isAdmin } = useAuthContext();
+  const { user, isAdmin, isLoading } = useAuthContext();
 
   useEffect(() => {
-    if (!user || !isAdmin) {
+    if (!isLoading && !isAdmin) {
       router.push("/");
     }
-  }, [user, isAdmin, router]);
+  }, [user, isAdmin, isLoading, router]);
 
   return (
     <ProtectedRoute>
