@@ -91,10 +91,87 @@ const pickQuestion = async (req, res) => {
     }
 }
 
+/**
+ * Kafka consumer function to get question based on matching criteria
+ * This function is called when the question service receives a message from the matching service
+ * @param {Object} message - Kafka message containing matching criteria
+ * @param {string} message.key - Message key (optional)
+ * @param {string} message.value - JSON string containing topic and difficulty
+ * @param {Object} kafkaManager - Kafka manager instance for sending responses
+ * @param {string} questionTopic - Topic to send the question response to
+ * @returns {Object} Question object or error response
+ */
+const getQuestion = async (message, kafkaManager, questionTopic) => {
+    try {
+        if (!message.value) {
+            console.error('No message value provided');
+            return { error: 'No message value provided' };
+        }
+
+        const messageValue = Buffer.isBuffer(message.value) ? message.value.toString() : message.value;
+        console.log('getQuestion received messageValue:', messageValue);
+        let criteria;
+        try {
+            criteria = JSON.parse(messageValue);
+        } catch (parseError) {
+            console.error('Failed to parse message value:', parseError);
+            console.error('Message value was:', messageValue);
+            return { error: 'Invalid message format' };
+        }
+
+        const { topic, difficulty } = criteria;
+
+        if (topic && !TOPICS.includes(topic)) {
+            console.error('Invalid topic:', topic);
+            return { error: 'Invalid topic' };
+        }
+        if (difficulty && !DIFFICULTIES.includes(difficulty)) {
+            console.error('Invalid difficulty:', difficulty);
+            return { error: 'Invalid difficulty' };
+        }
+
+        const pipeline = [];
+        const match = {};
+        if (topic) match.topic = topic;
+        if (difficulty) match.difficulty = difficulty;
+        if (Object.keys(match).length > 0) pipeline.push({ $match: match });
+        pipeline.push({ $sample: { size: 1 } });
+
+        const docs = await Question.aggregate(pipeline);
+        if (!docs || docs.length === 0) {
+            console.error('No question found for criteria:', criteria);
+            return { error: 'No question found for the given criteria' };
+        }
+
+        const q = docs[0];
+        
+        console.log('getQuestion returning question:', q);
+        const messageBody = JSON.stringify({
+            questionId: q._id.toString(),
+        });
+
+        const matchId = message.key?.toString();
+        const producer = kafkaManager.getProducer();
+        await producer.send({
+            topic: questionTopic,
+            messages: [
+                {
+                    key: matchId,
+                    value: messageBody,
+                },
+            ],
+        });
+    } catch (error) {
+        console.error('getQuestion error:', error);
+        return { error: 'Internal server error' };
+    }
+}
+
 module.exports = {
     fetchAllQuestions,
     pickQuestion,
     getQuestionById,
+    getQuestion,
     seedQuestions: async (req, res) => {
         try {
             await Question.deleteMany({})

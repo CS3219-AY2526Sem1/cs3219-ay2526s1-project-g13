@@ -3,7 +3,7 @@ export const config = {
   WS_PORT: process.env.WS_PORT || 8005,
   HTTP_PORT: process.env.HTTP_PORT || 8004,
   // Database
-  MONGO_URI: process.env.MONGODB_URI || "mongodb://localhost:27017/peerprep",
+  MONGO_URI: process.env.MONGODB_URI || "mongodb://admin:password@localhost:27017/peerprepCollabService?authSource=admin",
   // Room Management
   ROOM_TIMEOUT_MINUTES: parseInt(process.env.ROOM_TIMEOUT_MINUTES) || 10,
   // Yjs MongoDB Provider Persistence Settings

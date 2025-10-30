@@ -1,0 +1,66 @@
+name: CI (backend - matching service)
+
+on:
+  pull_request:
+    branches: [ dev, staging ]
+    paths:
+      - "backend/matching-service/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".github/workflows/ci-matching-service.yml"
+  push:
+    branches: [ dev, staging ]
+    paths:
+      - "backend/matching-service/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".github/workflows/ci-matching-service.yml"
+
+# Cancel older runs on the same PR/branch
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Lint, Typecheck, Build
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Enable Corepack & pin pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.17.1 --activate
+          echo "PATH: $PATH"
+          which pnpm
+          pnpm -v
+
+      - name: Install deps (workspace root)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (matching service)
+        run: pnpm --filter matching-service lint
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend/matching-service
+          file: backend/matching-service/Dockerfile.matching
+          push: false
+          tags: matching-service:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
