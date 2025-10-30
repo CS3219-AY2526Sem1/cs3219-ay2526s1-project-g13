@@ -7,14 +7,28 @@ class RoomController {
   /**
    * Create a new room
    * @param {string|null} roomId - Optional room ID, generates UUID if not provided
+   * @param {string|null} questionId - Optional question ID
+   * @param {Array<string>} userIds - Array of user IDs
+   * @param {string|null} programmingLanguage - Optional programming language
    * @returns {Promise<Object>} - Created room object
    */
-  async create(roomId = null) {
+  async create(roomId = null, questionId = null, userIds = [], programmingLanguage = null) {
     try {
       const id = roomId || uuidv4();
-      const room = await Room.create({
+      const roomData = {
         roomId: id,
-      });
+        userIds: userIds,
+      };
+      
+      if (questionId) {
+        roomData.questionId = questionId;
+      }
+      
+      if (programmingLanguage) {
+        roomData.programmingLanguage = programmingLanguage;
+      }
+      
+      const room = await Room.create(roomData);
       return room.toObject();
     } catch (error) {
       console.error(`Failed to create room ${roomId}:`, error);
