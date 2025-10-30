@@ -108,9 +108,15 @@ export class KafkaManager {
   }
 
   async disconnect() {
-    try { await this.consumer.disconnect(); } catch {}
-    try { await this.producer.disconnect(); } catch {}
-    try { await this.admin.disconnect(); } catch {}
+    try { 
+      await this.consumer.disconnect(); 
+    } catch {}
+    try { 
+      await this.producer.disconnect(); 
+    } catch {}
+    try { 
+      await this.admin.disconnect(); 
+    } catch {}
   }
 }
 

@@ -77,7 +77,7 @@ services:
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
       - KAFKA_BROKERS=kafka:9092
-      - DEBUG_MODE=false
+      - DEBUG_MODE=true
       - DEBUG_MATCHING=false
     depends_on:
       - redis

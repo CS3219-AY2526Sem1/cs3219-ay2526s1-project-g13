@@ -103,16 +103,13 @@ const pickQuestion = async (req, res) => {
  */
 const getQuestion = async (message, kafkaManager, questionTopic) => {
     try {
-        console.log('getQuestion received message:', message);
-        
         if (!message.value) {
             console.error('No message value provided');
             return { error: 'No message value provided' };
         }
 
-        // Convert Buffer to string if necessary
         const messageValue = Buffer.isBuffer(message.value) ? message.value.toString() : message.value;
-        
+        console.log('getQuestion received messageValue:', messageValue);
         let criteria;
         try {
             criteria = JSON.parse(messageValue);
@@ -124,7 +121,6 @@ const getQuestion = async (message, kafkaManager, questionTopic) => {
 
         const { topic, difficulty } = criteria;
 
-        // Validate fields if provided
         if (topic && !TOPICS.includes(topic)) {
             console.error('Invalid topic:', topic);
             return { error: 'Invalid topic' };

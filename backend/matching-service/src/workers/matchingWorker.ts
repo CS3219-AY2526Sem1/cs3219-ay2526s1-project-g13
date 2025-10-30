@@ -6,23 +6,23 @@ import { v4 as uuidv4 } from 'uuid';
 import { SOCKET_EVENTS } from '../constants/socketEvents';
 import { clearMatchCountdownFor } from '../controllers/matchingController';
 import { acquireLock, releaseLock } from '../config/redislock';
-import { MATCHING_INTERVAL_MS, MATCHING_LOCK_KEY, MATCHING_LOCK_TTL } from '../constants/matchingStatus';
+import { ALL_DIFFICULTIES, ALL_TOPICS, MATCHING_INTERVAL_MS, MATCHING_LOCK_KEY, MATCHING_LOCK_TTL } from '../constants/matchingStatus';
 
 function topicsCompatible(a: string, b: string): boolean {
   if (!a || !b) return false;
-  return a === 'all' || b === 'all' || a === b;
+  return a === ALL_TOPICS || b === ALL_TOPICS || a === b;
 }
 
 function difficultiesCompatible(a: string, b: string): boolean {
   if (!a || !b) return false;
-  return a === 'all' || b === 'all' || a === b;
+  return a === ALL_DIFFICULTIES || b === ALL_DIFFICULTIES || a === b;
 }
 
 function pickFinal(topicA: string, topicB: string): string {
-  return topicA === 'all' ? topicB : topicA;
+  return topicA === ALL_TOPICS ? topicB : topicA;
 }
 function pickFinalDifficulty(diffA: string, diffB: string): string {
-  return diffA === 'all' ? diffB : diffA;
+  return diffA === ALL_DIFFICULTIES ? diffB : diffA;
 }
 
 async function handleMatch(u1: User, u2: User) {
@@ -49,13 +49,14 @@ async function handleMatch(u1: User, u2: User) {
   const topic = pickFinal(u1.topic, u2.topic);
   const difficulty = pickFinalDifficulty(u1.difficulty, u2.difficulty);
 
+
   const matchId = uuidv4();
 
   const matchEvent = {
     user1: { userId: u1.userId, socketId: u1.socketId },
     user2: { userId: u2.userId, socketId: u2.socketId },
-    topic,
-    difficulty,
+    topic : topic === ALL_TOPICS ? '' : topic,
+    difficulty : difficulty === ALL_DIFFICULTIES ? '' : difficulty,
     matchId,
   };
 

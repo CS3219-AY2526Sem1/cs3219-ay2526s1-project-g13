@@ -42,8 +42,8 @@ const MatchMake = () => {
       });
       const authUser = res.data;
       if (authUser) {
-        const difficulty = selectedDifficulty || "";
-        const topic = selectedTopic || "";
+        const difficulty = selectedDifficulty || "all";
+        const topic = selectedTopic || "all";
         startMatch(difficulty, topic);
       }
     } catch (err) {

@@ -1,5 +1,5 @@
 import { getSocket } from '../config/socket';
-import { redisConfig, redis } from '../config/redis';
+import { redis } from '../config/redis';
 import { SOCKET_EVENTS } from '../constants/socketEvents';
 import { AuthenticatedSocket } from '../middleware/auth-socket';
 
@@ -23,9 +23,6 @@ class MatchingController {
       console.log('Socket connected:', socket.id, 'for userId:', socket.data.userId);
       socket.on(SOCKET_EVENTS.MATCH_START, async (requestData: { topic: string; difficulty: string }) => {
         let { topic, difficulty } = requestData
-        
-        if (topic === '') topic = 'all';
-        if (difficulty === '') difficulty = 'all';
 
         console.log('matchStart request received:', { topic, difficulty, userId: socket.data.userId });
         const socketId = socket.id;
@@ -46,8 +43,8 @@ class MatchingController {
           socketId,
           userId,
           requestedAt,
-          topic,
-          difficulty,
+          topic: topic,
+          difficulty: difficulty,
         };
 
         const pipeline = redis.multi();
