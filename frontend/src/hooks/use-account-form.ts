@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
+import { accountAPI } from "@/lib/api-client";
 
 type Errors = {
   username?: string;
@@ -100,11 +101,7 @@ export function useAccountForm({ email, originalUsername, setDialog }: UseAccoun
     { username: string; currentPassword: string; newPassword: string }
   >({
     mutationFn: async (payload) => {
-      const accessToken = localStorage.getItem("accessToken");
-      const res = await axios.post("http://localhost:8001/v1/update-account", payload, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      return res.data;
+      return await accountAPI.updateAccount(payload);
     },
     onSuccess: (data) => {
       setDialog({

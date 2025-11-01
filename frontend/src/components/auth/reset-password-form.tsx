@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useParams, useRouter } from "next/navigation";
+import { authAPI } from "@/lib/api-client";
 
 type FormValues = {
   password: string;
@@ -66,8 +67,7 @@ export default function ResetPasswordForm() {
     { resetPasswordToken: string; newPassword: string }
   >({
     mutationFn: async (payload) => {
-      const res = await axios.post("http://localhost:8001/v1/reset-password", payload);
-      return res.data;
+      return await authAPI.resetPassword(payload);
     },
     onSuccess: () => {
       setOpen(true);

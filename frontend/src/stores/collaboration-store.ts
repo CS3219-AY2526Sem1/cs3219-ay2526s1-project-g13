@@ -1,18 +1,9 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import { ProgrammingLanguage } from "@/utils/enums";
-import { collaborationConfig } from "@/utils/config";
-
-interface RoomDetails {
-  roomId: string;
-  questionId: string | null;
-  userIds: string[];
-  programmingLanguage: ProgrammingLanguage;
-  isActive: boolean;
-  closedAt: Date | null;
-}
+import { collaborationAPI, RoomDetails } from "@/lib/api-client";
 
 interface CollaborationState {
   // Room state
@@ -43,16 +34,16 @@ export const useCollaborationStore = create<CollaborationState>()(
     fetchRoomDetails: async (roomId: string) => {
       set({ isLoading: true, error: null });
       try {
-        const response = await axios.get(`${collaborationConfig.HTTP_URL}/api/v1/rooms/${roomId}`);
+        const response = await collaborationAPI.getRoomDetails(roomId);
 
-        if (response.data.success) {
+        if (response.success) {
           set({
-            roomDetails: response.data.room,
-            documentContent: response.data.document.content || "",
+            roomDetails: response.room,
+            documentContent: response.document.content || "",
             isLoading: false,
           });
         } else {
-          throw new Error(response.data.error || "Failed to fetch room details");
+          throw new Error(response.error || "Failed to fetch room details");
         }
       } catch (error) {
         const errorMessage =
@@ -76,13 +67,10 @@ export const useCollaborationStore = create<CollaborationState>()(
     // Change programming language
     changeLanguage: async (roomId: string, language: ProgrammingLanguage) => {
       try {
-        const response = await axios.patch(
-          `${collaborationConfig.HTTP_URL}/api/v1/rooms/${roomId}/language`,
-          { language },
-        );
+        const response = await collaborationAPI.changeLanguage(roomId, language);
 
-        if (!response.data.success) {
-          throw new Error(response.data.error || "Failed to change language");
+        if (!response.success) {
+          throw new Error(response.error || "Failed to change language");
         }
 
         set((state) => ({

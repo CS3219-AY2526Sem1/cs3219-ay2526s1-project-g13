@@ -1,61 +1,17 @@
 import { useCallback } from "react";
-import axios, { AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig } from "axios";
+import { refreshAccessToken, authRequest as authRequestClient } from "@/lib/api-client";
 
 export function useAuth() {
   // Refresh the access token
-  const refreshAccessToken = useCallback(async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:8001/v1/auth/refresh",
-        {},
-        { withCredentials: true },
-      );
-      const { accessToken } = res.data;
-      if (accessToken) {
-        localStorage.setItem("accessToken", accessToken);
-      }
-      return accessToken;
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.status === 401 &&
-        err.response?.data?.error === "Invalid or expired refresh token"
-      ) {
-        console.log("Refresh token has expired, user needs to log in again");
-        localStorage.removeItem("accessToken");
-      } else {
-        console.error("Failed to refresh access token:", err);
-      }
-      return null;
-    }
+  const refreshAccessTokenHook = useCallback(async () => {
+    return await refreshAccessToken();
   }, []);
 
   // Authenticated request with auto-refresh
-  const authRequest = useCallback(
-    async (config: AxiosRequestConfig) => {
-      config.withCredentials = true;
-      const isLoggedOut = localStorage.getItem("logout");
-      if (isLoggedOut) {
-        throw new Error("User is logged out");
-      }
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) throw new Error("No access token found");
+  const authRequest = useCallback(async (config: AxiosRequestConfig) => {
+    return await authRequestClient(config);
+  }, []);
 
-      try {
-        config.headers = { ...config.headers, Authorization: `Bearer ${accessToken}` };
-        return await axios(config);
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          const newToken = await refreshAccessToken();
-          if (!newToken) throw new Error("Token refresh failed");
-          config.headers = { ...(config.headers || {}), Authorization: `Bearer ${newToken}` };
-          return await axios(config);
-        }
-        throw err;
-      }
-    },
-    [refreshAccessToken],
-  );
-
-  return { refreshAccessToken, authRequest };
+  return { refreshAccessToken: refreshAccessTokenHook, authRequest };
 }

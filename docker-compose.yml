@@ -179,6 +179,29 @@ services:
     networks:
       - cs3219-peerprep-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
+      - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004
+      - NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL=ws://localhost:8005
+      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
+    depends_on:
+      - user-service
+      - collaboration-service
+      - matching-service
+      - question-service
+    networks:
+      - cs3219-peerprep-network
+
 networks:
   cs3219-peerprep-network:
     driver: bridge
