@@ -266,17 +266,19 @@ export const accountAPI = {
 
 export const collaborationAPI = {
   getRoomDetails: async (roomId: string): Promise<RoomDetailsResponse> => {
-    const res = await axios.get<RoomDetailsResponse>(
-      `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
-    );
+    const res = await authRequest<RoomDetailsResponse>({
+      method: "GET",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
+    });
     return res.data;
   },
 
   changeLanguage: async (roomId: string, language: string): Promise<ChangeLanguageResponse> => {
-    const res = await axios.patch<ChangeLanguageResponse>(
-      `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
-      { language },
-    );
+    const res = await authRequest<ChangeLanguageResponse>({
+      method: "PATCH",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
+      data: { language },
+    });
     return res.data;
   },
 };

@@ -1,5 +1,6 @@
 import express from "express";
 import roomController from "../controllers/roomController.js";
+import { authenticateHttp } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -35,26 +36,40 @@ router.post("/", async (req, res) => {
 /**
  * GET /api/v1/rooms/:roomId
  * Get room information and document content
+ * Requires authentication and authorization (user must be in room)
  */
-router.get("/:roomId", async (req, res) => {
+router.get("/:roomId", authenticateHttp, async (req, res) => {
   try {
     const { roomId } = req.params;
+    const userId = req.userId; // Set by authenticateHttp middleware
+
     const room = await roomController.get(roomId);
-    if (room) {
-      const documentContent = await roomController.getDocumentContent(roomId);
-      res.json({
-        success: true,
-        room: room,
-        document: {
-          content: documentContent,
-        },
-      });
-    } else {
-      res.status(404).json({
+    
+    // Check if room exists
+    if (!room) {
+      return res.status(404).json({
         success: false,
         error: "Room not found",
       });
     }
+
+    // Check if user is authorized (part of the room)
+    if (!room.userIds.includes(userId)) {
+      // Return 404 to maintain privacy (don't reveal room exists)
+      return res.status(404).json({
+        success: false,
+        error: "Room not found",
+      });
+    }
+
+    const documentContent = await roomController.getDocumentContent(roomId);
+    res.json({
+      success: true,
+      room: room,
+      document: {
+        content: documentContent,
+      },
+    });
   } catch (error) {
     console.error("Failed to get room:", error);
     res.status(500).json({
@@ -67,22 +82,38 @@ router.get("/:roomId", async (req, res) => {
 /**
  * PATCH /api/v1/rooms/:roomId/close
  * Close (stop) a room for collaboration
+ * Requires authentication and authorization (user must be in room)
  */
-router.patch("/:roomId/close", async (req, res) => {
+router.patch("/:roomId/close", authenticateHttp, async (req, res) => {
   try {
     const { roomId } = req.params;
+    const userId = req.userId; // Set by authenticateHttp middleware
+
     const room = await roomController.get(roomId);
+    
+    // Check if room exists
     if (!room) {
       return res.status(404).json({
         success: false,
         error: "Room not found",
       });
-    } else if (!room.isActive) {
+    }
+
+    // Check if user is authorized (part of the room)
+    if (!room.userIds.includes(userId)) {
+      return res.status(404).json({
+        success: false,
+        error: "Room not found",
+      });
+    }
+
+    if (!room.isActive) {
       return res.status(400).json({
         success: false,
         error: "Room is already closed",
       });
     }
+
     await roomController.closeRoom(roomId);
     res.json({
       success: true,
@@ -100,29 +131,46 @@ router.patch("/:roomId/close", async (req, res) => {
 /**
  * PATCH /api/v1/rooms/:roomId/language
  * Set programming language for a room
+ * Requires authentication and authorization (user must be in room)
  */
-router.patch("/:roomId/language", async (req, res) => {
+router.patch("/:roomId/language", authenticateHttp, async (req, res) => {
   try {
     const { roomId } = req.params;
     const { language } = req.body;
+    const userId = req.userId; // Set by authenticateHttp middleware
+
     if (!language) {
       return res.status(400).json({
         success: false,
         error: "Programming language is required",
       });
     }
+
     const room = await roomController.get(roomId);
+    
+    // Check if room exists
     if (!room) {
       return res.status(404).json({
         success: false,
         error: "Room not found",
       });
-    } else if (!room.isActive) {
+    }
+
+    // Check if user is authorized (part of the room)
+    if (!room.userIds.includes(userId)) {
+      return res.status(404).json({
+        success: false,
+        error: "Room not found",
+      });
+    }
+
+    if (!room.isActive) {
       return res.status(400).json({
         success: false,
         error: "Cannot set language for a closed room",
       });
     }
+
     await roomController.setProgrammingLanguage(roomId, language);
     res.json({
       success: true,

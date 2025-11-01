@@ -67,13 +67,21 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
       return;
     }
 
+    // Get access token
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      toast.error("Authentication required");
+      return;
+    }
+
     // Create Yjs document
     const ydoc = new Y.Doc();
     ydocRef.current = ydoc;
 
-    // Create WebSocket provider
+    // Create WebSocket provider with token in URL
     const wsUrl = collaborationConfig.WS_URL;
-    const provider = new WebsocketProvider(wsUrl, roomId, ydoc);
+    const roomWithToken = `${roomId}?token=${accessToken}`;
+    const provider = new WebsocketProvider(wsUrl, roomWithToken, ydoc);
     providerRef.current = provider;
 
     // Create Monaco binding

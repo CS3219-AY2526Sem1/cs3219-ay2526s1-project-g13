@@ -11,6 +11,7 @@ import CodeOutputPanel from "@/components/practice/code-output-panel";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 const CodeEditorPanel = dynamic(() => import("@/components/practice/code-editor-panel"), {
   ssr: false,
@@ -74,76 +75,78 @@ export default function PracticePage() {
   const isReadOnly = !roomDetails.isActive;
 
   return (
-    <div className="h-screen w-full flex flex-col">
-      <Header>
-        <div className="flex items-center gap-4">
-          <Button variant={"destructive"} onClick={handleLeaveSession}>
-            Leave Room
-          </Button>
+    <ProtectedRoute>
+      <div className="h-screen w-full flex flex-col">
+        <Header>
+          <div className="flex items-center gap-4">
+            <Button variant={"destructive"} onClick={handleLeaveSession}>
+              Leave Room
+            </Button>
+          </div>
+        </Header>
+
+        <div className="flex-1">
+          {isReadOnly ? (
+            // Read-only layout: Only question and read-only code editor
+            <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+              {/* Left Panel */}
+              <ResizablePanel>
+                <div className="h-full overflow-y-auto">
+                  <QuestionPanel />
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
+
+              {/* Right Panel */}
+              <ResizablePanel>
+                <div className="h-full overflow-y-auto">
+                  <CodeEditorPanel readOnly={true} />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            // Full layout with all panels
+            <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+              {/* Left Panel */}
+              <ResizablePanel>
+                <ResizablePanelGroup direction="vertical">
+                  <ResizablePanel>
+                    <div className="h-full overflow-y-auto">
+                      <QuestionPanel />
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
+                  <ResizablePanel>
+                    <div className="h-full overflow-y-auto">
+                      <CommunicationPanel />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+
+              <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
+
+              {/* Right Panel */}
+              <ResizablePanel>
+                <ResizablePanelGroup direction="vertical">
+                  <ResizablePanel>
+                    <div className="h-full overflow-y-auto">
+                      <CodeEditorPanel readOnly={false} />
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
+                  <ResizablePanel>
+                    <div className="h-full overflow-y-auto">
+                      <CodeOutputPanel />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )}
         </div>
-      </Header>
-
-      <div className="flex-1">
-        {isReadOnly ? (
-          // Read-only layout: Only question and read-only code editor
-          <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-            {/* Left Panel */}
-            <ResizablePanel>
-              <div className="h-full overflow-y-auto">
-                <QuestionPanel />
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
-
-            {/* Right Panel */}
-            <ResizablePanel>
-              <div className="h-full overflow-y-auto">
-                <CodeEditorPanel readOnly={true} />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        ) : (
-          // Full layout with all panels
-          <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-            {/* Left Panel */}
-            <ResizablePanel>
-              <ResizablePanelGroup direction="vertical">
-                <ResizablePanel>
-                  <div className="h-full overflow-y-auto">
-                    <QuestionPanel />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
-                <ResizablePanel>
-                  <div className="h-full overflow-y-auto">
-                    <CommunicationPanel />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-
-            <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
-
-            {/* Right Panel */}
-            <ResizablePanel>
-              <ResizablePanelGroup direction="vertical">
-                <ResizablePanel>
-                  <div className="h-full overflow-y-auto">
-                    <CodeEditorPanel readOnly={false} />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle className="bg-gray-400 hover:bg-gray-600 w-1 cursor-col-resize" />
-                <ResizablePanel>
-                  <div className="h-full overflow-y-auto">
-                    <CodeOutputPanel />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        )}
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
