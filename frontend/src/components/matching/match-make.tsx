@@ -12,13 +12,12 @@ import {
 } from "@/components/ui/carousel";
 import { DIFFICULTY } from "@/utils/enums";
 import { useMatchingState, useMatchingActions } from "@/stores/matching-store";
-import { useAuth } from "@/hooks/use-auth";
 import { clsx } from "clsx";
 import { LeafIcon, FlameIcon, LightningIcon } from "./difficulty-icons";
 import { topics } from "./topic-icons";
+import { accountAPI } from "@/lib/api-client";
 
 const MatchMake = () => {
-  const { authRequest } = useAuth();
   const { isMatching, isRoomPreparing, selectedTopic, matchFound } = useMatchingState();
   const { startMatch, setSelectedTopic } = useMatchingActions();
   const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY | null>(null);
@@ -35,12 +34,7 @@ const MatchMake = () => {
 
   const findMatch = async () => {
     try {
-      const res = await authRequest({
-        method: "GET",
-        url: "http://localhost:8001/v1/account",
-        withCredentials: true,
-      });
-      const authUser = res.data;
+      const authUser = await accountAPI.getAccount();
       if (authUser) {
         const difficulty = selectedDifficulty || "all";
         const topic = selectedTopic || "all";
