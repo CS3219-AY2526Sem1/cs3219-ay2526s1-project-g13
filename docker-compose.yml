@@ -187,8 +187,6 @@ services:
     restart: always
     ports:
       - '3000:3000'
-    env_file:
-      - ./frontend/.env
     environment:
       - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
       - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004

@@ -56,12 +56,15 @@ export default function VerifyAccountPage() {
       console.log(data.message);
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
-        await checkAuth(); // Update auth context
-        setDescription("Redirecting to matching page in 5 seconds...");
+        const user = await checkAuth(); // Update auth context
+
         setIcon("user-round-check");
-        setTimeout(() => {
-          router.push("/matching");
-        }, 5000);
+        if (user?.role == "user") {
+          setDescription("Redirecting to matching page in 5 seconds...");
+          setTimeout(() => {
+            router.push("/matching");
+          }, 5000);
+        }
       } else {
         console.log("No access token received upon verification.");
         setDescription("You can now log in to your account.");
