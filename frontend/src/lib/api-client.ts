@@ -66,6 +66,13 @@ export interface UpdateAccountResponse {
   message: string;
 }
 
+export interface QuestionDetails {
+  _id: string;
+  title: string;
+  difficulty: string;
+  topic: string;
+}
+
 export interface RoomDetails {
   roomId: string;
   questionId: string | null;
@@ -73,6 +80,7 @@ export interface RoomDetails {
   programmingLanguage: ProgrammingLanguage;
   isActive: boolean;
   closedAt: Date | null;
+  question: QuestionDetails | null;
 }
 
 export interface RoomDetailsResponse {
@@ -90,6 +98,12 @@ export interface ChangeLanguageRequest {
 
 export interface ChangeLanguageResponse {
   success: boolean;
+  error?: string;
+}
+
+export interface GetUserRoomsResponse {
+  success: boolean;
+  rooms: RoomDetails[];
   error?: string;
 }
 
@@ -269,6 +283,14 @@ export const collaborationAPI = {
     const res = await axios.get<RoomDetailsResponse>(
       `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
     );
+    return res.data;
+  },
+
+  getUserRooms: async (userId: string): Promise<GetUserRoomsResponse> => {
+    const res = await authRequest<GetUserRoomsResponse>({
+      method: "GET",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms?userId=${userId}`,
+    });
     return res.data;
   },
 
