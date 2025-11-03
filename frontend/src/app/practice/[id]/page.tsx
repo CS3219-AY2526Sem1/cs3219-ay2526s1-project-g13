@@ -24,7 +24,7 @@ export default function PracticePage() {
   const roomId = params?.id as string;
 
   const { roomDetails, isLoading, error } = useCollaborationState();
-  const { fetchRoomDetails, reset } = useCollaborationActions();
+  const { fetchRoomDetails, fetchQuestionDetails, reset } = useCollaborationActions();
 
   // Fetch room details on mount
   useEffect(() => {
@@ -39,6 +39,15 @@ export default function PracticePage() {
       reset();
     };
   }, [fetchRoomDetails, reset, roomId]);
+
+  // Fetch question details when room details are loaded
+  useEffect(() => {
+    if (roomDetails?.questionId) {
+      fetchQuestionDetails(roomDetails.questionId).catch((err) => {
+        console.error("Failed to fetch question details:", err);
+      });
+    }
+  }, [fetchQuestionDetails, roomDetails?.questionId]);
 
   // Handle leave session
   const handleLeaveSession = () => {

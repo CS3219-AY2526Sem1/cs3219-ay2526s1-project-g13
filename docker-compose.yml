@@ -192,9 +192,10 @@ services:
       - '3000:3000'
     environment:
       - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
+      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
+      - NEXT_PUBLIC_QUESTION_SERVICE_URL=http://localhost:8003
       - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004
       - NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL=ws://localhost:8005
-      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
     depends_on:
       - user-service
       - collaboration-service

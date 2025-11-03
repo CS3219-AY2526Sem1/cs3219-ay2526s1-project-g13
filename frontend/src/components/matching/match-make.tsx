@@ -10,7 +10,7 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
-import { DIFFICULTY } from "@/utils/enums";
+import { Difficulty } from "@/utils/enums";
 import { useMatchingState, useMatchingActions } from "@/stores/matching-store";
 import { clsx } from "clsx";
 import { LeafIcon, FlameIcon, LightningIcon } from "./difficulty-icons";
@@ -20,7 +20,7 @@ import { accountAPI } from "@/lib/api-client";
 const MatchMake = () => {
   const { isMatching, isRoomPreparing, selectedTopic, matchFound } = useMatchingState();
   const { startMatch, setSelectedTopic } = useMatchingActions();
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DIFFICULTY | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
 
   const chunkTopics = (topicList: typeof topics, size: number) => {
     const chunks = [];
@@ -90,19 +90,19 @@ const MatchMake = () => {
             Choose a difficulty level, or skip to match with any difficulty
           </p>
           <div className="flex gap-4 justify-between">
-            {Object.values(DIFFICULTY).map((difficulty) => {
+            {Object.values(Difficulty).map((difficulty) => {
               const isSelected = selectedDifficulty === difficulty;
               const getIcon = () => {
                 switch (difficulty) {
-                  case DIFFICULTY.EASY:
+                  case Difficulty.EASY:
                     return (
                       <>
                         <LeafIcon />
                       </>
                     );
-                  case DIFFICULTY.MEDIUM:
+                  case Difficulty.MEDIUM:
                     return <FlameIcon />;
-                  case DIFFICULTY.HARD:
+                  case Difficulty.HARD:
                     return <LightningIcon />;
                   default:
                     return null;

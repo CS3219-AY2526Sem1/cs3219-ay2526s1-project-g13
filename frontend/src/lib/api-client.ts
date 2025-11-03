@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { apiConfig } from "./api-config";
-import { ProgrammingLanguage } from "@/utils/enums";
+import { Difficulty, ProgrammingLanguage } from "@/utils/enums";
 
 export interface LoginRequest {
   username: string;
@@ -91,6 +91,21 @@ export interface ChangeLanguageRequest {
 export interface ChangeLanguageResponse {
   success: boolean;
   error?: string;
+}
+
+export interface QuestionExample {
+  input: string;
+  output: string;
+  explanation?: string;
+}
+
+export interface Question {
+  title: string;
+  description: string;
+  difficulty: Difficulty;
+  topic: string;
+  examples?: QuestionExample[];
+  link?: string;
 }
 
 // Create axios instance for user service
@@ -278,6 +293,16 @@ export const collaborationAPI = {
       method: "PATCH",
       url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
       data: { language },
+    });
+    return res.data;
+  },
+};
+
+export const questionAPI = {
+  getQuestionById: async (questionId: string): Promise<Question> => {
+    const res = await authRequest<Question>({
+      method: "GET",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
     });
     return res.data;
   },
