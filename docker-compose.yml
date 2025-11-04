@@ -108,8 +108,11 @@ services:
     ports:
       - '8004:8004'
       - '8005:8005'
+    env_file:
+      - ./backend/collaboration-service/.env
     environment:
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepCollabServiceDB?authSource=admin
+      - WEB_BASE_URL=http://localhost:3000
       - HTTP_PORT=8004
       - WS_PORT=8005
       - ROOM_TIMEOUT_MINUTES=10
@@ -189,9 +192,10 @@ services:
       - '3000:3000'
     environment:
       - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
+      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
+      - NEXT_PUBLIC_QUESTION_SERVICE_URL=http://localhost:8003
       - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004
       - NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL=ws://localhost:8005
-      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
     depends_on:
       - user-service
       - collaboration-service

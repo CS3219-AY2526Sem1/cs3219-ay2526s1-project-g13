@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { apiConfig } from "./api-config";
-import { ProgrammingLanguage } from "@/utils/enums";
+import { Difficulty, ProgrammingLanguage } from "@/utils/enums";
 
 export interface LoginRequest {
   username: string;
@@ -91,6 +91,21 @@ export interface ChangeLanguageRequest {
 export interface ChangeLanguageResponse {
   success: boolean;
   error?: string;
+}
+
+export interface QuestionExample {
+  input: string;
+  output: string;
+  explanation?: string;
+}
+
+export interface Question {
+  title: string;
+  description: string;
+  difficulty: Difficulty;
+  topic: string;
+  examples?: QuestionExample[];
+  link?: string;
 }
 
 // Create axios instance for user service
@@ -266,17 +281,29 @@ export const accountAPI = {
 
 export const collaborationAPI = {
   getRoomDetails: async (roomId: string): Promise<RoomDetailsResponse> => {
-    const res = await axios.get<RoomDetailsResponse>(
-      `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
-    );
+    const res = await authRequest<RoomDetailsResponse>({
+      method: "GET",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
+    });
     return res.data;
   },
 
   changeLanguage: async (roomId: string, language: string): Promise<ChangeLanguageResponse> => {
-    const res = await axios.patch<ChangeLanguageResponse>(
-      `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
-      { language },
-    );
+    const res = await authRequest<ChangeLanguageResponse>({
+      method: "PATCH",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
+      data: { language },
+    });
+    return res.data;
+  },
+};
+
+export const questionAPI = {
+  getQuestionById: async (questionId: string): Promise<Question> => {
+    const res = await authRequest<Question>({
+      method: "GET",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
+    });
     return res.data;
   },
 };
