@@ -23,7 +23,7 @@ export const authenticateWebSocket = async (req) => {
 
     return {
       success: true,
-      userId: decoded.userId,
+      userId: decoded.username,
     };
   } catch (err) {
     return {
@@ -62,7 +62,7 @@ export const authenticateHttp = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user ID to request
-    req.userId = decoded.userId;
+    req.userId = decoded.username;
 
     next();
   } catch (err) {
