@@ -11,32 +11,27 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#d4eaf8]">
+      <div className="h-screen flex flex-col bg-[#d4eaf8] overflow-hidden">
         <Navbar />
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <h1 className="text-4xl font-bold text-[#20222E] mb-2">Dashboard</h1>
-            <p className="text-lg text-gray-600">Manage your active and past practice rooms</p>
-          </div>
-
+        <main className="flex-1 container mx-auto px-4 py-4 overflow-hidden">
           {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
               <p className="font-semibold">Error loading rooms</p>
               <p>{error}</p>
             </div>
           )}
 
           {isLoading ? (
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center h-full">
               <p className="text-lg text-gray-600">Loading rooms...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full min-h-0">
+              <div className="h-full min-h-0">
                 <ActiveRoomsPanel rooms={activeRooms} />
               </div>
 
-              <div>
+              <div className="h-full min-h-0">
                 <PastRoomsPanel rooms={pastRooms} />
               </div>
             </div>

@@ -61,6 +61,34 @@ const formatDate = (date: Date | null): string => {
   });
 };
 
+const formatDuration = (createdAt: Date | null, closedAt: Date | null): string => {
+  if (!createdAt || !closedAt) return "Unknown";
+
+  const start = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
+  const end = typeof closedAt === "string" ? new Date(closedAt) : closedAt;
+
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Unknown";
+
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs < 0) return "Invalid";
+
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  const hours = diffHours % 24;
+  const minutes = diffMinutes % 60;
+
+  if (diffDays > 0) {
+    return `${diffDays}d ${hours}h ${minutes}m`;
+  } else if (diffHours > 0) {
+    return `${diffHours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+};
+
 export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
   const router = useRouter();
   const { user } = useAuthContext();
@@ -110,12 +138,12 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
 
   if (rooms.length === 0) {
     return (
-      <Card className="h-full">
-        <CardHeader>
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader className="flex-shrink-0">
           <CardTitle>Past Room History</CardTitle>
           <CardDescription>Your completed practice sessions</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-full min-h-[400px]">
+        <CardContent className="flex-1 flex items-center justify-center min-h-0">
           <p className="text-muted-foreground">No past rooms yet</p>
         </CardContent>
       </Card>
@@ -123,13 +151,13 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader>
+    <Card className="h-full flex flex-col overflow-hidden">
+      <CardHeader className="flex-shrink-0">
         <CardTitle>Past Room History</CardTitle>
         <CardDescription>Your completed practice sessions</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
+      <CardContent className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
+        <div className="space-y-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <label htmlFor="search-input" className="text-sm font-medium">
               Search:
@@ -184,7 +212,7 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
           </div>
         </div>
 
-        <div className="max-h-[600px] overflow-y-auto space-y-4">
+        <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
           {filteredRooms.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <p className="text-muted-foreground">No rooms match the selected filters</p>
@@ -206,28 +234,48 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {room.question && (
-                      <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      {room.question && (
+                        <>
+                          <div>
+                            <span className="text-sm font-medium">Difficulty: </span>
+                            <span className="text-sm text-muted-foreground">
+                              {room.question.difficulty}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium">Topic: </span>
+                            <span className="text-sm text-muted-foreground">
+                              {room.question.topic}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      <div>
+                        <span className="text-sm font-medium">Language: </span>
+                        <span className="text-sm text-muted-foreground">
+                          {programmingLanguageDisplayMap[room.programmingLanguage]}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {room.closedAt && (
                         <div>
-                          <span className="text-sm font-medium">Difficulty: </span>
+                          <span className="text-sm font-medium">Completed At: </span>
                           <span className="text-sm text-muted-foreground">
-                            {room.question.difficulty}
+                            {formatDate(room.closedAt)}
                           </span>
                         </div>
+                      )}
+                      {room.createdAt && room.closedAt && (
                         <div>
-                          <span className="text-sm font-medium">Topic: </span>
+                          <span className="text-sm font-medium">Duration: </span>
                           <span className="text-sm text-muted-foreground">
-                            {room.question.topic}
+                            {formatDuration(room.createdAt, room.closedAt)}
                           </span>
                         </div>
-                      </>
-                    )}
-                    <div>
-                      <span className="text-sm font-medium">Language: </span>
-                      <span className="text-sm text-muted-foreground">
-                        {programmingLanguageDisplayMap[room.programmingLanguage]}
-                      </span>
+                      )}
                     </div>
                   </div>
                 </CardContent>

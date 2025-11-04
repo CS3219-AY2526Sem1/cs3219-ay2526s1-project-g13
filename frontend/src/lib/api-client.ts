@@ -80,6 +80,7 @@ export interface RoomDetails {
   programmingLanguage: ProgrammingLanguage;
   isActive: boolean;
   closedAt: Date | null;
+  createdAt: Date | null;
   question: QuestionDetails | null;
 }
 
