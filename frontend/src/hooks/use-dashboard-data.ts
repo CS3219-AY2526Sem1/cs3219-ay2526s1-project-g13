@@ -32,6 +32,12 @@ export function useDashboardData(): UseDashboardDataReturn {
           const active = response.rooms.filter((room) => room.isActive);
           const past = response.rooms.filter((room) => !room.isActive);
 
+          active.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+
           past.sort((a, b) => {
             if (!a.closedAt) return 1;
             if (!b.closedAt) return -1;
