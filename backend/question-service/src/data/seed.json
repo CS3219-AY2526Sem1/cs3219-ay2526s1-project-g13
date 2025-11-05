@@ -2,14 +2,10 @@
   {
     "title": "Two Sum",
     "difficulty": "Easy",
-    "topic": "Arrays",
+    "topic": "Array",
     "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input has exactly one solution.",
     "examples": [
       { "input": "nums = [2,7,11,15], target = 9", "output": "[0,1]", "explanation": "nums[0] + nums[1] == 9" }
-    ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var twoSum = function(nums, target) { }" },
-      { "language": "PYTHON", "starterCode": "def two_sum(nums: List[int], target: int) -> List[int]: pass" }
     ],
     "link": "https://leetcode.com/problems/two-sum/"
   },
@@ -21,10 +17,6 @@
     "examples": [
       { "input": "head = [1,2,3,4,5]", "output": "[5,4,3,2,1]" }
     ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var reverseList = function(head) { }" },
-      { "language": "PYTHON", "starterCode": "def reverseList(head: Optional[ListNode]) -> Optional[ListNode]: pass" }
-    ],
     "link": "https://leetcode.com/problems/reverse-linked-list/"
   },
   {
@@ -34,10 +26,6 @@
     "description": "Given the root of a binary tree, return the level order traversal of its nodes' values (from left to right, level by level).",
     "examples": [
       { "input": "root = [3,9,20,null,null,15,7]", "output": "[[3],[9,20],[15,7]]" }
-    ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var levelOrder = function(root) { }" },
-      { "language": "PYTHON", "starterCode": "def levelOrder(root: Optional[TreeNode]) -> List[List[int]]: pass" }
     ],
     "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/"
   },
@@ -49,10 +37,6 @@
     "examples": [
       { "input": "nums = [10,9,2,5,3,7,101,18]", "output": "4", "explanation": "The LIS is [2,3,7,101]" }
     ],
-    "templates": [
-      { "language": "JAVA", "starterCode": "class Solution { public int lengthOfLIS(int[] nums) { return 0; } }" },
-      { "language": "PYTHON", "starterCode": "def lengthOfLIS(nums: List[int]) -> int: pass" }
-    ],
     "link": "https://leetcode.com/problems/longest-increasing-subsequence/"
   },
   {
@@ -63,10 +47,6 @@
     "examples": [
       { "input": "s = '()[]{}'", "output": "true" },
       { "input": "s = '(]'", "output": "false" }
-    ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var isValid = function(s) { }" },
-      { "language": "PYTHON", "starterCode": "def isValid(s: str) -> bool: pass" }
     ],
     "link": "https://leetcode.com/problems/valid-parentheses/"
   }

@@ -1,0 +1,186 @@
+[
+  {
+    "questionTitle": "Two Sum",
+    "title": "Two Sum - Hash Map (JavaScript)",
+    "language": "JavaScript",
+    "code": "function twoSum(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) return [map.get(complement), i];\n    map.set(nums[i], i);\n  }\n  return null;\n}",
+    "explanation": "Use a hash map to record seen numbers and their indices; for each number check if complement exists.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Two Sum",
+    "title": "Two Sum - Hash Map (Python)",
+    "language": "Python",
+    "code": "def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        comp = target - num\n        if comp in seen:\n            return [seen[comp], i]\n        seen[num] = i\n    return None",
+    "explanation": "Use a dict to store seen numbers and their indices.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Two Sum",
+    "title": "Two Sum - Hash Map (Java)",
+    "language": "Java",
+    "code": "public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> map = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        int comp = target - nums[i];\n        if (map.containsKey(comp)) return new int[]{map.get(comp), i};\n        map.put(nums[i], i);\n    }\n    return null;\n}",
+    "explanation": "Use a HashMap to store previously seen values and indices.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Two Sum",
+    "title": "Two Sum - Hash Map (C++)",
+    "language": "C++",
+    "code": "vector<int> twoSum(vector<int>& nums, int target) {\n    unordered_map<int,int> mp;\n    for (int i = 0; i < nums.size(); ++i) {\n        int comp = target - nums[i];\n        if (mp.count(comp)) return {mp[comp], i};\n        mp[nums[i]] = i;\n    }\n    return {};\n}",
+    "explanation": "Use an unordered_map to map values to indices and find the complement.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+
+  {
+    "questionTitle": "Reverse Linked List",
+    "title": "Reverse Linked List - Iterative (JavaScript)",
+    "language": "JavaScript",
+    "code": "function reverseList(head) {\n  let prev = null;\n  let curr = head;\n  while (curr) {\n    const next = curr.next;\n    curr.next = prev;\n    prev = curr;\n    curr = next;\n  }\n  return prev;\n}",
+    "explanation": "Iteratively reverse the next pointers while traversing the list.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(1)"
+  },
+  {
+    "questionTitle": "Reverse Linked List",
+    "title": "Reverse Linked List - Iterative (Python)",
+    "language": "Python",
+    "code": "def reverse_list(head):\n    prev = None\n    curr = head\n    while curr:\n        nxt = curr.next\n        curr.next = prev\n        prev = curr\n        curr = nxt\n    return prev",
+    "explanation": "Iteratively reverse pointers with O(1) extra space.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(1)"
+  },
+  {
+    "questionTitle": "Reverse Linked List",
+    "title": "Reverse Linked List - Iterative (Java)",
+    "language": "Java",
+    "code": "public ListNode reverseList(ListNode head) {\n    ListNode prev = null;\n    ListNode curr = head;\n    while (curr != null) {\n        ListNode next = curr.next;\n        curr.next = prev;\n        prev = curr;\n        curr = next;\n    }\n    return prev;\n}",
+    "explanation": "Iteratively reverse the linked list using three pointers.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(1)"
+  },
+  {
+    "questionTitle": "Reverse Linked List",
+    "title": "Reverse Linked List - Iterative (C++)",
+    "language": "C++",
+    "code": "ListNode* reverseList(ListNode* head) {\n    ListNode* prev = nullptr;\n    ListNode* curr = head;\n    while (curr) {\n        ListNode* next = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = next;\n    }\n    return prev;\n}",
+    "explanation": "Use pointer manipulation to reverse in-place.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(1)"
+  },
+
+  {
+    "questionTitle": "Binary Tree Level Order Traversal",
+    "title": "Level Order Traversal - BFS (JavaScript)",
+    "language": "JavaScript",
+    "code": "function levelOrder(root) {\n  if (!root) return [];\n  const res = [];\n  const q = [root];\n  while (q.length) {\n    const size = q.length;\n    const level = [];\n    for (let i = 0; i < size; i++) {\n      const node = q.shift();\n      level.push(node.val);\n      if (node.left) q.push(node.left);\n      if (node.right) q.push(node.right);\n    }\n    res.push(level);\n  }\n  return res;\n}",
+    "explanation": "Perform BFS and collect nodes per level using a queue.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Binary Tree Level Order Traversal",
+    "title": "Level Order Traversal - BFS (Python)",
+    "language": "Python",
+    "code": "def level_order(root):\n    if not root: return []\n    res = []\n    q = [root]\n    while q:\n        size = len(q)\n        level = []\n        for _ in range(size):\n            node = q.pop(0)\n            level.append(node.val)\n            if node.left: q.append(node.left)\n            if node.right: q.append(node.right)\n        res.append(level)\n    return res",
+    "explanation": "Use a queue to perform BFS and collect each level.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Binary Tree Level Order Traversal",
+    "title": "Level Order Traversal - BFS (Java)",
+    "language": "Java",
+    "code": "public List<List<Integer>> levelOrder(TreeNode root) {\n    List<List<Integer>> res = new ArrayList<>();\n    if (root == null) return res;\n    Queue<TreeNode> q = new LinkedList<>();\n    q.add(root);\n    while (!q.isEmpty()) {\n        int size = q.size();\n        List<Integer> level = new ArrayList<>();\n        for (int i = 0; i < size; i++) {\n            TreeNode node = q.poll();\n            level.add(node.val);\n            if (node.left != null) q.add(node.left);\n            if (node.right != null) q.add(node.right);\n        }\n        res.add(level);\n    }\n    return res;\n}",
+    "explanation": "Use a queue to iterate level by level.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Binary Tree Level Order Traversal",
+    "title": "Level Order Traversal - BFS (C++)",
+    "language": "C++",
+    "code": "vector<vector<int>> levelOrder(TreeNode* root) {\n    vector<vector<int>> res;\n    if (!root) return res;\n    queue<TreeNode*> q;\n    q.push(root);\n    while (!q.empty()) {\n        int size = q.size();\n        vector<int> level;\n        for (int i = 0; i < size; ++i) {\n            TreeNode* node = q.front(); q.pop();\n            level.push_back(node->val);\n            if (node->left) q.push(node->left);\n            if (node->right) q.push(node->right);\n        }\n        res.push_back(level);\n    }\n    return res;\n}",
+    "explanation": "Perform BFS using a queue and collect each level.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+
+  {
+    "questionTitle": "Longest Increasing Subsequence",
+    "title": "LIS - DP (n log n) (JavaScript)",
+    "language": "JavaScript",
+    "code": "function lengthOfLIS(nums) {\n  const dp = [];\n  for (const x of nums) {\n    let i = 0, j = dp.length;\n    while (i < j) {\n      const mid = Math.floor((i + j) / 2);\n      if (dp[mid] < x) i = mid + 1; else j = mid;\n    }\n    dp[i] = x;\n  }\n  return dp.length;\n}",
+    "explanation": "Use patience sorting / tails array with binary search to maintain increasing subsequences.",
+    "timeComplexity": "O(n log n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Longest Increasing Subsequence",
+    "title": "LIS - DP (n log n) (Python)",
+    "language": "Python",
+    "code": "import bisect\n\ndef length_of_lis(nums):\n    tails = []\n    for x in nums:\n        i = bisect.bisect_left(tails, x)\n        if i == len(tails): tails.append(x)\n        else: tails[i] = x\n    return len(tails)",
+    "explanation": "Maintain tails with binary search (bisect).",
+    "timeComplexity": "O(n log n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Longest Increasing Subsequence",
+    "title": "LIS - DP (n log n) (Java)",
+    "language": "Java",
+    "code": "public int lengthOfLIS(int[] nums) {\n    int[] tails = new int[nums.length];\n    int size = 0;\n    for (int x : nums) {\n        int i = Arrays.binarySearch(tails, 0, size, x);\n        if (i < 0) i = - (i + 1);\n        tails[i] = x;\n        if (i == size) size++;\n    }\n    return size;\n}",
+    "explanation": "Use tails array and binary search to keep track of subsequence ends.",
+    "timeComplexity": "O(n log n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Longest Increasing Subsequence",
+    "title": "LIS - DP (n log n) (C++)",
+    "language": "C++",
+    "code": "int lengthOfLIS(vector<int>& nums) {\n    vector<int> tails;\n    for (int x : nums) {\n        auto it = lower_bound(tails.begin(), tails.end(), x);\n        if (it == tails.end()) tails.push_back(x);\n        else *it = x;\n    }\n    return tails.size();\n}",
+    "explanation": "Use tails vector and lower_bound for O(n log n) solution.",
+    "timeComplexity": "O(n log n)",
+    "spaceComplexity": "O(n)"
+  },
+
+  {
+    "questionTitle": "Valid Parentheses",
+    "title": "Valid Parentheses - Stack (JavaScript)",
+    "language": "JavaScript",
+    "code": "function isValid(s) {\n  const stack = [];\n  const map = {')':'(', '}':'{', ']':'['};\n  for (const ch of s) {\n    if (ch === '(' || ch === '{' || ch === '[') stack.push(ch);\n    else {\n      if (stack.pop() !== map[ch]) return false;\n    }\n  }\n  return stack.length === 0;\n}",
+    "explanation": "Use a stack to match opening and closing brackets.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Valid Parentheses",
+    "title": "Valid Parentheses - Stack (Python)",
+    "language": "Python",
+    "code": "def is_valid(s):\n    stack = []\n    pairs = {')':'(', ']':'[', '}':'{'}\n    for ch in s:\n        if ch in '([{':\n            stack.append(ch)\n        else:\n            if not stack or stack.pop() != pairs.get(ch):\n                return False\n    return not stack",
+    "explanation": "Use a stack to match parentheses pairs.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Valid Parentheses",
+    "title": "Valid Parentheses - Stack (Java)",
+    "language": "Java",
+    "code": "public boolean isValid(String s) {\n    Deque<Character> stack = new ArrayDeque<>();\n    for (char ch : s.toCharArray()) {\n        if (ch == '(' || ch == '{' || ch == '[') stack.push(ch);\n        else {\n            if (stack.isEmpty()) return false;\n            char top = stack.pop();\n            if ((ch == ')' && top != '(') || (ch == '}' && top != '{') || (ch == ']' && top != '[')) return false;\n        }\n    }\n    return stack.isEmpty();\n}",
+    "explanation": "Stack-based matching of brackets.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  },
+  {
+    "questionTitle": "Valid Parentheses",
+    "title": "Valid Parentheses - Stack (C++)",
+    "language": "C++",
+    "code": "bool isValid(string s) {\n    stack<char> st;\n    for (char ch : s) {\n        if (ch == '(' || ch == '{' || ch == '[') st.push(ch);\n        else {\n            if (st.empty()) return false;\n            char top = st.top(); st.pop();\n            if ((ch == ')' && top != '(') || (ch == '}' && top != '{') || (ch == ']' && top != '[')) return false;\n        }\n    }\n    return st.empty();\n}",
+    "explanation": "Use a stack to validate bracket pairing.",
+    "timeComplexity": "O(n)",
+    "spaceComplexity": "O(n)"
+  }
+]

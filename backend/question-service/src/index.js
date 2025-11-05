@@ -30,5 +30,6 @@ app.get('/', (req, res) => {
 
 // Mount v1 routes for the question service
 app.use('/v1/questions', require('./routes/questionRoutes'))
+app.use('/v1/solutions', require('./routes/solutionRoutes'))
 
 module.exports = app
