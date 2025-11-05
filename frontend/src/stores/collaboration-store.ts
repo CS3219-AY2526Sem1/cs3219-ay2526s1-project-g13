@@ -1,18 +1,9 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import { ProgrammingLanguage } from "@/utils/enums";
-import { collaborationConfig } from "@/utils/config";
-
-interface RoomDetails {
-  roomId: string;
-  questionId: string | null;
-  userIds: string[];
-  programmingLanguage: ProgrammingLanguage;
-  isActive: boolean;
-  closedAt: Date | null;
-}
+import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-client";
 
 interface CollaborationState {
   // Room state
@@ -21,8 +12,14 @@ interface CollaborationState {
   isLoading: boolean;
   error: string | null;
 
+  // Question state
+  questionDetails: Question | null;
+  isQuestionLoading: boolean;
+  questionError: string | null;
+
   // Actions
   fetchRoomDetails: (roomId: string) => Promise<void>;
+  fetchQuestionDetails: (questionId: string) => Promise<void>;
   changeLanguage: (roomId: string, language: ProgrammingLanguage) => Promise<void>;
   updateLanguage: (language: ProgrammingLanguage) => void;
   reset: () => void;
@@ -33,6 +30,9 @@ const initialState = {
   documentContent: "",
   isLoading: false,
   error: null,
+  questionDetails: null,
+  isQuestionLoading: false,
+  questionError: null,
 };
 
 export const useCollaborationStore = create<CollaborationState>()(
@@ -43,16 +43,16 @@ export const useCollaborationStore = create<CollaborationState>()(
     fetchRoomDetails: async (roomId: string) => {
       set({ isLoading: true, error: null });
       try {
-        const response = await axios.get(`${collaborationConfig.HTTP_URL}/api/v1/rooms/${roomId}`);
+        const response = await collaborationAPI.getRoomDetails(roomId);
 
-        if (response.data.success) {
+        if (response.success) {
           set({
-            roomDetails: response.data.room,
-            documentContent: response.data.document.content || "",
+            roomDetails: response.room,
+            documentContent: response.document.content || "",
             isLoading: false,
           });
         } else {
-          throw new Error(response.data.error || "Failed to fetch room details");
+          throw new Error(response.error || "Failed to fetch room details");
         }
       } catch (error) {
         const errorMessage =
@@ -60,6 +60,25 @@ export const useCollaborationStore = create<CollaborationState>()(
             ? error.response?.data?.error || error.message
             : "Failed to fetch room details";
         set({ isLoading: false, error: errorMessage });
+        toast.error(errorMessage);
+      }
+    },
+
+    // Fetch question details via HTTP
+    fetchQuestionDetails: async (questionId: string) => {
+      set({ isQuestionLoading: true, questionError: null });
+      try {
+        const question = await questionAPI.getQuestionById(questionId);
+        set({
+          questionDetails: question,
+          isQuestionLoading: false,
+        });
+      } catch (error) {
+        const errorMessage =
+          error instanceof AxiosError
+            ? error.response?.data?.error || error.message
+            : "Failed to fetch question details";
+        set({ isQuestionLoading: false, questionError: errorMessage });
         toast.error(errorMessage);
       }
     },
@@ -76,13 +95,10 @@ export const useCollaborationStore = create<CollaborationState>()(
     // Change programming language
     changeLanguage: async (roomId: string, language: ProgrammingLanguage) => {
       try {
-        const response = await axios.patch(
-          `${collaborationConfig.HTTP_URL}/api/v1/rooms/${roomId}/language`,
-          { language },
-        );
+        const response = await collaborationAPI.changeLanguage(roomId, language);
 
-        if (!response.data.success) {
-          throw new Error(response.data.error || "Failed to change language");
+        if (!response.success) {
+          throw new Error(response.error || "Failed to change language");
         }
 
         set((state) => ({
@@ -113,23 +129,31 @@ export const useCollaborationState = () => {
   const documentContent = useCollaborationStore((state) => state.documentContent);
   const isLoading = useCollaborationStore((state) => state.isLoading);
   const error = useCollaborationStore((state) => state.error);
+  const questionDetails = useCollaborationStore((state) => state.questionDetails);
+  const isQuestionLoading = useCollaborationStore((state) => state.isQuestionLoading);
+  const questionError = useCollaborationStore((state) => state.questionError);
 
   return {
     roomDetails,
     documentContent,
     isLoading,
     error,
+    questionDetails,
+    isQuestionLoading,
+    questionError,
   };
 };
 
 export const useCollaborationActions = () => {
   const fetchRoomDetails = useCollaborationStore((state) => state.fetchRoomDetails);
+  const fetchQuestionDetails = useCollaborationStore((state) => state.fetchQuestionDetails);
   const changeLanguage = useCollaborationStore((state) => state.changeLanguage);
   const updateLanguage = useCollaborationStore((state) => state.updateLanguage);
   const reset = useCollaborationStore((state) => state.reset);
 
   return {
     fetchRoomDetails,
+    fetchQuestionDetails,
     changeLanguage,
     updateLanguage,
     reset,

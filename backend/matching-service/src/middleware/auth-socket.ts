@@ -8,7 +8,7 @@ interface AuthenticatedSocket extends Socket {
 }
 
 interface JWTPayload {
-  userId: string;
+  username: string;
   [key: string]: any;
 }
 
@@ -51,10 +51,10 @@ export const authenticateSocket = async (socket: Socket, next: (err?: Error) => 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
 
     (socket as AuthenticatedSocket).data = {
-      userId: decoded.userId
+      userId: decoded.username
     };
 
-    console.log('Socket authenticated for userId:', decoded.userId);
+    console.log('Socket authenticated for userId:', decoded.username);
     next();
 
   } catch (err: any) {

@@ -1,8 +1,11 @@
 /**
  * Stores configuration constants for frontend to interact with the backend services.
+ * @deprecated Use apiConfig from @/lib/api-config instead
  */
 
+import { apiConfig } from "@/lib/api-config";
+
 export const collaborationConfig = {
-  HTTP_URL: process.env.COLLABORATION_SERVICE_HTTP_URL || "http://localhost:8004",
-  WS_URL: process.env.COLLABORATION_SERVICE_WS_URL || "ws://localhost:8005",
+  HTTP_URL: apiConfig.collaborationService.httpURL,
+  WS_URL: apiConfig.collaborationService.wsURL,
 };

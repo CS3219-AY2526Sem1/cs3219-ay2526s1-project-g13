@@ -99,6 +99,7 @@ export const useMatchingStore = create<MatchingState>()(
       newSocket.on("connect_error", async (error) => {
         // Check if this is an authentication error
         const errorMessage = error.message?.toLowerCase() || "";
+        console.log(errorMessage);
         const isAuthError =
           errorMessage.includes("expired") ||
           errorMessage.includes("authentication failed") ||

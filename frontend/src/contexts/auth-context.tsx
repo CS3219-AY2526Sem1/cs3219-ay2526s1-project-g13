@@ -8,8 +8,8 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { accountAPI } from "@/lib/api-client";
 
 interface User {
   _id: string;
@@ -46,7 +46,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const { authRequest } = useAuth();
   const router = useRouter();
 
   const checkAuth = useCallback(async () => {
@@ -61,13 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null;
       }
 
-      const res = await authRequest({
-        method: "GET",
-        url: "http://localhost:8001/v1/account",
-        withCredentials: true,
-      });
-
-      const userData = res.data;
+      const userData = await accountAPI.getAccount();
       setUser(userData);
       setIsAuthenticated(true);
       return userData;
@@ -81,7 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [authRequest]);
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("accessToken");

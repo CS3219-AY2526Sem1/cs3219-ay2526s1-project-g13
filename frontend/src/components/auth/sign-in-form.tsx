@@ -16,27 +16,17 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { DialogState, defaultDialogState } from "@/types/dialog";
 import { useAuthContext } from "@/contexts/auth-context";
+import { authAPI, LoginRequest, LoginResponse } from "@/lib/api-client";
 
 type FormValues = {
   username: string;
   password: string;
-};
-
-type LoginRequest = {
-  username: string;
-  password: string;
-};
-
-type LoginResponse = {
-  message: string;
-  userId: string;
-  accessToken: string;
 };
 
 type BackendError = {
@@ -64,10 +54,7 @@ export default function SignInForm() {
 
   const mutation = useMutation<LoginResponse, AxiosError<BackendError>, LoginRequest>({
     mutationFn: async (user) => {
-      const res = await axios.post(`http://localhost:8001/v1/login`, user, {
-        withCredentials: true,
-      });
-      return res.data;
+      return await authAPI.login(user);
     },
     onSuccess: async (data) => {
       localStorage.setItem("accessToken", data.accessToken);
