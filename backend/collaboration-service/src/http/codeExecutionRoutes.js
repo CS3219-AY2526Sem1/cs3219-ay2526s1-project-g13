@@ -54,6 +54,8 @@ router.post("/submit-code", async (req, res) => {
             source_code: source_code
         }
 
+        console.log(">>> Got code ", job)
+
         // send job to MQ
         await sendJob(job)
         res.status(202).json({
@@ -78,11 +80,6 @@ router.post("/execute-callback", async (req, res) => {
         // get result
         const {room_id, isError, output} = req.body
         
-        console.log('>>> Callback')
-        console.log('room_id: ', room_id)
-        console.log('isError: ', isError)
-        console.log('output:', output)
-
         // send result to FE
 
         const message = {
@@ -94,6 +91,11 @@ router.post("/execute-callback", async (req, res) => {
         }
 
         roomManager.broadcastToRoom(room_id, message)
+
+        console.log('>>> Callback, broadcasted to room')
+        console.log('room_id: ', room_id)
+        console.log('isError: ', isError)
+        console.log('output:', output)
 
         res.status(200).json({
             message: 'Got result and broadcasted to room'

@@ -28,6 +28,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
@@ -118,3 +121,4 @@ networks:
 volumes:
   mongodb_data: {}
   piston_packages: {}
+  rabbitmq_data: {}
