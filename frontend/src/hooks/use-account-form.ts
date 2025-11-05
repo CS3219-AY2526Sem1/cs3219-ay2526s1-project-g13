@@ -109,7 +109,7 @@ export function useAccountForm({ email, originalUsername, setDialog }: UseAccoun
     onSuccess: (data) => {
       setDialog({
         open: true,
-        message: "Updated user profile successfully",
+        message: "Update user profile successfully",
         description: data.message,
         icon: "user-round-check",
       });

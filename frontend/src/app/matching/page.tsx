@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MatchMake from "@/components/matching/match-make";
 import { useMatchingStore } from "@/stores/matching-store";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthContext } from "@/contexts/auth-context";
 import Navbar from "@/components/ui/nav-bar";
-import MessageDialog from "@/components/ui/message-dialog";
-import { DialogState, defaultDialogState } from "@/types/dialog";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 export default function MatchingPage() {
   const router = useRouter();
-  const { authRequest } = useAuth();
+  const { user, isUser } = useAuthContext();
   const { roomId, matchFound, initializeSocket, setUser, cleanup } = useMatchingStore();
-  const [dialog, setDialog] = useState<DialogState>(defaultDialogState);
+
+  useEffect(() => {
+    if (!isUser) {
+      router.push("/");
+    }
+  }, [isUser, router]);
 
   useEffect(() => {
     if (matchFound && roomId) {
@@ -22,41 +26,11 @@ export default function MatchingPage() {
   }, [matchFound, roomId, router]);
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout> | null = null;
-    const fetchUser = async () => {
-      try {
-        const res = await authRequest({
-          method: "GET",
-          url: "http://localhost:8001/v1/account",
-          withCredentials: true,
-        });
-        const authUser = res.data;
-        setUser(authUser);
-        initializeSocket(authUser);
-        if (timeout) {
-          clearTimeout(timeout);
-          timeout = null;
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setDialog({
-          open: true,
-          message: "Login session expired, please log in again.",
-          description: "Redirecting to login page in 5 seconds...",
-          icon: "circle-x",
-          setOpen: () => {},
-          showCloseButton: false,
-        });
-        timeout = setTimeout(() => {
-          router.push("/auth");
-        }, 5000);
-      }
-    };
-    fetchUser();
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [authRequest, initializeSocket, setUser, router]);
+    if (user) {
+      setUser(user);
+      initializeSocket(user);
+    }
+  }, [user, setUser, initializeSocket]);
 
   // Cleanup socket when component unmounts
   useEffect(() => {
@@ -70,19 +44,13 @@ export default function MatchingPage() {
   }, [cleanup]);
 
   return (
-    <div className="min-h-screen bg-[#d4eaf8]">
-      <Navbar />
-      <main className="pt-8">
-        <MatchMake />
-      </main>
-      <MessageDialog
-        open={dialog.open}
-        setOpen={dialog.setOpen || ((open: boolean) => setDialog((prev) => ({ ...prev, open })))}
-        title={dialog.message}
-        description={dialog.description}
-        icon={dialog.icon}
-        showCloseButton={dialog.showCloseButton}
-      />
-    </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-[#d4eaf8]">
+        <Navbar />
+        <main className="pt-8">
+          <MatchMake />
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }
