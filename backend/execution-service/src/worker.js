@@ -8,6 +8,7 @@ const PISTON_URL = process.env.PISTON_URL
 
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 2000
+const PISTON_CALL_DELAY_MS = 10000
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -22,7 +23,9 @@ async function callPistonAPI(language, source_code) {
                 }
             ]
         }
-        const response = await axios.post(PISTON_URL, payload)
+        const response = await axios.post(PISTON_URL, payload, {
+            timeout: PISTON_CALL_DELAY_MS
+        })
         return response.data
     } catch (error) {
         throw error

@@ -46,7 +46,8 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
   const roomId = params?.id as string;
 
   const { roomDetails, documentContent } = useCollaborationState();
-  const { changeLanguage, updateLanguage } = useCollaborationActions();
+  const { changeLanguage, updateLanguage, setSourceCode, setExecutionResult } =
+    useCollaborationActions();
 
   const [editorInstance, setEditorInstance] = useState<editor.IStandaloneCodeEditor | null>(null);
   const [monacoInstance, setMonacoInstance] = useState<typeof monaco | null>(null);
@@ -77,13 +78,21 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
     providerRef.current = provider;
 
     // Create Monaco binding
+    const yText = ydoc.getText("monaco");
     const binding = new MonacoBinding(
-      ydoc.getText("monaco"),
+      yText,
       editorInstance.getModel()!,
       new Set([editorInstance]),
       provider.awareness,
     );
     bindingRef.current = binding;
+
+    // Listen to code changes
+    const onTextChange = () => {
+      setSourceCode(yText.toString());
+    };
+    yText.observe(onTextChange);
+    onTextChange();
 
     setConnectionStatus(ConnectionState.CONNECTING);
 
@@ -100,29 +109,41 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
 
     // Listen for custom messages
     const handleMessage = (event: MessageEvent) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === "language-change-notification") {
-          const programmingLanguage = message.data.language as ProgrammingLanguage;
-          updateLanguage(programmingLanguage);
-          toast.info(`Language changed to ${programmingLanguageDisplayMap[programmingLanguage]}`);
-        } else if (message.type === "room-close-notification") {
-          toast.warn("The collaboration room has been closed");
+      if (typeof event.data === "string") {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "language-change-notification") {
+            const programmingLanguage = message.data.language as ProgrammingLanguage;
+            updateLanguage(programmingLanguage);
+            toast.info(`Language changed to ${programmingLanguageDisplayMap[programmingLanguage]}`);
+          } else if (message.type === "room-close-notification") {
+            toast.warn("The collaboration room has been closed");
+          } else if (message.type === "code-execution-result") {
+            setExecutionResult(message.data);
+          }
+        } catch {
+          // Ignore non-JSON messages (e.g., Yjs updates)
         }
-      } catch {
-        // Ignore non-JSON messages (e.g., Yjs updates)
       }
     };
     provider.ws?.addEventListener("message", handleMessage);
 
     // Cleanup
     return () => {
+      yText.unobserve(onTextChange);
       provider.ws?.removeEventListener("message", handleMessage);
       binding.destroy();
       provider.destroy();
       ydoc.destroy();
     };
-  }, [roomId, roomDetails?.isActive, editorInstance, updateLanguage]);
+  }, [
+    roomId,
+    roomDetails?.isActive,
+    editorInstance,
+    updateLanguage,
+    setSourceCode,
+    setExecutionResult,
+  ]);
 
   // Update Monaco language when room language changes
   useEffect(() => {
