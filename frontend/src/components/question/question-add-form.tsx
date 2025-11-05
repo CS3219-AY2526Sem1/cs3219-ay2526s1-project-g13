@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Question, emptyQuestionState } from "@/types/question";
+import { Question, emptyQuestionState } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ import { addQuestion } from "@/hooks/use-question";
 import Image from "next/image";
 import TopicSelect from "./topic-select";
 
-export function QuestionForm() {
+export function QuestionForm({ onSubmitted }: { onSubmitted?: () => void }) {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState<Question>(emptyQuestionState);
 
@@ -61,9 +61,7 @@ export function QuestionForm() {
     const newErrors: { [key: string]: string } = {};
     if (!question.title.trim()) newErrors.title = "Title is required";
     if (!question.topic.trim()) newErrors.topic = "Topic is required";
-    if (!question.details?.trim()) newErrors.details = "Details are required";
-    if (!question.suggestedSolution?.trim())
-      newErrors.suggestedSolution = "Suggested solution is required";
+    if (!question.description?.trim()) newErrors.details = "Details are required";
     if (!question.difficulty) newErrors.difficulty = "Difficulty is required";
 
     setErrors(newErrors);
@@ -77,6 +75,7 @@ export function QuestionForm() {
       setImageFiles([]);
       setOpen(false);
       setErrors({});
+      onSubmitted?.();
     } catch (error) {
       console.error("Failed to save question:", error);
     }
@@ -148,14 +147,14 @@ export function QuestionForm() {
             <Textarea
               id="details"
               className="w-full border rounded p-2 mt-2 bg-white"
-              value={question.details}
-              onChange={(e) => setQuestion({ ...question, details: e.target.value })}
+              value={question.description}
+              onChange={(e) => setQuestion({ ...question, description: e.target.value })}
               rows={4}
             />
             {errors.details && <p className="text-red-500 text-sm mt-1">{errors.details}</p>}
           </div>
 
-          <div>
+          {/* <div>
             <Label htmlFor="suggestedSolution">Suggested Solution</Label>
             <Textarea
               id="suggestedSolution"
@@ -167,7 +166,7 @@ export function QuestionForm() {
             {errors.suggestedSolution && (
               <p className="text-red-500 text-sm mt-1">{errors.suggestedSolution}</p>
             )}
-          </div>
+          </div> */}
 
           {/* Image upload */}
           <div>

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Question } from "@/types/question";
+import { Question } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -35,8 +35,7 @@ export function QuestionEdit({
     if (!question.title.trim()) newErrors.title = "Title is required";
     if (!question.topic.trim()) newErrors.topic = "Topic is required";
     if (!question.difficulty.trim()) newErrors.difficulty = "Difficulty is required";
-    if (!question.details?.trim()) newErrors.details = "Question details is required";
-    if (!question.suggestedSolution?.trim()) newErrors.solution = "Suggested solution is required";
+    if (!question.description?.trim()) newErrors.details = "Question details is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -46,6 +45,7 @@ export function QuestionEdit({
     if (!validate()) return;
 
     try {
+      console.log(question);
       const response = await editQuestion(question);
       console.log(response);
       onSaveChanges();
@@ -109,13 +109,13 @@ export function QuestionEdit({
         </Label>
         <textarea
           className="w-full border rounded p-2"
-          value={question.details}
-          onChange={(e) => setQuestion({ ...question, details: e.target.value })}
+          value={question.description}
+          onChange={(e) => setQuestion({ ...question, description: e.target.value })}
         />
         {errors.details && <p className="text-red-500 text-sm mt-1">{errors.details}</p>}
       </CardContent>
 
-      <CardContent>
+      {/* <CardContent>
         <Label htmlFor="suggestedSolution" className="mt-2 mb-2">
           Suggested Solution
         </Label>
@@ -125,7 +125,7 @@ export function QuestionEdit({
           onChange={(e) => setQuestion({ ...question, suggestedSolution: e.target.value })}
         />
         {errors.solution && <p className="text-red-500 text-sm mt-1">{errors.solution}</p>}
-      </CardContent>
+      </CardContent> */}
 
       <CardFooter className="flex gap-2 flex-col">
         <Button variant="destructive" className="w-full mt-2" onClick={onCancel}>

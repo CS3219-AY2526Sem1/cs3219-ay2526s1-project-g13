@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { apiConfig } from "./api-config";
 import { Difficulty, ProgrammingLanguage } from "@/utils/enums";
+import { Topic, Language, TimeComplexity, SpaceComplexity } from "@/types/solution";
 
 export interface LoginRequest {
   username: string;
@@ -100,12 +101,41 @@ export interface QuestionExample {
 }
 
 export interface Question {
+  _id: string;
   title: string;
   description: string;
   difficulty: Difficulty;
   topic: string;
   examples?: QuestionExample[];
   link?: string;
+}
+
+export const emptyQuestionState: Question = {
+  _id: "",
+  title: "",
+  topic: "",
+  difficulty: Difficulty.EASY,
+  description: "",
+};
+
+export type ArchiveQuestionResponse = {
+  message: string;
+  question: Question;
+};
+
+export interface Solution {
+  _id: string; // Mongoose document id
+  questionId: string; // ObjectId as string
+  title: string;
+  difficulty: Difficulty;
+  topic: Topic;
+  language: Language;
+  code: string;
+  explanation: string;
+  timeComplexity?: TimeComplexity;
+  spaceComplexity?: SpaceComplexity;
+  mediaLink?: string;
+  deleted?: boolean;
 }
 
 // Create axios instance for user service
@@ -304,6 +334,53 @@ export const questionAPI = {
       method: "GET",
       url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
     });
+    return res.data;
+  },
+  getQuestionList: async (): Promise<Question[]> => {
+    const res = await authRequest<Question[]>({
+      method: "GET",
+      url: `${apiConfig.questionService.baseURL}/v1/questions`,
+    });
+    return res.data;
+  },
+  createQuestion: async (payload: Question): Promise<Question> => {
+    const res = await authRequest<Question>({
+      method: "POST",
+      url: `${apiConfig.questionService.baseURL}/v1/questions`,
+      data: payload,
+    });
+    return res.data;
+  },
+  getTopicList: async (): Promise<string[]> => {
+    const res = await authRequest<string[]>({
+      method: "GET",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/topics`,
+    });
+    return res.data;
+  },
+  updateQuestion: async (questionId: string, payload: Partial<Question>): Promise<Question> => {
+    const res = await authRequest<Question>({
+      method: "PATCH",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
+      data: payload,
+    });
+    return res.data;
+  },
+  archiveQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
+    const res = await authRequest<ArchiveQuestionResponse>({
+      method: "DELETE",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
+    });
+    console.log(res.data);
+    return res.data;
+  },
+  getSolutionsForQuestion: async (questionId: string): Promise<Solution[]> => {
+    console.log(questionId);
+    const res = await authRequest<Solution[]>({
+      method: "GET",
+      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}/solutions`,
+    });
+    console.log(res.data);
     return res.data;
   },
 };

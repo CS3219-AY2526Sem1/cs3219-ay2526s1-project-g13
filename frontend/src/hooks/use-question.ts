@@ -1,25 +1,8 @@
-import { Question } from "@/types/question";
+import { Question, questionAPI, ArchiveQuestionResponse, Solution } from "@/lib/api-client";
 
 export async function fetchQuestion(id: string): Promise<Question> {
-  // Call question service backend here to fetch a specific question
   try {
-    // Simulate API delay
-    console.log("Fetching question with id:", id);
-    const response = await new Promise<Question>((resolve) =>
-      setTimeout(
-        () =>
-          resolve({
-            title: "Fetched Question Title",
-            topic: "Fetched Topic",
-            difficulty: "Medium",
-            details: "Details fetched from backend",
-            suggestedSolution: "Suggested solution fetched",
-          }),
-        500,
-      ),
-    );
-
-    return response;
+    return await questionAPI.getQuestionById(id);
   } catch (error) {
     console.error("Failed to fetch question:", error);
     throw error;
@@ -27,33 +10,17 @@ export async function fetchQuestion(id: string): Promise<Question> {
 }
 
 export async function fetchQuestionList(): Promise<Question[]> {
-  // Call question service backend here to fetch questions
-  return [
-    {
-      id: "1",
-      title: "Question 1",
-      topic: "Array",
-      difficulty: "Easy",
-    },
-    {
-      id: "2",
-      title: "Question 2",
-      topic: "Strings",
-      difficulty: "Medium",
-    },
-    {
-      id: "3",
-      title: "Question 3",
-      topic: "Linked list",
-      difficulty: "Hard",
-    },
-  ];
+  try {
+    return await questionAPI.getQuestionList();
+  } catch (error) {
+    console.error("Failed to fetch question list:", error);
+    throw error;
+  }
 }
 
 export async function addQuestion(question: Question): Promise<Question> {
   try {
-    console.log("Adding question:", question);
-    return question;
+    return await questionAPI.createQuestion(question);
   } catch (error) {
     console.error("Failed to add question:", error);
     throw error;
@@ -62,30 +29,31 @@ export async function addQuestion(question: Question): Promise<Question> {
 
 export async function editQuestion(question: Question): Promise<Question> {
   try {
-    console.log("Editing question:", question);
-    return question;
+    if (!question._id) throw new Error("editQuestion requires question.id");
+    console.log(question);
+    return await questionAPI.updateQuestion(question._id, question);
   } catch (error) {
     console.error("Failed to edit question:", error);
     throw error;
   }
 }
 
-export async function archiveQuestion(question: Question): Promise<Question> {
+export async function archiveQuestion(questionId: string): Promise<ArchiveQuestionResponse> {
   try {
-    console.log("Archiving question:", question);
-    return question;
+    if (!questionId) throw new Error("archiveQuestion requires question.id");
+    return await questionAPI.archiveQuestion(questionId);
   } catch (error) {
     console.error("Failed to archive question:", error);
     throw error;
   }
 }
 
-export async function deleteQuestion(question: Question): Promise<Question> {
+export async function fetchSolutionsByQuestion(questionId: string): Promise<Solution[]> {
   try {
-    console.log("Deleting question:", question);
-    return question;
+    if (!questionId) throw new Error("fetchSolution requires question.id");
+    return await questionAPI.getSolutionsForQuestion(questionId);
   } catch (error) {
-    console.error("Failed to delete question:", error);
+    console.error("Failed to fetch solutions:", error);
     throw error;
   }
 }

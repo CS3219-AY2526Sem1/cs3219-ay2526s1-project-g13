@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowDownUp, MoveUp, MoveDown } from "lucide-react";
 import { fetchQuestionList } from "@/hooks/use-question";
 import { columns } from "@/components/question/columns";
-import { Question } from "@/types/question";
+import { Question } from "@/lib/api-client";
 
 export default function DataTable() {
   const [data, setData] = useState<Question[]>([]); // use a concrete type when available

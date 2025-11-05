@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 
 import { QuestionView } from "./question-view";
 import { QuestionEdit } from "./question-edit-form";
-import { Question, emptyQuestionState } from "@/types/question";
+import { Question, emptyQuestionState } from "@/lib/api-client";
 import { fetchQuestion } from "@/hooks/use-question";
 import { useParams } from "next/navigation";
 

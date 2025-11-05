@@ -18,12 +18,16 @@ export default function QuestionPage() {
     }
   }, [user, isAdmin, isLoading, router]);
 
+  const handleQuestionSubmitted = () => {
+    window.location.reload();
+  };
+
   return (
     <ProtectedRoute>
       <Navbar />
       <div className="container mx-auto py-10">
         <h1 className="mb-4 text-2xl font-bold text-center">Question Bank</h1>
-        <QuestionForm />
+        <QuestionForm onSubmitted={handleQuestionSubmitted} />
         <DataTable />
       </div>
     </ProtectedRoute>

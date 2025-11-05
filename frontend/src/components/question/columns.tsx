@@ -2,26 +2,22 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash, Archive } from "lucide-react";
-import { Question } from "@/types/question";
+import { Eye, Archive } from "lucide-react";
+import { Question } from "@/lib/api-client";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { archiveQuestion, deleteQuestion } from "@/hooks/use-question";
+import { archiveQuestion } from "@/hooks/use-question";
 
 function ActionCell({ question }: { question: Question }) {
   const router = useRouter();
 
   const handleView = () => {
-    router.push(`/question/${question.id}`);
+    router.push(`/question/${question._id}`);
   };
 
   const handleArchive = () => {
-    archiveQuestion(question);
-  };
-
-  const handleDelete = () => {
-    deleteQuestion(question);
+    archiveQuestion(question._id);
   };
 
   return (
@@ -45,17 +41,6 @@ function ActionCell({ question }: { question: Question }) {
         </TooltipTrigger>
         <TooltipContent>
           <p>Archive</p>
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button className="w-15" variant="destructive" size="sm" onClick={handleDelete}>
-            <Trash className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Delete</p>
         </TooltipContent>
       </Tooltip>
     </div>
