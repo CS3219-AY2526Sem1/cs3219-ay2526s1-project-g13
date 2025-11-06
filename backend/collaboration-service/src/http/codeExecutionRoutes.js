@@ -7,7 +7,11 @@ const router = express.Router();
 const RABBITMQ_URL = 'amqp://user:password@rabbitmq';
 const QUEUE_NAME = 'execution_jobs';
 
+const EXECUTION_TIMEOUT_MS = 30000 // 30s
+const activeTimers = new Map()
+
 let mqChannel = null
+
 
 export async function initRabbitMQ() {
     try {
@@ -56,6 +60,30 @@ router.post("/submit-code", async (req, res) => {
 
         console.log(">>> Got code ", job)
 
+        // delete old timers
+        if (activeTimers.has(room_id)) {
+            clearTimeout(activeTimers.get(room_id))
+            activeTimers.delete(room_id)
+        }
+
+        const newTimer = setTimeout(() => {
+            console.log('>>> Job timeout set for ', room_id)
+
+            activeTimers.delete(room_id)
+
+            const timeoutMessage = {
+                type: "code-execution-result",
+                data: {
+                    isError: true,
+                    output: "Execution timed out. Please try again"
+                }
+            }
+
+            roomManager.broadcastToRoom(room_id, timeoutMessage)
+        }, EXECUTION_TIMEOUT_MS)
+
+        activeTimers.set(room_id, newTimer)
+
         // send job to MQ
         await sendJob(job)
         res.status(202).json({
@@ -80,8 +108,16 @@ router.post("/execute-callback", async (req, res) => {
         // get result
         const {room_id, isError, output} = req.body
         
-        // send result to FE
+        // delete the timeout or ignore if the job is timeout
+        if (activeTimers.has(room_id)) {
+            clearTimeout(activeTimers.get(room_id))
+            activeTimers.delete(room_id)
+        } else {
+            console.log(`>>> Received STALE callback for ${room_id}`)
+            return res.status(200).json({message: 'Job already timeout'})
+        }
 
+        // send result to FE
         const message = {
             type: "code-execution-result",
             data: {

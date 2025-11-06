@@ -6,7 +6,7 @@ import { ProgrammingLanguage } from "@/utils/enums";
 import { collaborationConfig } from "@/utils/config";
 
 let executionTimer: NodeJS.Timeout | null = null;
-const EXECUTION_TIMEOUT_MS = 30000; // 30s
+const EXECUTION_TIMEOUT_MS = 35000; // 35s
 
 interface RoomDetails {
   roomId: string;
