@@ -1,6 +1,15 @@
 version: '3.9'
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cs3219-peerprep-network
   mongodb:
     container_name: mongodb
     image: mongo:latest
@@ -37,6 +46,63 @@ services:
     networks:
       - cs3219-peerprep-network
   
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports: ['2181:2181']
+    networks: 
+      - cs3219-peerprep-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks: 
+      - cs3219-peerprep-network
+
+  matching-service:
+    build:
+      context: ./backend/matching-service
+      dockerfile: Dockerfile.matching
+    container_name: matching-service
+    restart: always
+    ports:
+      - '8002:8002'
+    env_file:
+      - ./backend/matching-service/.env
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - QUESTION_SERVICE_URL=http://question-service:8003
+      - COLLABORATION_SERVICE_URL=http://collaboration-service:8004
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
+      - DEBUG_MODE=false
+      - DEBUG_MATCHING=false
+    depends_on:
+      - redis
+      - mongodb
+      - collaboration-service
+      - question-service
+      - kafka
+    networks:
+      - cs3219-peerprep-network
   user-service:
     build: 
       context: ./backend/user-service
@@ -64,16 +130,22 @@ services:
     ports:
       - '8004:8004'
       - '8005:8005'
+    env_file:
+      - ./backend/collaboration-service/.env
     environment:
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprep?authSource=admin
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepCollabServiceDB?authSource=admin
+      - WEB_BASE_URL=http://localhost:3000
       - HTTP_PORT=8004
       - WS_PORT=8005
       - ROOM_TIMEOUT_MINUTES=10
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
     depends_on:
       - mongodb
+      - kafka
     networks:
       - cs3219-peerprep-network
-
   execution-service:
     build: 
       context: ./backend/execution-service
@@ -110,8 +182,34 @@ services:
     environment:
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
       - PORT=8003
+      - KAFKA_HOST=kafka
+      - KAFKA_PORT=9092
+      - KAFKA_BROKERS=kafka:9092
     depends_on:
       - mongodb
+      - kafka
+    networks:
+      - cs3219-peerprep-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
+      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
+      - NEXT_PUBLIC_QUESTION_SERVICE_URL=http://localhost:8003
+      - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004
+      - NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL=ws://localhost:8005
+    depends_on:
+      - user-service
+      - collaboration-service
+      - matching-service
+      - question-service
     networks:
       - cs3219-peerprep-network
 
@@ -122,3 +220,4 @@ volumes:
   mongodb_data: {}
   piston_packages: {}
   rabbitmq_data: {}
+  redis_data: {}

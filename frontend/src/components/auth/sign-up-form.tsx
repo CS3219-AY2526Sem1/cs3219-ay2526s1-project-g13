@@ -15,28 +15,18 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import MessageDialog from "../ui/message-dialog";
 import { Spinner } from "@/components/ui/spinner";
 import { DialogState, defaultDialogState } from "@/types/dialog";
+import { authAPI, RegisterRequest, RegisterResponse } from "@/lib/api-client";
 
 type FormValues = {
   username: string;
   email: string;
   password: string;
   retypePassword: string;
-};
-
-type RegisterRequest = {
-  username: string;
-  email: string;
-  password: string;
-};
-
-type RegisterResponse = {
-  message: string;
-  verificationToken?: string;
 };
 
 type BackendError = {
@@ -68,8 +58,7 @@ export default function SignUpForm() {
 
   const mutation = useMutation<RegisterResponse, AxiosError<BackendError>, RegisterRequest>({
     mutationFn: async (newUser) => {
-      const res = await axios.post("http://localhost:8001/v1/register", newUser);
-      return res.data;
+      return await authAPI.register(newUser);
     },
     onSuccess: (data) => {
       reset();

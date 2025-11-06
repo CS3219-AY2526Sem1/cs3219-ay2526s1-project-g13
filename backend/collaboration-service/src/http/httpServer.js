@@ -17,7 +17,12 @@ class HttpServer {
    * Set up Express middleware
    */
   setupMiddleware() {
-    this.app.use(cors());
+    this.app.use(
+      cors({
+        origin: process.env.WEB_BASE_URL,
+        credentials: true,
+      }),
+    );
     this.app.use(express.json());
   }
 

@@ -2,6 +2,7 @@ import db from "./db.js";
 import httpServer from "./http/httpServer.js";
 import webSocketServer from "./websocket/websocketServer.js";
 import {initRabbitMQ} from "./http/codeExecutionRoutes.js";
+import { setupRoomCreationConsumer } from "./consumers/roomCreationConsumer.js";
 
 async function startServer() {
   try {
@@ -16,6 +17,9 @@ async function startServer() {
 
     // Step 4: Start WebSocket server
     await webSocketServer.start();
+
+    // Step 4: Start Kafka consumer for room creation
+    await setupRoomCreationConsumer();
 
     console.log("Collaboration service started successfully");
   } catch (error) {

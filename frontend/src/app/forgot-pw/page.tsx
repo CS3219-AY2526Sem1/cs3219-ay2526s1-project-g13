@@ -6,17 +6,13 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/ui/header";
 import MessageDialog from "@/components/ui/message-dialog";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { Spinner } from "@/components/ui/spinner";
 import PublicRoute from "@/components/auth/public-route";
+import { authAPI, ForgotPasswordResponse } from "@/lib/api-client";
 
 type ForgotPasswordPayload = {
   email: string;
-};
-
-type ForgotPasswordResponse = {
-  message?: string;
-  resetToken: string;
 };
 
 type BackendError = {
@@ -37,11 +33,7 @@ export default function ForgotPasswordPage() {
     ForgotPasswordPayload
   >({
     mutationFn: async (payload) => {
-      const res = await axios.post<ForgotPasswordResponse>(
-        "http://localhost:8001/v1/forgot-password",
-        payload,
-      );
-      return res.data;
+      return await authAPI.forgotPassword(payload);
     },
     onSuccess: () => {
       setOpen(true);

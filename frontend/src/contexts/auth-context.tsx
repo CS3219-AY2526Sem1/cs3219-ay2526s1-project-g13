@@ -8,8 +8,8 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { accountAPI } from "@/lib/api-client";
 
 interface User {
   _id: string;
@@ -24,7 +24,7 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isUser: boolean;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
   logout: () => void;
 }
 
@@ -46,7 +46,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const { authRequest } = useAuth();
   const router = useRouter();
 
   const checkAuth = useCallback(async () => {
@@ -58,28 +57,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!accessToken) {
         setIsAuthenticated(false);
         setUser(null);
-        return;
+        return null;
       }
 
-      const res = await authRequest({
-        method: "GET",
-        url: "http://localhost:8001/v1/account",
-        withCredentials: true,
-      });
-
-      const userData = res.data;
+      const userData = await accountAPI.getAccount();
       setUser(userData);
       setIsAuthenticated(true);
+      return userData;
     } catch (err) {
       console.log("Authentication failed, clearing session", err);
       setIsAuthenticated(false);
       setUser(null);
 
       localStorage.removeItem("accessToken");
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [authRequest]);
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("accessToken");

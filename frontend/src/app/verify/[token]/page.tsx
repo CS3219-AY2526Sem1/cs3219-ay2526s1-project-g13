@@ -18,21 +18,17 @@ import {
 } from "@/components/ui/input-otp";
 import Header from "@/components/ui/header";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import MessageDialog from "@/components/ui/message-dialog";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 import PublicRoute from "@/components/auth/public-route";
 import { useAuthContext } from "@/contexts/auth-context";
+import { authAPI, VerifyResponse } from "@/lib/api-client";
 
 type VerifyPayload = {
   verificationCode: number;
   verificationToken: string;
-};
-
-type VerifyResponse = {
-  message?: string;
-  accessToken?: string;
 };
 
 type BackendError = {
@@ -52,8 +48,7 @@ export default function VerifyAccountPage() {
 
   const mutation = useMutation<VerifyResponse, AxiosError<BackendError>, VerifyPayload>({
     mutationFn: async (payload) => {
-      const res = await axios.post<VerifyResponse>("http://localhost:8001/v1/verify", payload);
-      return res.data;
+      return await authAPI.verify(payload);
     },
     onSuccess: async (data) => {
       setOpen(true);
@@ -61,12 +56,15 @@ export default function VerifyAccountPage() {
       console.log(data.message);
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
-        await checkAuth(); // Update auth context
-        setDescription("Redirecting to matching page in 5 seconds...");
+        const user = await checkAuth(); // Update auth context
+
         setIcon("user-round-check");
-        setTimeout(() => {
-          router.push("/matching");
-        }, 5000);
+        if (user?.role == "user") {
+          setDescription("Redirecting to matching page in 5 seconds...");
+          setTimeout(() => {
+            router.push("/matching");
+          }, 5000);
+        }
       } else {
         console.log("No access token received upon verification.");
         setDescription("You can now log in to your account.");
@@ -106,8 +104,7 @@ export default function VerifyAccountPage() {
     { verificationToken: string }
   >({
     mutationFn: async (payload) => {
-      const res = await axios.post("http://localhost:8001/v1/resend", payload);
-      return res.data;
+      return await authAPI.resendVerification(payload.verificationToken);
     },
     onSuccess: (data) => {
       console.log(data);
