@@ -10,7 +10,7 @@ const connectDB = async () => {
         const questionCount = await Question.countDocuments()
         if (questionCount === 0) {
             console.log('Database is empty, seeding with sample questions...')
-            const toInsert = seedData.map(s => ({ ...s, deleted: false }))
+            const toInsert = seedData.map(s => ({ ...s, status: 'Active' }))
             await Question.insertMany(toInsert)
             console.log(`Seeded ${seedData.length} questions`)
         } else {

@@ -12,7 +12,7 @@ exports.createSolution = async (req, res) => {
     if (!q) return res.status(404).json({ error: 'Question not found' })
 
     const payload = req.body
-    const s = new Solution({
+      const s = new Solution({
       questionId: q._id,
       title: payload.title || `${q.title} - solution`,
       difficulty: payload.difficulty || q.difficulty,
@@ -23,7 +23,7 @@ exports.createSolution = async (req, res) => {
       timeComplexity: payload.timeComplexity || null,
       spaceComplexity: payload.spaceComplexity || null,
       mediaLink: payload.mediaLink || null,
-      deleted: false
+        status: 'Active'
     })
     await s.save()
     return res.status(201).json(s)
@@ -40,7 +40,13 @@ exports.getSolutionsForQuestion = async (req, res) => {
 
     const includeArchived = req.query.includeArchived === 'true'
     const filter = { questionId }
-    if (!includeArchived) filter.deleted = false
+      const status = req.query.status
+      if (status) {
+        if (!['Active', 'Archived'].includes(status)) return res.status(400).json({ error: 'Invalid status' })
+        filter.status = status
+      } else if (!includeArchived) {
+        filter.status = 'Active'
+      }
 
     const sols = await Solution.find(filter).sort({ _id: -1 })
     return res.status(200).json(sols)
@@ -55,7 +61,8 @@ exports.getSolutionById = async (req, res) => {
     const id = req.params.solutionId
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
     const sol = await Solution.findById(id)
-    if (!sol || sol.deleted) return res.status(404).json({ error: 'Solution not found' })
+      if (!sol) return res.status(404).json({ error: 'Solution not found' })
+      if (sol.status === 'Archived' && req.query.includeArchived !== 'true') return res.status(404).json({ error: 'Solution not found' })
     return res.status(200).json(sol)
   } catch (err) {
     console.error('getSolutionById error', err)
@@ -68,9 +75,7 @@ exports.updateSolution = async (req, res) => {
     const id = req.params.solutionId
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
     const updates = { ...req.body }
-    delete updates.deleted
-    delete updates.deletedAt
-    delete updates.deletedBy
+      if (updates.status && !['Active', 'Archived'].includes(updates.status)) return res.status(400).json({ error: 'Invalid status' })
     const sol = await Solution.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
     return res.status(200).json(sol)
@@ -84,8 +89,7 @@ exports.archiveSolution = async (req, res) => {
   try {
     const id = req.params.solutionId
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
-    const deletedBy = req.body?.deletedBy || null
-    const sol = await Solution.findByIdAndUpdate(id, { deleted: true, deletedAt: new Date(), deletedBy }, { new: true })
+      const sol = await Solution.findByIdAndUpdate(id, { status: 'Archived' }, { new: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
     return res.status(200).json({ message: 'Solution archived', solution: sol })
   } catch (err) {
@@ -98,7 +102,7 @@ exports.restoreSolution = async (req, res) => {
   try {
     const id = req.params.solutionId
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
-    const sol = await Solution.findByIdAndUpdate(id, { deleted: false, deletedAt: null, deletedBy: null }, { new: true })
+      const sol = await Solution.findByIdAndUpdate(id, { status: 'Active' }, { new: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
     return res.status(200).json({ message: 'Solution restored', solution: sol })
   } catch (err) {
@@ -127,7 +131,7 @@ exports.seedSolutions = async (req, res) => {
         timeComplexity: s.timeComplexity || null,
         spaceComplexity: s.spaceComplexity || null,
         mediaLink: s.mediaLink || null,
-        deleted: false
+          status: 'Active'
       })
       await sol.save()
       created.push(sol)

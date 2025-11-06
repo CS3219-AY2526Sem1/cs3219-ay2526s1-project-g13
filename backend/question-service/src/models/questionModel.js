@@ -59,6 +59,12 @@ const questionSchema = mongoose.Schema({
       message: (props) => `${props.value} is not a supported media file (allowed: .jpg, .jpeg, .png)`,
     },
   }
+  ,
+  status: {
+    type: String,
+    enum: ['Active', 'Archived'],
+    default: 'Active'
+  }
 })
 
 const solutionSchema = mongoose.Schema({
@@ -120,6 +126,12 @@ const solutionSchema = mongoose.Schema({
       },
       message: (props) => `${props.value} is not a supported media file (allowed: .jpg, .jpeg, .png)`,
     },
+  }
+  ,
+  status: {
+    type: String,
+    enum: ['Active', 'Archived'],
+    default: 'Active'
   }
 })
 

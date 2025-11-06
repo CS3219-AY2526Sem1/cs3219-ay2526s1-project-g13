@@ -13,8 +13,16 @@ const TOPICS = [
 const fetchAllQuestions = async (req, res) => {
     try {
         const includeArchived = req.query.includeArchived === 'true'
-        const notDeletedFilter = { $or: [{ deleted: false }, { deleted: { $exists: false } }] }
-        const filter = includeArchived ? {} : notDeletedFilter
+        const status = req.query.status
+        const filter = {}
+        if (status) {
+            if (!['Active', 'Archived'].includes(status)) return res.status(400).json({ error: 'Invalid status' })
+            filter.status = status
+        } else if (!includeArchived) {
+            // default to only active questions
+            filter.status = 'Active'
+        }
+
         const questions = await Question.find(filter)
         return res.status(200).json(questions)
     } catch (err) {
@@ -34,7 +42,7 @@ const getQuestionById = async (req, res) => {
     const q = await Question.findById(id)
     if (!q) return res.status(404).json({ error: 'Question not found' })
     const includeArchived = req.query.includeArchived === 'true'
-    if (q.deleted && !includeArchived) return res.status(404).json({ error: 'Question not found' })
+    if (q.status === 'Archived' && !includeArchived) return res.status(404).json({ error: 'Question not found' })
 
         const resp = {
             _id: q._id,
@@ -69,7 +77,7 @@ const createQuestion = async (req, res) => {
             examples: payload.examples || [],
             link: payload.link || null,
             mediaLink: payload.mediaLink || null,
-            deleted: false
+            status: payload.status || 'Active'
         })
 
         await q.save()
@@ -87,7 +95,7 @@ const createQuestion = async (req, res) => {
                 timeComplexity: payload.suggestedSolution.timeComplexity || null,
                 spaceComplexity: payload.suggestedSolution.spaceComplexity || null,
                 mediaLink: payload.suggestedSolution.mediaLink || null,
-                deleted: false
+                status: 'Active'
             })
             await s.save()
         }
@@ -99,31 +107,35 @@ const createQuestion = async (req, res) => {
     }
 }
 
-// Update question (partial updates accepted). If suggestedSolution present, upsert it.
+// Update question (partial updates accepted)
 const updateQuestion = async (req, res) => {
     try {
         const id = req.params.id
         const mongoose = require('mongoose')
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
 
-        const updates = { ...req.body }
-        // prevent updating deleted flags directly here
-        delete updates.deleted
-        delete updates.deletedAt
-        delete updates.deletedBy
+    const updates = { ...req.body }
+    if (updates.status && !['Active', 'Archived'].includes(updates.status)) return res.status(400).json({ error: 'Invalid status' })
 
-        const q = await Question.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
-        if (!q) return res.status(404).json({ error: 'Question not found' })
+    const q = await Question.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
+    if (!q) return res.status(404).json({ error: 'Question not found' })
 
-        // handle suggestedSolution upsert
+    // handle suggestedSolution 
         if (req.body.suggestedSolution) {
             const sPayload = req.body.suggestedSolution
             if (sPayload._id && mongoose.Types.ObjectId.isValid(sPayload._id)) {
                 await Solution.findByIdAndUpdate(sPayload._id, sPayload, { new: true, runValidators: true })
             } else {
-                const s = new Solution({ questionId: q._id, ...sPayload, deleted: false })
+                const s = new Solution({ questionId: q._id, ...sPayload, status: 'Active' })
                 await s.save()
             }
+        }
+
+        // cascade status changes to solutions if status was changed
+        if (updates.status === 'Archived') {
+            await Solution.updateMany({ questionId: q._id }, { status: 'Archived' })
+        } else if (updates.status === 'Active') {
+            await Solution.updateMany({ questionId: q._id }, { status: 'Active' })
         }
 
         return res.status(200).json(q)
@@ -133,23 +145,41 @@ const updateQuestion = async (req, res) => {
     }
 }
 
-// Archive (soft-delete) a question and associated solutions
+// Archive a question and associated solutions
 const archiveQuestion = async (req, res) => {
     try {
         const id = req.params.id
         const mongoose = require('mongoose')
         if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
 
-        const deletedBy = req.body?.deletedBy || null
-        const q = await Question.findByIdAndUpdate(id, { deleted: true, deletedAt: new Date(), deletedBy }, { new: true })
+        const q = await Question.findByIdAndUpdate(id, { status: 'Archived' }, { new: true })
         if (!q) return res.status(404).json({ error: 'Question not found' })
 
         // archive all solutions for this question
-        await Solution.updateMany({ questionId: q._id }, { deleted: true, deletedAt: new Date(), deletedBy })
+        await Solution.updateMany({ questionId: q._id }, { status: 'Archived' })
 
         return res.status(200).json({ message: 'Question archived', question: q })
     } catch (err) {
         console.error('archiveQuestion error', err)
+        return res.status(500).json({ error: 'Internal server error' })
+    }
+}
+
+const restoreQuestion = async (req, res) => {
+    try {
+        const id = req.params.id
+        const mongoose = require('mongoose')
+        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
+
+        const q = await Question.findByIdAndUpdate(id, { status: 'Active' }, { new: true })
+        if (!q) return res.status(404).json({ error: 'Question not found' })
+
+        // restore associated solutions
+        await Solution.updateMany({ questionId: q._id }, { status: 'Active' })
+
+        return res.status(200).json({ message: 'Question restored', question: q })
+    } catch (err) {
+        console.error('restoreQuestion error', err)
         return res.status(500).json({ error: 'Internal server error' })
     }
 }
@@ -177,8 +207,9 @@ const pickQuestion = async (req, res) => {
 
     const pipeline = []
     const match = {}
-    // exclude archived questions unless explicitly requested; treat missing `deleted` as not-deleted
-    match.$or = [{ deleted: false }, { deleted: { $exists: false } }]
+    // exclude archived questions unless explicitly requested
+    const includeArchived = req.query.includeArchived === 'true'
+    if (!includeArchived) match.status = 'Active'
     if (topic) match.topic = topic
     if (difficulty) match.difficulty = difficulty
     pipeline.push({ $match: match })
@@ -248,7 +279,14 @@ const getQuestion = async (message, kafkaManager, questionTopic) => {
         }
 
     const pipeline = [];
-    const match = { $or: [{ deleted: false }, { deleted: { $exists: false } }] };
+    const match = {};
+    // by default exclude archived unless the message explicitly requests them
+    try {
+        const parsed = criteria || {}
+        if (!parsed.includeArchived) match.status = 'Active'
+    } catch (e) {
+        match.status = 'Active'
+    }
     if (topic) match.topic = topic;
     if (difficulty) match.difficulty = difficulty;
     pipeline.push({ $match: match });
@@ -296,6 +334,15 @@ const getTopicList = async (req, res) => {
 
 module.exports = {
     fetchAllQuestions,
+    getAllActiveQuestions: async (req, res) => {
+        // convenience wrapper
+        req.query.status = 'Active'
+        return fetchAllQuestions(req, res)
+    },
+    getAllArchivedQuestions: async (req, res) => {
+        req.query.status = 'Archived'
+        return fetchAllQuestions(req, res)
+    },
     pickQuestion,
     getQuestionById,
     getTopicList,
@@ -303,10 +350,11 @@ module.exports = {
     createQuestion,
     updateQuestion,
     archiveQuestion,
+    restoreQuestion,
     seedQuestions: async (req, res) => {
         try {
             await Question.deleteMany({})
-            const toInsert = seedData.map(s => ({ ...s, deleted: false }))
+            const toInsert = seedData.map(s => ({ ...s, status: 'Active' }))
             const created = await Question.insertMany(toInsert)
             return res.status(200).json({ inserted: created.length })
         } catch (err) {
