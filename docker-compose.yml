@@ -125,9 +125,7 @@ services:
     environment:
       MONGO_URI: mongodb://admin:password@mongodb:27017/peerprepUserDB?authSource=admin
       WEB_BASE_URL: http://localhost:3000
-      API_BASE_URL: http://localhost:8001
       PORT: 8001
-      EMAIL_USER: peerprep.team@gmail.com
     networks:
       - cs3219-peerprep-network
 
