@@ -1,7 +1,6 @@
 export const config = {
   // Server Ports
-  WS_PORT: process.env.WS_PORT || 8005,
-  HTTP_PORT: process.env.HTTP_PORT || 8004,
+  PORT: process.env.PORT || 8004,
   // Database
   MONGO_URI:
     process.env.MONGODB_URI ||

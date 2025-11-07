@@ -164,7 +164,7 @@ const userServiceClient = axios.create({
 
 // Create axios instance for collaboration service
 const collaborationServiceClient = axios.create({
-  baseURL: apiConfig.collaborationService.httpURL,
+  baseURL: apiConfig.collaborationService.baseURL,
   withCredentials: true,
 });
 
@@ -223,10 +223,10 @@ export const authRequest = async <T = unknown>(
     let client = userServiceClient;
 
     // If URL is a full URL and matches collaboration service, use collaboration client
-    if (url.startsWith(apiConfig.collaborationService.httpURL)) {
+    if (url.startsWith(apiConfig.collaborationService.baseURL)) {
       client = collaborationServiceClient;
       // Remove base URL since client already has it
-      config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+      config.url = url.replace(apiConfig.collaborationService.baseURL, "");
     } else if (url.startsWith(apiConfig.questionService.baseURL)) {
       client = questionServiceClient;
       config.url = url.replace(apiConfig.questionService.baseURL, "");
@@ -246,9 +246,9 @@ export const authRequest = async <T = unknown>(
       const url = config.url || "";
       let client = userServiceClient;
 
-      if (url.startsWith(apiConfig.collaborationService.httpURL)) {
+      if (url.startsWith(apiConfig.collaborationService.baseURL)) {
         client = collaborationServiceClient;
-        config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+        config.url = url.replace(apiConfig.collaborationService.baseURL, "");
       } else if (url.startsWith(apiConfig.questionService.baseURL)) {
         client = questionServiceClient;
         config.url = url.replace(apiConfig.questionService.baseURL, "");
@@ -343,7 +343,7 @@ export const collaborationAPI = {
   getRoomDetails: async (roomId: string): Promise<RoomDetailsResponse> => {
     const res = await authRequest<RoomDetailsResponse>({
       method: "GET",
-      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
+      url: `${apiConfig.collaborationService.baseURL}/api/v1/rooms/${roomId}`,
     });
     return res.data;
   },
@@ -351,7 +351,7 @@ export const collaborationAPI = {
   getUserRooms: async (userId: string): Promise<GetUserRoomsResponse> => {
     const res = await authRequest<GetUserRoomsResponse>({
       method: "GET",
-      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms?userId=${userId}`,
+      url: `${apiConfig.collaborationService.baseURL}/api/v1/rooms?userId=${userId}`,
     });
     return res.data;
   },
@@ -359,7 +359,7 @@ export const collaborationAPI = {
   changeLanguage: async (roomId: string, language: string): Promise<ChangeLanguageResponse> => {
     const res = await authRequest<ChangeLanguageResponse>({
       method: "PATCH",
-      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}/language`,
+      url: `${apiConfig.collaborationService.baseURL}/api/v1/rooms/${roomId}/language`,
       data: { language },
     });
     return res.data;

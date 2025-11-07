@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
 import { ProgrammingLanguage, ProgrammingLanguageDisplay, ConnectionState } from "@/utils/enums";
-import { collaborationConfig } from "@/utils/config";
+import { getCollaborationURL } from "@/lib/api-config";
 
 interface CodeEditorPanelProps {
   readOnly?: boolean;
@@ -82,7 +82,7 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
     ydocRef.current = ydoc;
 
     // Create WebSocket provider with token in URL
-    const wsUrl = collaborationConfig.WS_URL;
+    const wsUrl = getCollaborationURL().replace(/^http/, "ws");
     const roomWithToken = `${roomId}?token=${accessToken}`;
     const provider = new WebsocketProvider(wsUrl, roomWithToken, ydoc);
     providerRef.current = provider;

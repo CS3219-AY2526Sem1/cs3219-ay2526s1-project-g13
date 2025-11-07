@@ -16,7 +16,7 @@ async function startServer() {
     await httpServer.start();
 
     // Step 4: Start WebSocket server
-    await webSocketServer.start();
+    await webSocketServer.start(httpServer.server);
 
     // Step 4: Start Kafka consumer for room creation
     await setupRoomCreationConsumer();
