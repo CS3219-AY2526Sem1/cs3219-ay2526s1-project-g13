@@ -18,6 +18,7 @@ function ActionCell({ question }: { question: Question }) {
 
   const handleArchive = () => {
     archiveQuestion(question._id);
+    window.location.reload();
   };
 
   return (

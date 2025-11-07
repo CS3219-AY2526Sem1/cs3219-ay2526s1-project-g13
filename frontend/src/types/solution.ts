@@ -44,3 +44,5 @@ export type TimeComplexity =
   | "O(n!)";
 
 export type SpaceComplexity = "O(1)" | "O(n)" | "O(n^2)" | "O(log n)" | "O(n log n)";
+
+export type Status = "Active" | "Archived";

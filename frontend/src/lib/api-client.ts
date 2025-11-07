@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { apiConfig } from "./api-config";
 import { Difficulty, ProgrammingLanguage } from "@/utils/enums";
-import { Topic, Language, TimeComplexity, SpaceComplexity } from "@/types/solution";
+import { Topic, Language, TimeComplexity, SpaceComplexity, Status } from "@/types/solution";
 
 export interface LoginRequest {
   username: string;
@@ -102,6 +102,7 @@ export interface QuestionExample {
 
 export interface Question {
   _id: string;
+  questionID: number;
   title: string;
   description: string;
   difficulty: Difficulty;
@@ -112,6 +113,7 @@ export interface Question {
 
 export const emptyQuestionState: Question = {
   _id: "",
+  questionID: 0,
   title: "",
   topic: "",
   difficulty: Difficulty.EASY,
@@ -124,8 +126,7 @@ export type ArchiveQuestionResponse = {
 };
 
 export interface Solution {
-  _id: string; // Mongoose document id
-  questionId: string; // ObjectId as string
+  questionId: string;
   title: string;
   difficulty: Difficulty;
   topic: Topic;
@@ -136,6 +137,7 @@ export interface Solution {
   spaceComplexity?: SpaceComplexity;
   mediaLink?: string;
   deleted?: boolean;
+  status: Status;
 }
 
 // Create axios instance for user service
@@ -147,6 +149,12 @@ const userServiceClient = axios.create({
 // Create axios instance for collaboration service
 const collaborationServiceClient = axios.create({
   baseURL: apiConfig.collaborationService.httpURL,
+  withCredentials: true,
+});
+
+// Create axios instance for question service
+const questionServiceClient = axios.create({
+  baseURL: apiConfig.questionService.baseURL,
   withCredentials: true,
 });
 
@@ -203,6 +211,9 @@ export const authRequest = async <T = unknown>(
       client = collaborationServiceClient;
       // Remove base URL since client already has it
       config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+    } else if (url.startsWith(apiConfig.questionService.baseURL)) {
+      client = questionServiceClient;
+      config.url = url.replace(apiConfig.questionService.baseURL, "");
     } else if (url.startsWith("http://") || url.startsWith("https://")) {
       // For absolute URLs (legacy support), use axios directly
       return await axios(config);
@@ -222,6 +233,9 @@ export const authRequest = async <T = unknown>(
       if (url.startsWith(apiConfig.collaborationService.httpURL)) {
         client = collaborationServiceClient;
         config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+      } else if (url.startsWith(apiConfig.questionService.baseURL)) {
+        client = questionServiceClient;
+        config.url = url.replace(apiConfig.questionService.baseURL, "");
       } else if (url.startsWith("http://") || url.startsWith("https://")) {
         return await axios(config);
       }
@@ -330,57 +344,58 @@ export const collaborationAPI = {
 
 export const questionAPI = {
   getQuestionById: async (questionId: string): Promise<Question> => {
-    const res = await authRequest<Question>({
-      method: "GET",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
-    });
+    const res = await questionServiceClient.get<Question>(`/v1/questions/${questionId}`);
     return res.data;
   },
+
   getQuestionList: async (): Promise<Question[]> => {
-    const res = await authRequest<Question[]>({
-      method: "GET",
-      url: `${apiConfig.questionService.baseURL}/v1/questions`,
-    });
-    return res.data;
+    try {
+      const activeRes = await questionServiceClient.get<Question[]>(`/v1/questions/active`);
+      console.log("Active questions:", activeRes.data);
+      return activeRes.data;
+    } catch (error) {
+      console.error("Failed to fetch questions:", error);
+      throw error;
+    }
   },
+
   createQuestion: async (payload: Question): Promise<Question> => {
-    const res = await authRequest<Question>({
-      method: "POST",
-      url: `${apiConfig.questionService.baseURL}/v1/questions`,
-      data: payload,
-    });
+    const res = await questionServiceClient.post<Question>(`/v1/questions`, payload);
     return res.data;
   },
+
   getTopicList: async (): Promise<string[]> => {
-    const res = await authRequest<string[]>({
-      method: "GET",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/topics`,
-    });
-    return res.data;
+    const res = await questionServiceClient.get<string[] | { topics: string[] }>(
+      `/v1/questions/topics`,
+    );
+
+    const data = res.data as unknown;
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === "object" && "topics" in data) {
+      return (data as { topics: string[] }).topics;
+    }
+    throw new Error("Unexpected response format for topics");
   },
+
   updateQuestion: async (questionId: string, payload: Partial<Question>): Promise<Question> => {
-    const res = await authRequest<Question>({
-      method: "PATCH",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
-      data: payload,
-    });
+    const res = await questionServiceClient.patch<Question>(`/v1/questions/${questionId}`, payload);
     return res.data;
   },
+
   archiveQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
-    const res = await authRequest<ArchiveQuestionResponse>({
-      method: "DELETE",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
-    });
-    console.log(res.data);
+    const res = await questionServiceClient.delete<ArchiveQuestionResponse>(
+      `/v1/questions/${questionId}`,
+    );
     return res.data;
   },
-  getSolutionsForQuestion: async (questionId: string): Promise<Solution[]> => {
-    console.log(questionId);
-    const res = await authRequest<Solution[]>({
-      method: "GET",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}/solutions`,
-    });
-    console.log(res.data);
+
+  getSolutionsForQuestion: async (questionID: string): Promise<Solution[]> => {
+    const res = await questionServiceClient.get<Solution[]>(
+      `/v1/questions/${questionID}/solutions`,
+    );
+    console.log(questionID);
+    console.log(res);
+    console.log(`Solution: ${res.data}`);
     return res.data;
   },
 };

@@ -74,7 +74,7 @@ export default function TopicSelect({ value, onChange }: TopicSelectProps) {
             onValueChange={(val) => setInputValue(val)}
             value={inputValue}
           />
-          <CommandList>
+          <CommandList className="max-h-60 overflow-y-auto">
             <CommandEmpty>No topic found.</CommandEmpty>
 
             <CommandGroup>

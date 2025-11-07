@@ -79,6 +79,7 @@ const getQuestionById = async (req, res) => {
     if (q.status === 'Archived' && !includeArchived) return res.status(404).json({ error: 'Question not found' })
 
         const resp = {
+            questionID: q.questionID,
             _id: q._id,
             title: q.title,
             description: q.description,

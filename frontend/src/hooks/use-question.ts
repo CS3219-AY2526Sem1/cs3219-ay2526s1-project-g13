@@ -48,10 +48,11 @@ export async function archiveQuestion(questionId: string): Promise<ArchiveQuesti
   }
 }
 
-export async function fetchSolutionsByQuestion(questionId: string): Promise<Solution[]> {
+export async function fetchSolutionsByQuestion(questionId: number): Promise<Solution[]> {
   try {
     if (!questionId) throw new Error("fetchSolution requires question.id");
-    return await questionAPI.getSolutionsForQuestion(questionId);
+    const idStr = String(questionId);
+    return await questionAPI.getSolutionsForQuestion(idStr);
   } catch (error) {
     console.error("Failed to fetch solutions:", error);
     throw error;

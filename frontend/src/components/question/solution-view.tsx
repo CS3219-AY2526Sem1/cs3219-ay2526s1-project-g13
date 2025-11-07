@@ -1,29 +1,31 @@
-import { useEffect, useState } from "react";
+// solution-view.tsx
+import { useEffect, useMemo, useState } from "react";
 import type { Solution } from "@/lib/api-client";
 import { fetchSolutionsByQuestion } from "@/hooks/use-question";
+import { Language } from "@/types/solution";
 
 type SolutionViewProps = {
-  questionId: string;
-  includeArchived?: boolean;
+  questionId: number;
+  selectedLang: Language;
 };
 
-export function SolutionView({ questionId }: SolutionViewProps) {
+export function SolutionView({ questionId, selectedLang }: SolutionViewProps) {
   const [solutions, setSolutions] = useState<Solution[]>([]);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<unknown>(null);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    setErr(null);
 
     (async () => {
       try {
         if (!questionId) return;
         const res = await fetchSolutionsByQuestion(questionId);
-        if (alive) setSolutions(res ?? []);
+
+        if (!alive) return;
+        setSolutions(res ?? []);
       } catch (e) {
-        if (alive) setErr(e);
+        console.log(e);
       } finally {
         if (alive) setLoading(false);
       }
@@ -34,24 +36,41 @@ export function SolutionView({ questionId }: SolutionViewProps) {
     };
   }, [questionId]);
 
+  // 🔎 just pick by language
+  const activeSolution = useMemo(
+    () => solutions.find((s) => s.language === selectedLang) ?? null,
+    [solutions, selectedLang],
+  );
+
   if (loading) return <p>Loading…</p>;
-  if (err) return <p className="text-red-600">Failed to load solutions.</p>;
   if (solutions.length === 0) return <p>No solutions yet.</p>;
 
   return (
-    <>
-      {solutions.map((sol) => (
-        <div key={sol._id} className="mb-6 border rounded p-4">
-          <h3 className="font-semibold">{sol.language} Solution</h3>
+    <div className="space-y-4">
+      {!activeSolution ? (
+        <p>No {selectedLang} solution found.</p>
+      ) : (
+        <div className="mb-6 border rounded p-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-semibold">{activeSolution.language} Solution</h3>
+            {activeSolution.status === "Archived" && (
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
+                Archived
+              </span>
+            )}
+          </div>
+
           <p className="text-sm text-muted-foreground mb-2">
-            {sol.timeComplexity ?? "—"} • {sol.spaceComplexity ?? "—"}
+            {activeSolution.timeComplexity ?? "—"} • {activeSolution.spaceComplexity ?? "—"}
           </p>
+
           <pre className="bg-muted p-3 rounded text-sm overflow-x-auto whitespace-pre-wrap">
-            {sol.code}
+            {activeSolution.code}
           </pre>
-          <p className="mt-2">{sol.explanation}</p>
+
+          {activeSolution.explanation && <p className="mt-2">{activeSolution.explanation}</p>}
         </div>
-      ))}
-    </>
+      )}
+    </div>
   );
 }
