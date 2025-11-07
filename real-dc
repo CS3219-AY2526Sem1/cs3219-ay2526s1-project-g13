@@ -150,27 +150,13 @@ services:
     build: 
       context: ./backend/execution-service
       dockerfile: Dockerfile.execution
-    container_name: execution-service
+    container_name: execution-serivce
     restart: always
     env_file:
       - ./backend/execution-service/.env
     depends_on:
       rabbitmq:
         condition: service_healthy
-    networks:
-      - cs3219-peerprep-network
-    command: pnpm run start
-
-  video-call-service:
-    build: 
-      context: ./backend/video-call-service
-      dockerfile: Dockerfile.video
-    container_name: video-call-service
-    restart: always
-    env_file:
-      - ./backend/video-call-service/.env
-    ports:
-      - '8011:8011'
     networks:
       - cs3219-peerprep-network
     command: pnpm run start

@@ -1,8 +1,5 @@
 const express = require('express');
 const {RtcTokenBuilder, RtcRole} = require('agora-access-token');
-const dotenv = require('dotenv');
-
-dotenv.config()
 const app = express()
 
 const PORT = process.env.PORT
@@ -42,13 +39,13 @@ const generateRTCToken = (req, resp) => {
   const currentTime = Math.floor(Date.now() / 1000);
   const privilegeExpireTime = currentTime + expireTime;
   // build token
-  let token = RtcTokenBuilder.buildTokenWithUid(APP_ID, APP_CERTIFICATE, roomId, uid, role, privilegeExpireTime)
+  let token = RtcTokenBuilder.buildTokenWithAccount(APP_ID, APP_CERTIFICATE, roomId, uid, role, privilegeExpireTime)
   console.log(">>> Create token successfully!")
   // return token
   return resp.json({ 'rtcToken': token });
 }
 
-app.get('/v1/rtc/:roomid/:uid', nocache , generateRTCToken)
+app.get('/v1/video/:roomid/:uid', nocache , generateRTCToken)
 
 app.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);

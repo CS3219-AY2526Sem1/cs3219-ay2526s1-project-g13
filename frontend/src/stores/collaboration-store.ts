@@ -28,6 +28,8 @@ interface CollaborationState {
   isQuestionLoading: boolean;
   questionError: string | null;
 
+  agoraToken: string | null;
+
   // Actions
   fetchRoomDetails: (roomId: string) => Promise<void>;
   fetchQuestionDetails: (questionId: string) => Promise<void>;
@@ -38,6 +40,8 @@ interface CollaborationState {
   setSourceCode: (code: string) => void;
   submitCode: () => Promise<void>;
   setExecutionResult: (result: { output: string; isError: boolean }) => void;
+
+  fetchAgoraToken: (roomId: string, userId: string) => Promise<void>;
 }
 
 const initialState = {
@@ -52,11 +56,25 @@ const initialState = {
   questionDetails: null,
   isQuestionLoading: false,
   questionError: null,
+
+  agoraToken: null,
 };
 
 export const useCollaborationStore = create<CollaborationState>()(
   subscribeWithSelector((set, get) => ({
     ...initialState,
+
+    fetchAgoraToken: async (roomId: string, userId: string) => {
+      try {
+        const response = await axios.get(`http://localhost:8011/v1/video/${roomId}/${userId}`);
+        set({ agoraToken: response.data.rtcToken });
+        return response.data.rtcToken;
+      } catch (error) {
+        console.error("Failed to fetch Agora token ", error);
+        toast.error("Failed to start video service");
+        return null;
+      }
+    },
 
     // Fetch room details via HTTP
     fetchRoomDetails: async (roomId: string) => {
@@ -248,6 +266,8 @@ export const useCollaborationActions = () => {
   const updateLanguage = useCollaborationStore((state) => state.updateLanguage);
   const reset = useCollaborationStore((state) => state.reset);
 
+  const fetchAgoraToken = useCollaborationStore((state) => state.fetchAgoraToken);
+
   const setSourceCode = useCollaborationStore((state) => state.setSourceCode);
   const submitCode = useCollaborationStore((state) => state.submitCode);
   const setExecutionResult = useCollaborationStore((state) => state.setExecutionResult);
@@ -255,6 +275,7 @@ export const useCollaborationActions = () => {
   return {
     fetchRoomDetails,
     fetchQuestionDetails,
+    fetchAgoraToken,
     changeLanguage,
     updateLanguage,
     reset,
