@@ -1,4 +1,3 @@
-// question-view.tsx
 import {
   CardAction,
   CardContent,
@@ -8,11 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Question } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SolutionView } from "./solution-view";
 
-// NEW imports for selector + type
 import { Label } from "@/components/ui/label";
 import {
   Select,
