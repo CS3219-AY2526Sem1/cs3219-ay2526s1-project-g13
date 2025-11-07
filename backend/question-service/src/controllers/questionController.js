@@ -10,6 +10,24 @@ const TOPICS = [
         'Sorting', 'Stack', 'String', 'Topological sort', 'Tree',
         'Trie', 'Two pointers', 'Queue', 'Quickselect', 'Union find'
         ]
+
+/**
+ * Fetches questions with optional filtering by status
+ * Used both for normal retrieval and admin views
+ *
+ * Behavior:
+ * - If status is provided, returns only questions with that status
+ * - If includeArchived=true and no status filter, returns all questions
+ * - Otherwise defaults to returning only active questions
+ *
+ * Query Params:
+ * req.query.status           "Active" or "Archived"
+ * req.query.includeArchived  allows returning archived if true
+ *
+ * Returns:
+ * - 200 list of questions
+ * - 400 if status query is invalid
+ */
 const fetchAllQuestions = async (req, res) => {
     try {
         const includeArchived = req.query.includeArchived === 'true'
@@ -31,6 +49,22 @@ const fetchAllQuestions = async (req, res) => {
     }
 }
 
+/**
+ * Retrieves a single question by its MongoDB ObjectID
+ * Ensures archived questions remain hidden unless explicitly requested
+ *
+ * Behavior:
+ * - Validates ObjectID format before lookup
+ * - Returns 404 if archived and includeArchived is not set
+ *
+ * Query Params:
+ * req.query.includeArchived  allow access to archived question details
+ *
+ * Returns:
+ * - 200 with question details
+ * - 400 if ID is invalid
+ * - 404 if question cannot be returned
+ */
 const getQuestionById = async (req, res) => {
     try {
         const id = req.params.id
@@ -61,7 +95,17 @@ const getQuestionById = async (req, res) => {
     }
 }
 
-// Create a new question (optionally with a suggested solution)
+/**
+ * Creates a new question record
+ * Can also attach a suggested solution during creation if provided
+ *
+ * Validates:
+ * - title, difficulty, topic, and description are required
+ *
+ * Returns:
+ * - 201 with newly created question
+ * - 400 if required fields are missing
+ */
 const createQuestion = async (req, res) => {
     try {
         const payload = req.body
@@ -85,7 +129,7 @@ const createQuestion = async (req, res) => {
         // optionally create suggested solution
         if (payload.suggestedSolution) {
             const s = new Solution({
-                questionId: q._id,
+                questionID: q.questionID,
                 title: payload.suggestedSolution.title || `${q.title} - solution`,
                 difficulty: payload.suggestedSolution.difficulty || q.difficulty,
                 topic: payload.suggestedSolution.topic || q.topic,
@@ -107,7 +151,16 @@ const createQuestion = async (req, res) => {
     }
 }
 
-// Update question (partial updates accepted)
+/**
+ * Updates an existing question with partial or full data
+ * Supports updating or adding a suggested solution as part of the same request
+ * If status changes, cascades the same status to associated solutions
+ *
+ * Returns:
+ * - 200 with updated question
+ * - 400 if question ID or status is invalid
+ * - 404 if question not found
+ */
 const updateQuestion = async (req, res) => {
     try {
         const id = req.params.id
@@ -126,16 +179,16 @@ const updateQuestion = async (req, res) => {
             if (sPayload._id && mongoose.Types.ObjectId.isValid(sPayload._id)) {
                 await Solution.findByIdAndUpdate(sPayload._id, sPayload, { new: true, runValidators: true })
             } else {
-                const s = new Solution({ questionId: q._id, ...sPayload, status: 'Active' })
+                const s = new Solution({ questionID: q.questionID, ...sPayload, status: 'Active' })
                 await s.save()
             }
         }
 
         // cascade status changes to solutions if status was changed
         if (updates.status === 'Archived') {
-            await Solution.updateMany({ questionId: q._id }, { status: 'Archived' })
+            await Solution.updateMany({ questionID: q.questionID }, { status: 'Archived' })
         } else if (updates.status === 'Active') {
-            await Solution.updateMany({ questionId: q._id }, { status: 'Active' })
+            await Solution.updateMany({ questionID: q.questionID }, { status: 'Active' })
         }
 
         return res.status(200).json(q)
@@ -145,7 +198,14 @@ const updateQuestion = async (req, res) => {
     }
 }
 
-// Archive a question and associated solutions
+/**
+ * Marks a question and all its associated solutions as archived
+ * Used to hide outdated or temporarily unused problems
+ *
+ * Returns:
+ * - 200 when archived successfully
+ * - 404 if question not found
+ */
 const archiveQuestion = async (req, res) => {
     try {
         const id = req.params.id
@@ -155,8 +215,8 @@ const archiveQuestion = async (req, res) => {
         const q = await Question.findByIdAndUpdate(id, { status: 'Archived' }, { new: true })
         if (!q) return res.status(404).json({ error: 'Question not found' })
 
-        // archive all solutions for this question
-        await Solution.updateMany({ questionId: q._id }, { status: 'Archived' })
+    // archive all solutions for this question 
+    await Solution.updateMany({ questionID: q.questionID }, { status: 'Archived' })
 
         return res.status(200).json({ message: 'Question archived', question: q })
     } catch (err) {
@@ -165,6 +225,14 @@ const archiveQuestion = async (req, res) => {
     }
 }
 
+/**
+ * Restores a previously archived question and its solutions to active status
+ * Useful when reintroducing a question into the rotation
+ *
+ * Returns:
+ * - 200 when restored successfully
+ * - 404 if question not found
+ */
 const restoreQuestion = async (req, res) => {
     try {
         const id = req.params.id
@@ -174,8 +242,8 @@ const restoreQuestion = async (req, res) => {
         const q = await Question.findByIdAndUpdate(id, { status: 'Active' }, { new: true })
         if (!q) return res.status(404).json({ error: 'Question not found' })
 
-        // restore associated solutions
-        await Solution.updateMany({ questionId: q._id }, { status: 'Active' })
+    // restore associated solutions
+    await Solution.updateMany({ questionID: q.questionID }, { status: 'Active' })
 
         return res.status(200).json({ message: 'Question restored', question: q })
     } catch (err) {
@@ -185,12 +253,24 @@ const restoreQuestion = async (req, res) => {
 }
 
 /**
- * GET /v1/questions/pick?topic=&difficulty=
- * Selection rules:
- * - both provided: match both
- * - only topic: match topic (difficulty random)
- * - only difficulty: match difficulty (topic random)
- * - neither: any random question
+ * Selects and returns one random question based on optional topic and/or difficulty filters
+ * Useful for serving a single practice question rather than a full list
+ *
+ * Behavior:
+ * - If both topic and difficulty are provided, selects from matching subset
+ * - If only one filter is provided, treats the other as unconstrained and picks randomly
+ * - If no filters are provided, selects a fully random active question
+ * - Archived questions are excluded unless includeArchived=true is explicitly passed
+ *
+ * Query Params:
+ * req.query.topic            optional topic filter
+ * req.query.difficulty       optional difficulty filter
+ * req.query.includeArchived  set to "true" to allow archived questions
+ *
+ * Returns:
+ * - 200 with one question object (safe-to-expose fields only)
+ * - 400 if topic or difficulty is not in supported lists
+ * - 404 if no matching question is found
  */
 const pickQuestion = async (req, res) => {
     try {

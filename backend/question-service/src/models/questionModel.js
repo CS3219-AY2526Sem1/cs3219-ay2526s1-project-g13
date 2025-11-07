@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
 
 const questionSchema = mongoose.Schema({
+    questionID: {
+        type: Number,
+        required: true,
+        unique: true
+    },
     title: {
         type: String,
         required: true
@@ -68,11 +73,12 @@ const questionSchema = mongoose.Schema({
 })
 
 const solutionSchema = mongoose.Schema({
-    questionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Question',
-        required: true
-    },
+  // numeric reference to Question.questionID (denormalized)
+  questionID: {
+    type: Number,
+    required: true,
+    index: true
+  },
     title: {
         type: String,
         required: true
@@ -109,11 +115,11 @@ const solutionSchema = mongoose.Schema({
     },
     timeComplexity: {
       type: String,
-      enum: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n^2)', 'O(n^3)', 'O(2^n)', 'O(n!)']
+      enum: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n^2)', 'O(n^3)', 'O(2^n)', 'O(n!)', 'O(m * n)']
     },
     spaceComplexity: {
       type: String,
-      enum: ['O(1)', 'O(n)', 'O(n^2)', 'O(log n)', 'O(n log n)']
+      enum: ['O(1)', 'O(n)', 'O(n^2)', 'O(log n)', 'O(n log n)', 'O(m * n)']
   },
   mediaLink: {
     type: String,
@@ -134,6 +140,9 @@ const solutionSchema = mongoose.Schema({
     default: 'Active'
   }
 })
+
+// enforce one solution per language per question
+solutionSchema.index({ questionID: 1, language: 1 }, { unique: true })
 
 // Export to be used in the controller
 module.exports = {
