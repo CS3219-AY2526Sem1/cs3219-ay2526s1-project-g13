@@ -234,15 +234,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
+      args:
+        - USER_SERVICE_URL=http://localhost:8001
+        - MATCHING_SERVICE_URL=http://localhost:8002
+        - QUESTION_SERVICE_URL=http://localhost:8003
+        - COLLABORATION_SERVICE_URL=http://localhost:8004
     container_name: frontend
     restart: always
     ports:
       - '3000:3000'
-    environment:
-      - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
-      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
-      - NEXT_PUBLIC_QUESTION_SERVICE_URL=http://localhost:8003
-      - NEXT_PUBLIC_COLLABORATION_SERVICE_URL=http://localhost:8004
     depends_on:
       - user-service
       - collaboration-service
