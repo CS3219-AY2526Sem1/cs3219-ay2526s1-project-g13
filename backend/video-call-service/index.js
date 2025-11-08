@@ -40,7 +40,10 @@ const generateRTCToken = (req, resp) => {
   const privilegeExpireTime = currentTime + expireTime;
   // build token
   let token = RtcTokenBuilder.buildTokenWithAccount(APP_ID, APP_CERTIFICATE, roomId, uid, role, privilegeExpireTime)
-  console.log(">>> Create token successfully!")
+  console.log(">>> Build Token with Account")
+  console.log(roomId)
+  console.log(uid)
+  console.log(role)
   // return token
   return resp.json({ 'rtcToken': token });
 }

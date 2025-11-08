@@ -32,9 +32,12 @@ function AgoraVideoCall(props: { userId: string | undefined }) {
   const [camOn, setCamOn] = useState(true);
 
   // mic, cam
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
-  const { localCameraTrack } = useLocalCameraTrack(camOn);
+  const { localMicrophoneTrack } = useLocalMicrophoneTrack();
+  const { localCameraTrack } = useLocalCameraTrack();
+
   const remoteUsers = useRemoteUsers();
+  console.log(">>> Agora connection: ", remoteUsers.length);
+
   usePublish([localMicrophoneTrack, localCameraTrack]);
 
   useJoin(
@@ -46,6 +49,18 @@ function AgoraVideoCall(props: { userId: string | undefined }) {
     },
     !!agoraToken && !!userId,
   );
+
+  useEffect(() => {
+    if (localMicrophoneTrack) {
+      localMicrophoneTrack.setEnabled(micOn);
+    }
+  }, [micOn, localMicrophoneTrack]);
+
+  useEffect(() => {
+    if (localCameraTrack) {
+      localCameraTrack.setEnabled(camOn);
+    }
+  }, [camOn, localCameraTrack]);
 
   return (
     <>
@@ -88,16 +103,25 @@ function AgoraVideoCall(props: { userId: string | undefined }) {
                 <span className="text-gray-400 absolute top-2 left-2 z-10 text-xs">
                   {user.uid.toString() || "Partner"}
                 </span>
-                <RemoteUser
-                  user={user}
-                  playAudio={true}
-                  playVideo={true}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+                {user.hasVideo ? (
+                  <RemoteUser
+                    user={user}
+                    playAudio={true}
+                    playVideo={true}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <>
+                    <RemoteUser user={user} playAudio={true} playVideo={false} />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-gray-500">Camera Off</span>
+                    </div>
+                  </>
+                )}
               </div>
             ))
           ) : (
-            <span className="text-gray-500">Wating...</span>
+            <span className="text-gray-500">Waiting...</span>
           )}
         </div>
       </div>
