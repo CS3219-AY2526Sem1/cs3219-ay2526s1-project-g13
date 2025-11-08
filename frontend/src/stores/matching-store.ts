@@ -4,6 +4,7 @@ import { Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 import { ServiceType } from "@/utils/enums";
 import { socketManager } from "@/utils/socket-manager";
+import { getMatchingServiceURL } from "@/lib/api-config";
 
 interface User {
   _id: string;
@@ -68,10 +69,7 @@ export const useMatchingStore = create<MatchingState>()(
         return;
       }
 
-      const url =
-        process.env.NEXT_PUBLIC_ENV === "production"
-          ? process.env.NEXT_PUBLIC_MATCHING_ENDPOINT
-          : `http://localhost:8002`;
+      const url = getMatchingServiceURL();
 
       // Get access token for authentication
       const accessToken = localStorage.getItem("accessToken");
