@@ -70,14 +70,20 @@ export const useMatchingStore = create<MatchingState>()(
       }
 
       const url = getMatchingServiceURL();
+      const urlObj = new URL(url);
+      const domainUrl = `${urlObj.protocol}//${urlObj.host}`;
+      const baseSocketPath = urlObj.pathname === "/" ? "" : urlObj.pathname;
+      const socketPath = `${baseSocketPath}/socket.io`;
 
       // Get access token for authentication
       const accessToken = localStorage.getItem("accessToken");
 
       // Create socket using socketManager
       const newSocket = socketManager.createSocket(ServiceType.MATCHING, {
-        url: url || "",
-        options: {},
+        url: domainUrl,
+        options: {
+          path: socketPath,
+        },
         token: accessToken || undefined,
       });
 

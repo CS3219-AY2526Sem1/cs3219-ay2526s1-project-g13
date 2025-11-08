@@ -1,8 +1,8 @@
-import { io, Socket, SocketOptions } from "socket.io-client";
+import { io, Socket, ManagerOptions, SocketOptions } from "socket.io-client";
 
 interface SocketConfig {
   url: string;
-  options?: Partial<SocketOptions>;
+  options?: Partial<ManagerOptions & SocketOptions>;
   token?: string;
 }
 
