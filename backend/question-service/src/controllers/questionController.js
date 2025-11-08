@@ -407,11 +407,11 @@ exports.uploadQuestionImage = async (req, res) => {
  * @param {Object} message - Kafka message containing matching criteria
  * @param {string} message.key - Message key (optional)
  * @param {string} message.value - JSON string containing topic and difficulty
- * @param {Object} kafkaManager - Kafka manager instance for sending responses
+ * @param {Object} messageManager - Message manager instance (Kafka or Pub/Sub) to send response
  * @param {string} questionTopic - Topic to send the question response to
  * @returns {Object} Question object or error response
  */
-const getQuestion = async (message, kafkaManager, questionTopic) => {
+const getQuestion = async (message, messageManager, questionTopic) => {
     try {
         if (!message.value) {
             console.error('No message value provided');
@@ -468,7 +468,7 @@ const getQuestion = async (message, kafkaManager, questionTopic) => {
         });
 
         const matchId = message.key?.toString();
-        const producer = kafkaManager.getProducer();
+        const producer = messageManager.getProducer();
         await producer.send({
             topic: questionTopic,
             messages: [

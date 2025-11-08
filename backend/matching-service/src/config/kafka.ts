@@ -20,6 +20,16 @@ export class KafkaManager {
 
   constructor() {
     console.log('KafkaManager constructor');
+    const isGCP = !!process.env.PUBSUB_PROJECT_ID;
+    if (isGCP) {
+      console.log('GCP environment detected, Kafka not configured for GCP');
+      this.kafka = null as unknown as Kafka;
+      this.admin = null as unknown as Admin;
+      this.producer = null as unknown as Producer;
+      this.consumer_of_question_topic = null as unknown as Consumer;
+      this.consumer_of_room_created_topic = null as unknown as Consumer;
+      return;
+    }
     const host = process.env.KAFKA_HOST || 'localhost';
     const port = process.env.KAFKA_PORT || '9092';
     const brokers = (process.env.KAFKA_BROKERS || `${host}:${port}`).split(',');

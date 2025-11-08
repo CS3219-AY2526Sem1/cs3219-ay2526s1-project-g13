@@ -1,5 +1,8 @@
 import roomController from '../controllers/roomController.js';
 import { kafkaManager } from '../config/kafka.js';
+import { pubsubManager } from '../config/pubsub.js';
+
+const useGcp = !!process.env.PUBSUB_PROJECT_ID;
 
 export async function handleRoomCreation(message) {
   const matchId = message.key;
@@ -26,16 +29,25 @@ export async function handleRoomCreation(message) {
     
     console.log('Room created successfully:', { matchId, roomId });
     
-    await kafkaManager.publishRoomCreated(matchId, roomId);
-    
+    if (useGcp) {
+      await pubsubManager.publishRoomCreated(matchId, roomId);
+    } else {
+      await kafkaManager.publishRoomCreated(matchId, roomId);
+    }
   } catch (error) {
     console.error('Error handling room creation request:', error)
   }
 }
 
 export async function setupRoomCreationConsumer() {
-  console.log('Setting up room creation Kafka consumer...');
-  await kafkaManager.setupConsumer(handleRoomCreation);
-  console.log('Room creation Kafka consumer started');
+  if (useGcp) {
+    console.log('Setting up room creation Pub/Sub consumer...');
+    await pubsubManager.setupConsumer(handleRoomCreation);
+    console.log('Room creation Pub/Sub consumer started');
+  } else {
+    console.log('Setting up room creation Kafka consumer...');
+    await kafkaManager.setupConsumer(handleRoomCreation);
+    console.log('Room creation Kafka consumer started');
+  }
 }
 
