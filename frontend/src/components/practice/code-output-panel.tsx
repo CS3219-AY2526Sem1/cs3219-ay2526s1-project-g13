@@ -16,20 +16,15 @@ export default function CodeOutputPanel() {
   };
 
   return (
-    <Card className={"rounded-none min-h-full h-auto w-full"}>
-      <CardHeader>
+    <Card className={"rounded-none min-h-full h-auto w-full flex flex-col"}>
+      <CardHeader className="flex flex-row items-center justify-between p-4 sticky top-0 z-10 bg-white">
         <CardTitle>Output</CardTitle>
+        <Button variant={"default"} className="w-28" onClick={handleExecute} disabled={isExecuting}>
+          {isExecuting ? <Spinner className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          {isExecuting ? "Executing..." : "Execute"}
+        </Button>
       </CardHeader>
       <Separator />
-      <Button
-        variant={"default"}
-        className="w-[100] h-[35] mb-[15] ml-[20]"
-        onClick={handleExecute}
-        disabled={isExecuting}
-      >
-        {isExecuting ? <Spinner className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-        {isExecuting ? "Executing..." : "Execute"}
-      </Button>
 
       <CardContent className="min-h-full h-auto w-full">
         <pre

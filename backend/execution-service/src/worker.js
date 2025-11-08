@@ -32,6 +32,23 @@ async function callPistonAPI(language, source_code) {
     }
 }
 
+async function resultCallback(result) {
+    for (let i = 1; i <= MAX_RETRIES; i++) {
+        try {
+            await axios.post(CALLBACK_URL, result)
+            console.log('>>> Sent callback: ', result.room_id)
+            return
+        } catch (callbackError) {
+            if (i == MAX_RETRIES) { // final error
+                throw callbackError
+            } else {
+                const delay = i * RETRY_DELAY_MS
+                await sleep(delay)
+            }
+        }
+    }
+}
+
 /**
  * 
  * @param {*} submit 
@@ -48,13 +65,16 @@ async function processSubmission(submit) {
             // set isError
             if (response.run.status) { // runtime error
                 result.isError = true
+                // get readable message or output
+                result.output = response.run.message || response.run.output 
             } else if (response.run.code !== 0) { // runcode != 0 error
                 result.isError = true
+                result.output = response.run.output
             } else { // successfully run the code
                 result.isError = false
+                result.output = response.run.output
             }
-            // set output
-            result.output = response.run.output
+            
 
             console.log(">>> Finish job", result)
             return result
@@ -108,11 +128,10 @@ async function startWorker() {
                 
                 // callback
                 try {
-                    await axios.post(CALLBACK_URL, result)
-                    console.log('>>> Sent callback: ', result.room_id)
-                    channel.ack(msg)
+                    await resultCallback(result)
                 } catch (callbackError) {
                     console.log(">>> Error when callback ", callbackError.message)
+                } finally {
                     channel.ack(msg)
                 }
             }
