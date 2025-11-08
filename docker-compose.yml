@@ -160,7 +160,7 @@ services:
     networks:
       - cs3219-peerprep-network
     command: pnpm run start
-  piston:
+  piston-api:
     image: ghcr.io/engineer-man/piston:latest
     container_name: piston-api
     restart: always
