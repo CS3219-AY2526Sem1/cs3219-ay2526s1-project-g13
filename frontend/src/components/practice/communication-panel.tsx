@@ -152,7 +152,7 @@ export default function CommunicationPanel() {
       {/* Video + Chat Section */}
       <CardContent className="flex flex-row gap-4 h-full relative p-2">
         {/* Video Feeds stacked vertically */}
-        {AGORA_APP_ID && roomDetails && userId ? (
+        {AGORA_APP_ID && roomDetails && userId && agoraToken ? (
           <AgoraRTCProvider client={client}>
             <AgoraVideoCall userId={userId} />
           </AgoraRTCProvider>

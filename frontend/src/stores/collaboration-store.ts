@@ -8,6 +8,11 @@ import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-
 
 let executionTimer: NodeJS.Timeout | null = null;
 const EXECUTION_TIMEOUT_MS = 35000; // 35s
+const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1500;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface CollaborationState {
   // Room state
@@ -64,16 +69,23 @@ export const useCollaborationStore = create<CollaborationState>()(
   subscribeWithSelector((set, get) => ({
     ...initialState,
 
+    // Fetch Agora token
     fetchAgoraToken: async (roomId: string, userId: string) => {
-      try {
-        const response = await axios.get(`http://localhost:8011/v1/video/${roomId}/${userId}`);
-        set({ agoraToken: response.data.rtcToken });
-        return response.data.rtcToken;
-      } catch (error) {
-        console.error("Failed to fetch Agora token ", error);
-        toast.error("Failed to start video service");
-        return null;
+      for (let i = 1; i <= MAX_RETRIES; i++) {
+        try {
+          const response = await axios.get(VIDEO_CALL_URL + `${roomId}/${userId}`);
+          set({ agoraToken: response.data.rtcToken });
+          return response.data.rtcToken;
+        } catch (error) {
+          console.error(`Failed to fetch Agora token ${i}/${MAX_RETRIES}`, error);
+          if (i == MAX_RETRIES) {
+            toast.error("Failed to start video service");
+            return null;
+          }
+        }
+        await sleep(RETRY_DELAY_MS);
       }
+      return null;
     },
 
     // Fetch room details via HTTP
