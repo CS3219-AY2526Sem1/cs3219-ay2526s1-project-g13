@@ -208,7 +208,7 @@ services:
     ports:
       - '8003:8003'
     environment:
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
+      - MONGO_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
       - PORT=8003
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092

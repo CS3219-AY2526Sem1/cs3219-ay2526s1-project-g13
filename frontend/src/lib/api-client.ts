@@ -72,6 +72,7 @@ export interface QuestionDetails {
   title: string;
   difficulty: string;
   topic: string;
+  status?: "Active" | "Archived";
 }
 
 export interface RoomDetails {
@@ -117,6 +118,7 @@ export interface Question {
   topic: string;
   examples?: QuestionExample[];
   link?: string;
+  status?: "Active" | "Archived";
 }
 
 export const emptyQuestionState: Question = {
@@ -366,7 +368,9 @@ export const collaborationAPI = {
 export const questionAPI = {
   getQuestionById: async (questionID: string | number): Promise<Question> => {
     const idStr = String(questionID);
-    const res = await questionServiceClient.get<Question>(`/v1/questions/${idStr}`);
+    const res = await questionServiceClient.get<Question>(
+      `/v1/questions/${idStr}?includeArchived=true`,
+    );
     return res.data;
   },
 

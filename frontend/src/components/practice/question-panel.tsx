@@ -85,6 +85,11 @@ export default function QuestionPanel() {
               {questionDetails.difficulty}
             </Badge>
             <Badge variant="outline">{questionDetails.topic}</Badge>
+            {questionDetails.status === "Archived" && (
+              <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">
+                Archived
+              </Badge>
+            )}
           </div>
         </div>
       </CardContent>
