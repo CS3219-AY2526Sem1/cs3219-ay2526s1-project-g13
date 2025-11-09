@@ -3,6 +3,7 @@ import cors from "cors";
 import http from "http";
 import config from "../config.js";
 import roomRoutes from "./roomRoutes.js";
+import codeExecutionRoutes from "./codeExecutionRoutes.js"
 
 class HttpServer {
   constructor() {
@@ -32,6 +33,7 @@ class HttpServer {
    * Set up API routes
    */
   setupRoutes() {
+    this.app.use("/api/v1/code", codeExecutionRoutes)
     this.app.use("/api/v1/rooms", roomRoutes);
 
     this.app.use((req, res) => {

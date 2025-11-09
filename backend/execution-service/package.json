@@ -2,13 +2,10 @@
   "name": "execution-service",
   "version": "1.0.0",
   "description": "",
-  "main": "src/api.js",
+  "main": "src/worker.js",
   "scripts": {
-    "start:api": "node src/api.js",
-    "start:worker": "node src/worker.js",
-    "dev:api": "nodemon src/api.js",
+    "start": "node src/worker.js",
     "dev:worker": "nodemon src/worker.js",
-    "dev": "concurrently \"npm:dev:api\" \"npm:dev:worker\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,12 +13,10 @@
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
-    "axios": "^1.12.2",
-    "express": "^5.1.0",
-    "mongoose": "^8.19.1"
+    "amqplib": "^0.10.9",
+    "axios": "^1.12.2"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
     "nodemon": "^3.1.10"
   }
 }

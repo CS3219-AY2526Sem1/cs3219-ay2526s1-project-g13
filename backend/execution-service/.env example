@@ -1,1 +1,0 @@
-MONGO_URI=mongodb://admin:password@mongodb:27017/peerprepExecutionServiceDB?authSource=admin

@@ -16,6 +16,7 @@
   "dependencies": {
     "@y/websocket-server": "^0.1.1",
     "axios": "^1.7.9",
+    "amqplib": "^0.10.9",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
