@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
 import ProtectedRoute from "@/components/auth/protected-route";
+import { useMatchingStore } from "@/stores/matching-store";
 
 const CodeEditorPanel = dynamic(() => import("@/components/practice/code-editor-panel"), {
   ssr: false,
@@ -25,6 +26,14 @@ export default function PracticePage() {
 
   const { roomDetails, isLoading, error } = useCollaborationState();
   const { fetchRoomDetails, fetchQuestionDetails, reset } = useCollaborationActions();
+  const isMatching = useMatchingStore((state) => state.isMatching);
+  const isRoomPreparing = useMatchingStore((state) => state.isRoomPreparing);
+
+  useEffect(() => {
+    if (isMatching || isRoomPreparing) {
+      router.push("/matching");
+    }
+  }, [isMatching, isRoomPreparing, router]);
 
   // Fetch room details on mount
   useEffect(() => {

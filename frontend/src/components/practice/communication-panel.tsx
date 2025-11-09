@@ -13,8 +13,6 @@ import AgoraRTC, {
   useLocalCameraTrack,
   useLocalMicrophoneTrack,
   usePublish,
-  useRTCClient,
-  useRemoteAudioTracks,
   useRemoteUsers,
 } from "agora-rtc-react";
 import { useCollaborationActions, useCollaborationStore } from "@/stores/collaboration-store";

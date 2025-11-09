@@ -4,9 +4,12 @@ import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { useAuthContext } from "@/contexts/auth-context";
 import { authAPI } from "@/lib/api-client";
+import { useMatchingStore } from "@/stores/matching-store";
 
 export default function LogoutButton() {
   const { logout } = useAuthContext();
+  const isMatching = useMatchingStore((state) => state.isMatching);
+  const isRoomPreparing = useMatchingStore((state) => state.isRoomPreparing);
 
   const handleLogout = async () => {
     try {
@@ -24,6 +27,7 @@ export default function LogoutButton() {
     <Button
       variant="logout"
       className="text-black"
+      disabled={isMatching || isRoomPreparing}
       onClick={() => {
         handleLogout();
       }}

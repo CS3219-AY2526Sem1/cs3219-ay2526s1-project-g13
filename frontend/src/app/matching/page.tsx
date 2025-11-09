@@ -13,7 +13,7 @@ export default function MatchingPage() {
   const router = useRouter();
   const { user, isUser, isLoading } = useAuthContext();
   const { refreshAccessToken } = useAuth();
-  const { roomId, matchFound, initializeSocket, setUser, cleanup } = useMatchingStore();
+  const { roomId, matchFound, initializeSocket, setUser, cleanup, reset } = useMatchingStore();
 
   useEffect(() => {
     if (!isLoading && !isUser) {
@@ -23,9 +23,14 @@ export default function MatchingPage() {
 
   useEffect(() => {
     if (matchFound && roomId) {
-      router.push(`/practice/${roomId}`);
+      router.push("/dashboard");
+      // Reset matchFound flag after redirect to allow re-matching
+      // Reset after a short delay to ensure navigation happens first
+      setTimeout(() => {
+        reset();
+      }, 100);
     }
-  }, [matchFound, roomId, router]);
+  }, [matchFound, roomId, router, reset]);
 
   useEffect(() => {
     if (user) {

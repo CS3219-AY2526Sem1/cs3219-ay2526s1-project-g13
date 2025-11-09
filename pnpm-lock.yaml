@@ -35,6 +35,9 @@ importers:
       '@y/websocket-server':
         specifier: ^0.1.1
         version: 0.1.1(yjs@13.6.27)
+      axios:
+        specifier: ^1.7.9
+        version: 1.12.2
       amqplib:
         specifier: ^0.10.9
         version: 0.10.9

@@ -35,6 +35,35 @@ const router = express.Router();
 // });
 
 /**
+ * GET /api/v1/rooms?userId=<userId>
+ * Get all rooms for a user
+ */
+router.get("/", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: "userId query parameter is required",
+      });
+    }
+    
+    const rooms = await roomController.getRoomsByUserId(userId);
+    res.json({
+      success: true,
+      rooms,
+    });
+  } catch (error) {
+    console.error("Failed to get rooms for user:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/v1/rooms/:roomId
  * Get room information and document content
  * Requires authentication and authorization (user must be in room)
