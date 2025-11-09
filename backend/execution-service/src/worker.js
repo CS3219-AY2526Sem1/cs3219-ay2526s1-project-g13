@@ -1,16 +1,19 @@
-const express = require('express')
-const axios = require('axios');
-const connectDB = require(`./config/db`)
-const Submission = require(`./models/submissionModel`)
+const aqmp = require('amqplib')
+const axios = require('axios')
+
+const RABBITMQ_URL = process.env.RABBITMQ_URL
+const QUEUE_NAME = process.env.QUEUE_NAME
+const CALLBACK_URL = process.env.CALLBACK_URL
+const PISTON_URL = process.env.PISTON_URL
 
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 2000
+const PISTON_CALL_DELAY_MS = 10000
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function callPistonAPI(language, source_code) {
     try {
-        const pistonURL = "http://piston:2000/api/v2/execute"
         const payload = {
             language: language,
             version: "*",
@@ -20,59 +23,70 @@ async function callPistonAPI(language, source_code) {
                 }
             ]
         }
-        const response = await axios.post(pistonURL, payload)
+        const response = await axios.post(PISTON_URL, payload, {
+            timeout: PISTON_CALL_DELAY_MS
+        })
         return response.data
     } catch (error) {
         throw error
     }
 }
 
+async function resultCallback(result) {
+    for (let i = 1; i <= MAX_RETRIES; i++) {
+        try {
+            await axios.post(CALLBACK_URL, result)
+            console.log('>>> Sent callback: ', result.room_id)
+            return
+        } catch (callbackError) {
+            if (i == MAX_RETRIES) { // final error
+                throw callbackError
+            } else {
+                const delay = i * RETRY_DELAY_MS
+                await sleep(delay)
+            }
+        }
+    }
+}
+
+/**
+ * 
+ * @param {*} submit 
+ * @returns result: {room_id, isError, output}
+ */
 async function processSubmission(submit) {
     // If fail to connect Piston API for 3 times, then the submit is failed
+    let result = {}
+    result.room_id = submit.room_id
     for (let i = 1; i <= MAX_RETRIES; i++) {
         try {
             const response = await callPistonAPI(submit.language, submit.source_code)
-            let result
-            
+                   
+            // set isError
             if (response.run.status) { // runtime error
-                result = {
-                    isError: true,
-                    output: response.run.output
-                }
+                result.isError = true
+                // get readable message or output
+                result.output = response.run.message || response.run.output 
             } else if (response.run.code !== 0) { // runcode != 0 error
-                result = {
-                    isError: true,
-                    output: response.run.output
-                }
+                result.isError = true
+                result.output = response.run.output
             } else { // successfully run the code
-                result = {
-                    isError: false,
-                    output: response.run.output
-                }
+                result.isError = false
+                result.output = response.run.output
             }
+            
 
-            submit.result = result
-            submit.submit_status = `done`
-
-            const updateJob = await submit.save()
-            console.log(">> Finish job", updateJob)
-            return
+            console.log(">>> Finish job", result)
+            return result
         } catch (error) {
             if (error.response) {
                 const statusCode = error.response.status
                 if (statusCode >= 400 && statusCode < 500) {
-                    result = {
-                        isError: true,
-                        output: error.response.data.message
-                    }
-                    
-                    submit.submit_status = `done`
-                    submit.result = result
-                    const updateJob = await submit.save()
-
+                    result.isError = true
+                    result.output = error.response.data.message
                     console.log(">>> Piston api error: ", error.response.message)
-                    console.log(">>> Finish job (error)", updateJob)
-                    return
+                    console.log(">>> Finish job (error)", result)
+                    return result
                 } else {
                     // rerun
                     console.log(">>> Piston api temporary error: ", statusCode)
@@ -90,47 +104,47 @@ async function processSubmission(submit) {
         await sleep(delay)
     }
     // failed (after 3 tries)
-    submit.submit_status = 'failed'
-    submit.result = {
-        isError: true,
-        output: "Code execution service is unavailable. Please try again later."
-    }
-    const updateJob = await submit.save()
-    console.log('>>> Failed job ', updateJob)
+    result.isError = true
+    result.output = "Code execution service is unavailable. Please try again later."
+    console.log('>>> Failed job ', result)
+    return result
 }
 
 async function startWorker() {
-    while (true) {
-        // timestamp 3 mins before
-        const STUCK_TIMEOUT = new Date(Date.now() - 3 * 60 * 1000);
+    try {
+        const connection = await aqmp.connect(RABBITMQ_URL)
+        const channel = await connection.createChannel()
 
-        const job = await Submission.findOneAndUpdate(
-            {
-                $or: [
-                    {submit_status: 'pending'},
-                    {
-                        submit_status: 'processing',
-                        processing_start_at: { $lt: STUCK_TIMEOUT }
-                    }
-                ]
-            },
-            {
-                submit_status: 'processing',
-                processing_start_at: new Date()
-            },
-            {sort: {_id: 1}, new: true}   
-        )
-        if (!job) {
-            await sleep(5000)
-        } else {
-            console.log('>>> Process job', job)
-            await processSubmission(job)
-        }
+        await channel.assertQueue(QUEUE_NAME, { durable: true})
+
+        console.log(">>> Consumer connected RabbitMQ")
+
+        channel.consume(QUEUE_NAME, async (msg) => {
+            if (msg != null) {
+                const job = JSON.parse(msg.content.toString())
+                console.log('>>> Got job: ', job.room_id)
+                
+                const result = await processSubmission(job)
+                
+                // callback
+                try {
+                    await resultCallback(result)
+                } catch (callbackError) {
+                    console.log(">>> Error when callback ", callbackError.message)
+                } finally {
+                    channel.ack(msg)
+                }
+            }
+        }, {
+            noAck: false
+        })
+    } catch (error) {
+        console.log(">>> Worker's error: ", error)
+        process.exit(1)
     }
 }
 
 async function main() {
-    await connectDB()
     startWorker()
 }
 

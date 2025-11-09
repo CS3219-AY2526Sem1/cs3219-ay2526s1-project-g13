@@ -29,6 +29,28 @@ services:
       retries: 5
     networks:
       - cs3219-peerprep-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - cs3219-peerprep-network
+  
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper
@@ -126,42 +148,45 @@ services:
       - HTTP_PORT=8004
       - WS_PORT=8005
       - ROOM_TIMEOUT_MINUTES=10
+      - QUESTION_SERVICE_URL=http://question-service:8003
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
       - KAFKA_BROKERS=kafka:9092
     depends_on:
       - mongodb
       - kafka
+      - question-service
     networks:
       - cs3219-peerprep-network
+  execution-service:
+    build: 
+      context: ./backend/execution-service
+      dockerfile: Dockerfile.execution
+    container_name: execution-service
+    restart: always
+    env_file:
+      - ./backend/execution-service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - cs3219-peerprep-network
+    command: pnpm run start
 
-  execution-api:
+  video-call-service:
     build: 
-      context: ./backend/execution-service
-      dockerfile: Dockerfile.execution
-    container_name: execution-api
+      context: ./backend/video-call-service
+      dockerfile: Dockerfile.video
+    container_name: video-call-service
+    restart: always
+    env_file:
+      - ./backend/video-call-service/.env
     ports:
-      - "8010:8010"
-    env_file:
-      - ./backend/execution-service/.env
-    depends_on:
-      - mongodb
+      - '8011:8011'
     networks:
       - cs3219-peerprep-network
-    command: pnpm run start:api
-  execution-worker:
-    build: 
-      context: ./backend/execution-service
-      dockerfile: Dockerfile.execution
-    container_name: execution-worker
-    env_file:
-      - ./backend/execution-service/.env
-    depends_on:
-      - mongodb
-    networks:
-      - cs3219-peerprep-network
-    command: pnpm run start:worker
-  piston:
+    command: pnpm run start
+  piston-api:
     image: ghcr.io/engineer-man/piston:latest
     container_name: piston-api
     restart: always
@@ -223,5 +248,6 @@ networks:
     driver: bridge
 volumes:
   mongodb_data: {}
-  redis_data: {}
   piston_packages: {}
+  rabbitmq_data: {}
+  redis_data: {}

@@ -8,6 +8,8 @@ export const config = {
     "mongodb://admin:password@localhost:27017/peerprepCollabService?authSource=admin",
   // Room Management
   ROOM_TIMEOUT_MINUTES: parseInt(process.env.ROOM_TIMEOUT_MINUTES) || 10,
+  // Question service
+  QUESTION_SERVICE_URL: process.env.QUESTION_SERVICE_URL || "http://localhost:8003",
   // Yjs MongoDB Provider Persistence Settings
   PERSISTENCE_CONFIG: {
     multipleCollections: true, // each document gets an own collection in the database

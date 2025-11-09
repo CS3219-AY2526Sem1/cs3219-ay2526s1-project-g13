@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { LanguageSelector } from "@/components/question/language-selector";
 import { Language } from "@/types/solution";
 import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useMatchingStore } from "@/stores/matching-store";
 
 const CodeEditorPanel = dynamic(() => import("@/components/practice/code-editor-panel"), {
   ssr: false,
@@ -31,6 +32,14 @@ export default function PracticePage() {
 
   const { roomDetails, isLoading, error, questionDetails } = useCollaborationState();
   const { fetchRoomDetails, fetchQuestionDetails, reset } = useCollaborationActions();
+  const isMatching = useMatchingStore((state) => state.isMatching);
+  const isRoomPreparing = useMatchingStore((state) => state.isRoomPreparing);
+
+  useEffect(() => {
+    if (isMatching || isRoomPreparing) {
+      router.push("/matching");
+    }
+  }, [isMatching, isRoomPreparing, router]);
 
   // Fetch room details on mount
   useEffect(() => {
