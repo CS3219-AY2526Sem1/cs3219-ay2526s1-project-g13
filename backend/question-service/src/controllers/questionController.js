@@ -417,12 +417,12 @@ module.exports = {
     fetchAllQuestions,
     getAllActiveQuestions: async (req, res) => {
         // convenience wrapper
-        req.query.status = 'Active'
-        return fetchAllQuestions(req, res)
+         const newReq = { ...req, query: { ...req.query, status: 'Active' } }
+        return fetchAllQuestions(newReq, res)
     },
     getAllArchivedQuestions: async (req, res) => {
-        req.query.status = 'Archived'
-        return fetchAllQuestions(req, res)
+        const newReq = { ...req, query: { ...req.query, status: 'Archived' } }
+        return fetchAllQuestions(newReq, res)
     },
     pickQuestion,
     getQuestionById,

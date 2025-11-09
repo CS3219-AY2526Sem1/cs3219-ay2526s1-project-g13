@@ -354,7 +354,17 @@ export const questionAPI = {
       console.log("Active questions:", activeRes.data);
       return activeRes.data;
     } catch (error) {
-      console.error("Failed to fetch questions:", error);
+      console.error("Failed to fetch active questions:", error);
+      throw error;
+    }
+  },
+  getArchivedQuestionList: async (): Promise<Question[]> => {
+    try {
+      const archivedRes = await questionServiceClient.get<Question[]>(`/v1/questions/archived`);
+      console.log("Archived questions:", archivedRes.data);
+      return archivedRes.data;
+    } catch (error) {
+      console.error("Failed to fetch archived questions:", error);
       throw error;
     }
   },
@@ -385,6 +395,13 @@ export const questionAPI = {
   archiveQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
     const res = await questionServiceClient.delete<ArchiveQuestionResponse>(
       `/v1/questions/${questionId}`,
+    );
+    return res.data;
+  },
+
+  restoreQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
+    const res = await questionServiceClient.post<ArchiveQuestionResponse>(
+      `/v1/questions/${questionId}/restore`,
     );
     return res.data;
   },

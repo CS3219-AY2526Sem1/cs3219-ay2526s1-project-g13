@@ -18,6 +18,15 @@ export async function fetchQuestionList(): Promise<Question[]> {
   }
 }
 
+export async function fetchArchivedQuestionList(): Promise<Question[]> {
+  try {
+    return await questionAPI.getArchivedQuestionList();
+  } catch (error) {
+    console.error("Failed to fetch question list:", error);
+    throw error;
+  }
+}
+
 export async function addQuestion(question: Question): Promise<Question> {
   try {
     return await questionAPI.createQuestion(question);
@@ -44,6 +53,16 @@ export async function archiveQuestion(questionId: string): Promise<ArchiveQuesti
     return await questionAPI.archiveQuestion(questionId);
   } catch (error) {
     console.error("Failed to archive question:", error);
+    throw error;
+  }
+}
+
+export async function restoreQuestion(questionId: string): Promise<ArchiveQuestionResponse> {
+  try {
+    if (!questionId) throw new Error("restoreQuestion requires question.id");
+    return await questionAPI.restoreQuestion(questionId);
+  } catch (error) {
+    console.error("Failed to restore question:", error);
     throw error;
   }
 }

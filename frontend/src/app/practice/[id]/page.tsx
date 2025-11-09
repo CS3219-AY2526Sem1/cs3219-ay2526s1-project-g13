@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -12,6 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
 import ProtectedRoute from "@/components/auth/protected-route";
+import { SolutionView } from "@/components/question/solution-view";
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { LanguageSelector } from "@/components/question/language-selector";
+import { Language } from "@/types/solution";
+import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const CodeEditorPanel = dynamic(() => import("@/components/practice/code-editor-panel"), {
   ssr: false,
@@ -22,8 +27,9 @@ export default function PracticePage() {
   const router = useRouter();
   const params = useParams();
   const roomId = params?.id as string;
+  const [selectedLang, setSelectedLang] = useState<Language>("Python");
 
-  const { roomDetails, isLoading, error } = useCollaborationState();
+  const { roomDetails, isLoading, error, questionDetails } = useCollaborationState();
   const { fetchRoomDetails, fetchQuestionDetails, reset } = useCollaborationActions();
 
   // Fetch room details on mount
@@ -101,7 +107,31 @@ export default function PracticePage() {
               {/* Left Panel */}
               <ResizablePanel>
                 <div className="h-full overflow-y-auto">
-                  <QuestionPanel />
+                  <Tabs defaultValue="question">
+                    <TabsList className="flex justify-center items-center gap-4 mx-auto w-auto">
+                      <TabsTrigger value="question">Question</TabsTrigger>
+                      <TabsTrigger value="solution">Solution</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="question">
+                      <QuestionPanel />
+                    </TabsContent>
+                    <TabsContent value="solution">
+                      <CardHeader>
+                        <CardTitle>Solutions</CardTitle>
+                        <LanguageSelector selectedLang={selectedLang} onChange={setSelectedLang} />
+                      </CardHeader>
+                      <CardContent>
+                        {questionDetails ? (
+                          <SolutionView
+                            questionId={questionDetails.questionID}
+                            selectedLang={selectedLang}
+                          />
+                        ) : (
+                          <div>Loading question…</div>
+                        )}
+                      </CardContent>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               </ResizablePanel>
 
