@@ -8,6 +8,11 @@ import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-
 
 let executionTimer: NodeJS.Timeout | null = null;
 const EXECUTION_TIMEOUT_MS = 35000; // 35s
+const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1500;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface CollaborationState {
   // Room state
@@ -28,6 +33,8 @@ interface CollaborationState {
   isQuestionLoading: boolean;
   questionError: string | null;
 
+  agoraToken: string | null;
+
   // Actions
   fetchRoomDetails: (roomId: string) => Promise<void>;
   fetchQuestionDetails: (questionId: string) => Promise<void>;
@@ -38,6 +45,8 @@ interface CollaborationState {
   setSourceCode: (code: string) => void;
   submitCode: () => Promise<void>;
   setExecutionResult: (result: { output: string; isError: boolean }) => void;
+
+  fetchAgoraToken: (roomId: string, userId: string) => Promise<void>;
 }
 
 const initialState = {
@@ -52,11 +61,32 @@ const initialState = {
   questionDetails: null,
   isQuestionLoading: false,
   questionError: null,
+
+  agoraToken: null,
 };
 
 export const useCollaborationStore = create<CollaborationState>()(
   subscribeWithSelector((set, get) => ({
     ...initialState,
+
+    // Fetch Agora token
+    fetchAgoraToken: async (roomId: string, userId: string) => {
+      for (let i = 1; i <= MAX_RETRIES; i++) {
+        try {
+          const response = await axios.get(VIDEO_CALL_URL + `${roomId}/${userId}`);
+          set({ agoraToken: response.data.rtcToken });
+          return response.data.rtcToken;
+        } catch (error) {
+          console.error(`Failed to fetch Agora token ${i}/${MAX_RETRIES}`, error);
+          if (i == MAX_RETRIES) {
+            toast.error("Failed to start video service");
+            return null;
+          }
+        }
+        await sleep(RETRY_DELAY_MS);
+      }
+      return null;
+    },
 
     // Fetch room details via HTTP
     fetchRoomDetails: async (roomId: string) => {
@@ -248,6 +278,8 @@ export const useCollaborationActions = () => {
   const updateLanguage = useCollaborationStore((state) => state.updateLanguage);
   const reset = useCollaborationStore((state) => state.reset);
 
+  const fetchAgoraToken = useCollaborationStore((state) => state.fetchAgoraToken);
+
   const setSourceCode = useCollaborationStore((state) => state.setSourceCode);
   const submitCode = useCollaborationStore((state) => state.submitCode);
   const setExecutionResult = useCollaborationStore((state) => state.setExecutionResult);
@@ -255,6 +287,7 @@ export const useCollaborationActions = () => {
   return {
     fetchRoomDetails,
     fetchQuestionDetails,
+    fetchAgoraToken,
     changeLanguage,
     updateLanguage,
     reset,

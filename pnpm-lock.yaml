@@ -299,6 +299,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.2
         version: 5.90.3(react@19.1.0)
+      agora-rtc-react:
+        specifier: ^2.5.0
+        version: 2.5.0(react@19.1.0)
       axios:
         specifier: ^1.12.2
         version: 1.12.2
@@ -1844,6 +1847,12 @@ packages:
   agora-access-token@2.0.4:
     resolution: {integrity: sha512-RtOIvi4PqV1ok3rdnopMZeVwiUqZgG9Pp56kqxJc5cU/+ljRBzs1Al+IThD5ahm528dGsdY1TyP1bJdqmgBCbQ==}
     deprecated: The package has been deprecated. Please use 'agora-token' instead, sorry for the inconvenience caused.
+
+  agora-rtc-react@2.5.0:
+    resolution: {integrity: sha512-RftknP+s37tefplCHY4GrH0ABET0XUM1UfzrqcA/G+qJArF4evn44HlN67yaPRv2hsm3qmpjkZC35nJ3AESjlQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16.8'
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -5987,6 +5996,10 @@ snapshots:
     dependencies:
       crc-32: 1.2.0
       cuint: 0.2.2
+
+  agora-rtc-react@2.5.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   ajv@6.12.6:
     dependencies:
