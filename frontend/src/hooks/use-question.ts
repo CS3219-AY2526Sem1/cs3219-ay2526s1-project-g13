@@ -61,10 +61,13 @@ export async function archiveQuestion(
   }
 }
 
-export async function restoreQuestion(questionId: string): Promise<ArchiveQuestionResponse> {
+export async function restoreQuestion(
+  questionId: string | number,
+): Promise<ArchiveQuestionResponse> {
   try {
-    if (!questionId) throw new Error("restoreQuestion requires question.id");
-    return await questionAPI.restoreQuestion(questionId);
+    if (questionId === undefined || questionId === null)
+      throw new Error("restoreQuestion requires question.id");
+    return await questionAPI.restoreQuestion(String(questionId));
   } catch (error) {
     console.error("Failed to restore question:", error);
     throw error;

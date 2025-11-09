@@ -403,6 +403,14 @@ export const questionAPI = {
     return res.data;
   },
 
+  restoreQuestion: async (questionID: string | number): Promise<ArchiveQuestionResponse> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.post<ArchiveQuestionResponse>(
+      `/v1/questions/${idStr}/restore`,
+    );
+    return res.data;
+  },
+
   getSolutionsForQuestion: async (
     questionID: string | number,
     language?: string,

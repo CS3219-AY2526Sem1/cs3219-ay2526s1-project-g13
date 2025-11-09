@@ -50,7 +50,7 @@ function ActionCell({ question }: { question: Question }) {
 
 function RestoreActionCell({ question }: { question: Question }) {
   const handleRestore = () => {
-    restoreQuestion(question._id);
+    restoreQuestion(question.questionID);
     window.location.reload();
   };
 
