@@ -13,11 +13,11 @@ function ActionCell({ question }: { question: Question }) {
   const router = useRouter();
 
   const handleView = () => {
-    router.push(`/question/${question._id}`);
+    router.push(`/question/${question.questionID}`);
   };
 
   const handleArchive = () => {
-    archiveQuestion(question._id);
+    archiveQuestion(question.questionID);
     window.location.reload();
   };
 

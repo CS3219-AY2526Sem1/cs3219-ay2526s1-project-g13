@@ -11,6 +11,32 @@ const TOPICS = [
         'Trie', 'Two pointers', 'Queue', 'Quickselect', 'Union find'
         ]
 
+
+// helper to remove internal fields from question documents
+const removeInternals = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(removeInternals)
+    delete obj._id
+    delete obj.__v
+    for (const k of Object.keys(obj)) {
+        if (typeof obj[k] === 'object') {
+            obj[k] = removeInternals(obj[k])
+        }
+    }
+    return obj
+}
+
+// wrapper to convert mongoose doc to plain object and remove internals
+const sanitiseQuestion = (q) => {
+    if (!q) return q
+    const obj = q.toObject ? q.toObject({ versionKey: false }) : JSON.parse(JSON.stringify(q))
+    const cleaned = JSON.parse(JSON.stringify(obj, (k, v) => {
+        if (k === '_id' || k === '__v') return undefined
+        return v
+    }))
+    return cleaned
+}
+
 /**
  * Fetches questions with optional filtering by status
  * Used both for normal retrieval and admin views
@@ -42,7 +68,7 @@ const fetchAllQuestions = async (req, res) => {
         }
 
         const questions = await Question.find(filter)
-        return res.status(200).json(questions)
+        return res.status(200).json(questions.map(sanitiseQuestion))
     } catch (err) {
         console.error('fetchAllQuestions error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -67,29 +93,22 @@ const fetchAllQuestions = async (req, res) => {
  */
 const getQuestionById = async (req, res) => {
     try {
-        const id = req.params.id
+        const idParam = req.params.id
         const mongoose = require('mongoose')
-        if (!mongoose.Types.ObjectId.isValid(id)) {
+        let q = null
+        if (/^\d+$/.test(idParam)) {
+            q = await Question.findOne({ questionID: Number(idParam) })
+        } else if (mongoose.Types.ObjectId.isValid(idParam)) {
+            q = await Question.findById(idParam)
+        } else {
             return res.status(400).json({ error: 'Invalid question id' })
         }
 
-    const q = await Question.findById(id)
-    if (!q) return res.status(404).json({ error: 'Question not found' })
-    const includeArchived = req.query.includeArchived === 'true'
-    if (q.status === 'Archived' && !includeArchived) return res.status(404).json({ error: 'Question not found' })
+        if (!q) return res.status(404).json({ error: 'Question not found' })
+        const includeArchived = req.query.includeArchived === 'true'
+        if (q.status === 'Archived' && !includeArchived) return res.status(404).json({ error: 'Question not found' })
 
-        const resp = {
-            questionID: q.questionID,
-            _id: q._id,
-            title: q.title,
-            description: q.description,
-            difficulty: q.difficulty,
-            topic: q.topic,
-            examples: q.examples || [],
-            link: q.link || null,
-        }
-
-        return res.status(200).json(resp)
+        return res.status(200).json(sanitiseQuestion(q))
     } catch (err) {
         console.error('getQuestionById error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -109,23 +128,42 @@ const getQuestionById = async (req, res) => {
  */
 const createQuestion = async (req, res) => {
     try {
-        const payload = req.body
-        // minimal validation
-        const required = ['title', 'difficulty', 'topic', 'description']
-        for (const field of required) if (!payload[field]) return res.status(400).json({ error: `${field} is required` })
+            const payload = req.body
+            // minimal validation
+            const required = ['title', 'difficulty', 'topic', 'description']
+            for (const field of required) if (!payload[field]) return res.status(400).json({ error: `${field} is required` })
 
-        const q = new Question({
-            title: payload.title,
-            difficulty: payload.difficulty,
-            topic: payload.topic,
-            description: payload.description,
-            examples: payload.examples || [],
-            link: payload.link || null,
-            mediaLink: payload.mediaLink || null,
-            status: payload.status || 'Active'
-        })
+            // determine questionID: use provided numeric value if present, otherwise auto-assign next sequential ID
+            let assignedQuestionID = null
+            if (payload.questionID && typeof payload.questionID === 'number' && payload.questionID > 0) {
+                assignedQuestionID = payload.questionID
+            } else {
+                // find current max questionID and increment
+                const currentMax = await Question.findOne().sort({ questionID: -1 }).select('questionID').lean()
+                assignedQuestionID = currentMax && currentMax.questionID ? currentMax.questionID + 1 : 1
+            }
 
-        await q.save()
+            const q = new Question({
+                questionID: assignedQuestionID,
+                title: payload.title,
+                difficulty: payload.difficulty,
+                topic: payload.topic,
+                description: payload.description,
+                examples: payload.examples || [],
+                link: payload.link || null,
+                mediaLink: payload.mediaLink || null,
+                status: payload.status || 'Active'
+            })
+
+            try {
+                await q.save()
+            } catch (saveErr) {
+                // handle duplicate key
+                if (saveErr && saveErr.code === 11000) {
+                    return res.status(400).json({ error: 'questionID already exists' })
+                }
+                throw saveErr
+            }
 
         // optionally create suggested solution
         if (payload.suggestedSolution) {
@@ -145,7 +183,7 @@ const createQuestion = async (req, res) => {
             await s.save()
         }
 
-        return res.status(201).json(q)
+        return res.status(201).json(sanitiseQuestion(q))
     } catch (err) {
         console.error('createQuestion error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -164,14 +202,19 @@ const createQuestion = async (req, res) => {
  */
 const updateQuestion = async (req, res) => {
     try {
-        const id = req.params.id
+        const idParam = req.params.id
         const mongoose = require('mongoose')
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
-
     const updates = { ...req.body }
     if (updates.status && !['Active', 'Archived'].includes(updates.status)) return res.status(400).json({ error: 'Invalid status' })
 
-    const q = await Question.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
+    let q = null
+    if (/^\d+$/.test(idParam)) {
+        q = await Question.findOneAndUpdate({ questionID: Number(idParam) }, updates, { new: true, runValidators: true })
+    } else if (mongoose.Types.ObjectId.isValid(idParam)) {
+        q = await Question.findByIdAndUpdate(idParam, updates, { new: true, runValidators: true })
+    } else {
+        return res.status(400).json({ error: 'Invalid question id' })
+    }
     if (!q) return res.status(404).json({ error: 'Question not found' })
 
     // handle suggestedSolution 
@@ -192,7 +235,7 @@ const updateQuestion = async (req, res) => {
             await Solution.updateMany({ questionID: q.questionID }, { status: 'Active' })
         }
 
-        return res.status(200).json(q)
+        return res.status(200).json(sanitiseQuestion(q))
     } catch (err) {
         console.error('updateQuestion error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -209,17 +252,22 @@ const updateQuestion = async (req, res) => {
  */
 const archiveQuestion = async (req, res) => {
     try {
-        const id = req.params.id
+        const idParam = req.params.id
         const mongoose = require('mongoose')
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
-
-        const q = await Question.findByIdAndUpdate(id, { status: 'Archived' }, { new: true })
+        let q = null
+        if (/^\d+$/.test(idParam)) {
+            q = await Question.findOneAndUpdate({ questionID: Number(idParam) }, { status: 'Archived' }, { new: true })
+        } else if (mongoose.Types.ObjectId.isValid(idParam)) {
+            q = await Question.findByIdAndUpdate(idParam, { status: 'Archived' }, { new: true })
+        } else {
+            return res.status(400).json({ error: 'Invalid question id' })
+        }
         if (!q) return res.status(404).json({ error: 'Question not found' })
 
-    // archive all solutions for this question 
-    await Solution.updateMany({ questionID: q.questionID }, { status: 'Archived' })
+        // archive all solutions for this question 
+        await Solution.updateMany({ questionID: q.questionID }, { status: 'Archived' })
 
-        return res.status(200).json({ message: 'Question archived', question: q })
+        return res.status(200).json({ message: 'Question archived', question: sanitiseQuestion(q) })
     } catch (err) {
         console.error('archiveQuestion error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -236,17 +284,22 @@ const archiveQuestion = async (req, res) => {
  */
 const restoreQuestion = async (req, res) => {
     try {
-        const id = req.params.id
+        const idParam = req.params.id
         const mongoose = require('mongoose')
-        if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid question id' })
-
-        const q = await Question.findByIdAndUpdate(id, { status: 'Active' }, { new: true })
+        let q = null
+        if (/^\d+$/.test(idParam)) {
+            q = await Question.findOneAndUpdate({ questionID: Number(idParam) }, { status: 'Active' }, { new: true })
+        } else if (mongoose.Types.ObjectId.isValid(idParam)) {
+            q = await Question.findByIdAndUpdate(idParam, { status: 'Active' }, { new: true })
+        } else {
+            return res.status(400).json({ error: 'Invalid question id' })
+        }
         if (!q) return res.status(404).json({ error: 'Question not found' })
 
-    // restore associated solutions
-    await Solution.updateMany({ questionID: q.questionID }, { status: 'Active' })
+        // restore associated solutions
+        await Solution.updateMany({ questionID: q.questionID }, { status: 'Active' })
 
-        return res.status(200).json({ message: 'Question restored', question: q })
+        return res.status(200).json({ message: 'Question restored', question: sanitiseQuestion(q) })
     } catch (err) {
         console.error('restoreQuestion error', err)
         return res.status(500).json({ error: 'Internal server error' })
@@ -303,15 +356,7 @@ const pickQuestion = async (req, res) => {
 
         const q = docs[0]
         // ensure the response is safe to expose
-        const resp = {
-            _id: q._id,
-            title: q.title,
-            description: q.description,
-            difficulty: q.difficulty,
-            topic: q.topic,
-            examples: q.examples || [],
-            link: q.link || null,
-        }
+        const resp = sanitiseQuestion(q)
 
         return res.status(200).json(resp)
     } catch (error) {

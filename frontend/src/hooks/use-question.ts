@@ -1,6 +1,6 @@
 import { Question, questionAPI, ArchiveQuestionResponse, Solution } from "@/lib/api-client";
 
-export async function fetchQuestion(id: string): Promise<Question> {
+export async function fetchQuestion(id: string | number): Promise<Question> {
   try {
     return await questionAPI.getQuestionById(id);
   } catch (error) {
@@ -38,19 +38,23 @@ export async function addQuestion(question: Question): Promise<Question> {
 
 export async function editQuestion(question: Question): Promise<Question> {
   try {
-    if (!question._id) throw new Error("editQuestion requires question.id");
+    if (question.questionID === undefined || question.questionID === null)
+      throw new Error("editQuestion requires question.questionID");
     console.log(question);
-    return await questionAPI.updateQuestion(question._id, question);
+    return await questionAPI.updateQuestion(question.questionID, question);
   } catch (error) {
     console.error("Failed to edit question:", error);
     throw error;
   }
 }
 
-export async function archiveQuestion(questionId: string): Promise<ArchiveQuestionResponse> {
+export async function archiveQuestion(
+  questionId: string | number,
+): Promise<ArchiveQuestionResponse> {
   try {
-    if (!questionId) throw new Error("archiveQuestion requires question.id");
-    return await questionAPI.archiveQuestion(questionId);
+    if (questionId === undefined || questionId === null)
+      throw new Error("archiveQuestion requires question.id");
+    return await questionAPI.archiveQuestion(String(questionId));
   } catch (error) {
     console.error("Failed to archive question:", error);
     throw error;

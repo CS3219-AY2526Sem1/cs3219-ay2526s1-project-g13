@@ -101,7 +101,6 @@ export interface QuestionExample {
 }
 
 export interface Question {
-  _id: string;
   questionID: number;
   title: string;
   description: string;
@@ -112,7 +111,6 @@ export interface Question {
 }
 
 export const emptyQuestionState: Question = {
-  _id: "",
   questionID: 0,
   title: "",
   topic: "",
@@ -343,8 +341,9 @@ export const collaborationAPI = {
 };
 
 export const questionAPI = {
-  getQuestionById: async (questionId: string): Promise<Question> => {
-    const res = await questionServiceClient.get<Question>(`/v1/questions/${questionId}`);
+  getQuestionById: async (questionID: string | number): Promise<Question> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.get<Question>(`/v1/questions/${idStr}`);
     return res.data;
   },
 
@@ -387,32 +386,38 @@ export const questionAPI = {
     throw new Error("Unexpected response format for topics");
   },
 
-  updateQuestion: async (questionId: string, payload: Partial<Question>): Promise<Question> => {
-    const res = await questionServiceClient.patch<Question>(`/v1/questions/${questionId}`, payload);
+  updateQuestion: async (
+    questionID: string | number,
+    payload: Partial<Question>,
+  ): Promise<Question> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.patch<Question>(`/v1/questions/${idStr}`, payload);
     return res.data;
   },
 
-  archiveQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
+  archiveQuestion: async (questionID: string | number): Promise<ArchiveQuestionResponse> => {
+    const idStr = String(questionID);
     const res = await questionServiceClient.delete<ArchiveQuestionResponse>(
-      `/v1/questions/${questionId}`,
+      `/v1/questions/${idStr}`,
     );
     return res.data;
   },
 
-  restoreQuestion: async (questionId: string): Promise<ArchiveQuestionResponse> => {
-    const res = await questionServiceClient.post<ArchiveQuestionResponse>(
-      `/v1/questions/${questionId}/restore`,
-    );
-    return res.data;
-  },
-
-  getSolutionsForQuestion: async (questionID: string): Promise<Solution[]> => {
+  getSolutionsForQuestion: async (
+    questionID: string | number,
+    language?: string,
+  ): Promise<Solution[]> => {
+    const idStr = String(questionID);
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
     const res = await questionServiceClient.get<Solution[]>(
-      `/v1/questions/${questionID}/solutions`,
+      `/v1/questions/${idStr}/solutions${qs}`,
     );
-    console.log(questionID);
-    console.log(res);
-    console.log(`Solution: ${res.data}`);
-    return res.data;
+    const data: Solution[] = res.data;
+    if (language) {
+      return data.filter(
+        (s) => String(s.language).toLowerCase() === String(language).toLowerCase(),
+      );
+    }
+    return data;
   },
 };

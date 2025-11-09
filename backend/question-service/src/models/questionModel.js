@@ -73,7 +73,7 @@ const questionSchema = mongoose.Schema({
 })
 
 const solutionSchema = mongoose.Schema({
-  // numeric reference to Question.questionID (denormalized)
+  // numeric reference to Question.questionID
   questionID: {
     type: Number,
     required: true,

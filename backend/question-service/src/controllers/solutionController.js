@@ -3,6 +3,15 @@ const seedSolutions = require('../data/seed-solutions.json')
 
 const mongoose = require('mongoose')
 
+// sanitize solution documents for API responses
+const sanitiseSolution = (s) => {
+  if (!s) return s
+  const obj = s.toObject ? s.toObject({ versionKey: false }) : { ...s }
+  delete obj._id
+  delete obj.__v
+  return obj
+}
+
 /**
  * Creates a new solution for a given question
  * Supports identifying the question either by numeric public questionID or its MongoDB _id
@@ -48,7 +57,7 @@ exports.createSolution = async (req, res) => {
         status: 'Active'
     })
     await s.save()
-    return res.status(201).json(s)
+    return res.status(201).json(sanitiseSolution(s))
   } catch (err) {
     console.error('createSolution error', err)
     if (err.code === 11000) {
@@ -92,6 +101,12 @@ exports.getSolutionsForQuestion = async (req, res) => {
     }
     const includeArchived = req.query.includeArchived === 'true'
       const status = req.query.status
+      const language = req.query.language
+      // allow optional language filter (case-insensitive). If provided, match exact language.
+      if (language) {
+        // store as given; languages in DB are stored as strings like 'JavaScript'
+        filter.language = { $regex: `^${language}$`, $options: 'i' }
+      }
       if (status) {
         if (!['Active', 'Archived'].includes(status)) return res.status(400).json({ error: 'Invalid status' })
         filter.status = status
@@ -99,8 +114,9 @@ exports.getSolutionsForQuestion = async (req, res) => {
         filter.status = 'Active'
       }
 
-    const sols = await Solution.find(filter).sort({ _id: -1 })
-    return res.status(200).json(sols)
+  console.log('getSolutionsForQuestion filter', JSON.stringify(filter))
+  const sols = await Solution.find(filter).sort({ _id: -1 })
+    return res.status(200).json(sols.map(sanitiseSolution))
   } catch (err) {
     console.error('getSolutionsForQuestion error', err)
     return res.status(500).json({ error: 'Internal server error' })
@@ -126,7 +142,7 @@ exports.getSolutionById = async (req, res) => {
     const sol = await Solution.findById(id)
       if (!sol) return res.status(404).json({ error: 'Solution not found' })
       if (sol.status === 'Archived' && req.query.includeArchived !== 'true') return res.status(404).json({ error: 'Solution not found' })
-    return res.status(200).json(sol)
+    return res.status(200).json(sanitiseSolution(sol))
   } catch (err) {
     console.error('getSolutionById error', err)
     return res.status(500).json({ error: 'Internal server error' })
@@ -154,7 +170,7 @@ exports.updateSolution = async (req, res) => {
       if (updates.status && !['Active', 'Archived'].includes(updates.status)) return res.status(400).json({ error: 'Invalid status' })
     const sol = await Solution.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
-    return res.status(200).json(sol)
+    return res.status(200).json(sanitiseSolution(sol))
   } catch (err) {
     console.error('updateSolution error', err)
     return res.status(500).json({ error: 'Internal server error' })
@@ -176,7 +192,7 @@ exports.archiveSolution = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
       const sol = await Solution.findByIdAndUpdate(id, { status: 'Archived' }, { new: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
-    return res.status(200).json({ message: 'Solution archived', solution: sol })
+    return res.status(200).json({ message: 'Solution archived', solution: sanitiseSolution(sol) })
   } catch (err) {
     console.error('archiveSolution error', err)
     return res.status(500).json({ error: 'Internal server error' })
@@ -198,7 +214,7 @@ exports.restoreSolution = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid solution id' })
       const sol = await Solution.findByIdAndUpdate(id, { status: 'Active' }, { new: true })
     if (!sol) return res.status(404).json({ error: 'Solution not found' })
-    return res.status(200).json({ message: 'Solution restored', solution: sol })
+    return res.status(200).json({ message: 'Solution restored', solution: sanitiseSolution(sol) })
   } catch (err) {
     console.error('restoreSolution error', err)
     return res.status(500).json({ error: 'Internal server error' })
