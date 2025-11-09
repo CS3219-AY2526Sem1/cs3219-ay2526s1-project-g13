@@ -109,11 +109,22 @@ docker exec mongodb mongorestore --username admin --password password /data/back
 - The teaching team should be given access to the repositories as we may require viewing the history of the repository in case of any disputes or disagreements. 
 
 ## Note for execution service
-- After run docker compose-up, run the next commands in terminal
+- After run docker compose-up, run the next commands in terminal to install language packages for Piston
+
+### Linux/Mac (Bash)
 ```bash
 chmod +x init-piston-languages.sh
-# Install language packages for Piston
-./init-piston-languages.sh 
+./init-piston-languages.sh
+```
+
+### Windows (PowerShell)
+```powershell
+powershell -ExecutionPolicy Bypass -File .\init-piston-languages.ps1
+```
+
+Alternatively, if your PowerShell execution policy allows it:
+```powershell
+.\init-piston-languages.ps1
 ```
 - APIs
 ```bash

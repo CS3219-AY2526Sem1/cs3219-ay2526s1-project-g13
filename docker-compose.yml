@@ -24,6 +24,28 @@ services:
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - cs3219-peerprep-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - cs3219-peerprep-network
+  
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper
@@ -124,34 +146,21 @@ services:
       - kafka
     networks:
       - cs3219-peerprep-network
-
-  execution-api:
+  execution-service:
     build: 
       context: ./backend/execution-service
       dockerfile: Dockerfile.execution
-    container_name: execution-api
-    ports:
-      - "8010:8010"
+    container_name: execution-serivce
+    restart: always
     env_file:
       - ./backend/execution-service/.env
     depends_on:
-      - mongodb
+      rabbitmq:
+        condition: service_healthy
     networks:
       - cs3219-peerprep-network
-    command: pnpm run start:api
-  execution-worker:
-    build: 
-      context: ./backend/execution-service
-      dockerfile: Dockerfile.execution
-    container_name: execution-worker
-    env_file:
-      - ./backend/execution-service/.env
-    depends_on:
-      - mongodb
-    networks:
-      - cs3219-peerprep-network
-    command: pnpm run start:worker
-  piston:
+    command: pnpm run start
+  piston-api:
     image: ghcr.io/engineer-man/piston:latest
     container_name: piston-api
     restart: always
@@ -209,5 +218,6 @@ networks:
     driver: bridge
 volumes:
   mongodb_data: {}
-  redis_data: {}
   piston_packages: {}
+  rabbitmq_data: {}
+  redis_data: {}
