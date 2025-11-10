@@ -66,6 +66,13 @@ export interface UpdateAccountResponse {
   message: string;
 }
 
+export interface QuestionDetails {
+  _id: string;
+  title: string;
+  difficulty: string;
+  topic: string;
+}
+
 export interface RoomDetails {
   roomId: string;
   questionId: string | null;
@@ -73,6 +80,8 @@ export interface RoomDetails {
   programmingLanguage: ProgrammingLanguage;
   isActive: boolean;
   closedAt: Date | null;
+  createdAt: Date | null;
+  question: QuestionDetails | null;
 }
 
 export interface RoomDetailsResponse {
@@ -106,6 +115,12 @@ export interface Question {
   topic: string;
   examples?: QuestionExample[];
   link?: string;
+}
+
+export interface GetUserRoomsResponse {
+  success: boolean;
+  rooms: RoomDetails[];
+  error?: string;
 }
 
 // Create axios instance for user service
@@ -284,6 +299,14 @@ export const collaborationAPI = {
     const res = await authRequest<RoomDetailsResponse>({
       method: "GET",
       url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms/${roomId}`,
+    });
+    return res.data;
+  },
+
+  getUserRooms: async (userId: string): Promise<GetUserRoomsResponse> => {
+    const res = await authRequest<GetUserRoomsResponse>({
+      method: "GET",
+      url: `${apiConfig.collaborationService.httpURL}/api/v1/rooms?userId=${userId}`,
     });
     return res.data;
   },
