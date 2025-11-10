@@ -10,15 +10,19 @@ interface PublicRouteProps {
   redirectTo?: string;
 }
 
-export default function PublicRoute({ children, redirectTo = "/matching" }: PublicRouteProps) {
-  const { isAuthenticated, isLoading } = useAuthContext();
+export default function PublicRoute({ children }: PublicRouteProps) {
+  const { isAuthenticated, isLoading, isUser, isAdmin } = useAuthContext();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push(redirectTo);
+      if (isAdmin) {
+        router.push("/question");
+      } else if (isUser) {
+        router.push("/matching");
+      }
     }
-  }, [isAuthenticated, isLoading, router, redirectTo]);
+  }, [isAuthenticated, isLoading, router, isAdmin, isUser]);
 
   if (isLoading) {
     return (

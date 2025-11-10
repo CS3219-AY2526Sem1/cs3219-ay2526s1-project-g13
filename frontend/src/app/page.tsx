@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuthContext } from "@/contexts/auth-context";
 
 export default function LandingPage() {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isAdmin, isUser } = useAuthContext();
 
   return (
     <main>
@@ -17,9 +17,13 @@ export default function LandingPage() {
           prepare confidently for your next job. Solve challenges, track progress, and collaborate
           with peers to level up your interview game.
         </p>
-        {isAuthenticated ? (
+        {isAuthenticated && isUser ? (
           <Link href="/matching">
             <Button className="w-full">Go to Matching</Button>
+          </Link>
+        ) : isAuthenticated && isAdmin ? (
+          <Link href="/question">
+            <Button className="w-full">Go to Question Bank</Button>
           </Link>
         ) : (
           <Link href="/auth">

@@ -91,8 +91,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isLoading,
     user,
-    isAdmin: user?.role === "admin",
-    isUser: user?.role === "user",
+    isAdmin: user?.role == "admin",
+    isUser: user?.role == "user",
     checkAuth,
     logout,
   };

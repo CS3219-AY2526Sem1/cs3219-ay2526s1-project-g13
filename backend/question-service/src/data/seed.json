@@ -1,73 +1,193 @@
 [
   {
+    "questionID": 1,
     "title": "Two Sum",
     "difficulty": "Easy",
-    "topic": "Arrays",
-    "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input has exactly one solution.",
+    "topic": "Array",
+    "description": "Given an array of integers nums and an integer target, return the indices of the two numbers such that they add up to target. Each input has exactly one solution, and you may not use the same element twice.",
     "examples": [
-      { "input": "nums = [2,7,11,15], target = 9", "output": "[0,1]", "explanation": "nums[0] + nums[1] == 9" }
+      {
+        "input": "nums = [2,7,11,15], target = 9",
+        "output": "[0,1]",
+        "explanation": "nums[0] + nums[1] == 9"
+      }
     ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var twoSum = function(nums, target) { }" },
-      { "language": "PYTHON", "starterCode": "def two_sum(nums: List[int], target: int) -> List[int]: pass" }
-    ],
-    "link": "https://leetcode.com/problems/two-sum/"
+    "link": "https://leetcode.com/problems/two-sum/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/two-sum-diagram.png",
+    "status": "Active"
   },
   {
+    "questionID": 2,
     "title": "Reverse Linked List",
     "difficulty": "Easy",
-    "topic": "Data Structures",
+    "topic": "Linked list",
     "description": "Reverse a singly linked list and return the reversed list.",
     "examples": [
-      { "input": "head = [1,2,3,4,5]", "output": "[5,4,3,2,1]" }
+      {
+        "input": "head = [1,2,3,4,5]",
+        "output": "[5,4,3,2,1]",
+        "explanation": "The reversed list contains the same nodes in opposite order."
+      }
     ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var reverseList = function(head) { }" },
-      { "language": "PYTHON", "starterCode": "def reverseList(head: Optional[ListNode]) -> Optional[ListNode]: pass" }
-    ],
-    "link": "https://leetcode.com/problems/reverse-linked-list/"
+    "link": "https://leetcode.com/problems/reverse-linked-list/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2021/02/19/rev1ex1.jpg",
+    "status": "Active"
   },
   {
+    "questionID": 3,
     "title": "Binary Tree Level Order Traversal",
     "difficulty": "Medium",
-    "topic": "Data Structures",
+    "topic": "Tree",
     "description": "Given the root of a binary tree, return the level order traversal of its nodes' values (from left to right, level by level).",
     "examples": [
-      { "input": "root = [3,9,20,null,null,15,7]", "output": "[[3],[9,20],[15,7]]" }
+      {
+        "input": "root = [3,9,20,null,null,15,7]",
+        "output": "[[3],[9,20],[15,7]]",
+        "explanation": "Nodes are visited level by level: 3 → 9,20 → 15,7"
+      }
     ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var levelOrder = function(root) { }" },
-      { "language": "PYTHON", "starterCode": "def levelOrder(root: Optional[TreeNode]) -> List[List[int]]: pass" }
-    ],
-    "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/"
+    "link": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2021/02/19/tree1.jpg",
+    "status": "Active"
   },
   {
+    "questionID": 4,
     "title": "Longest Increasing Subsequence",
     "difficulty": "Medium",
-    "topic": "Algorithms",
+    "topic": "Dynamic programming",
     "description": "Given an integer array nums, return the length of the longest strictly increasing subsequence.",
     "examples": [
-      { "input": "nums = [10,9,2,5,3,7,101,18]", "output": "4", "explanation": "The LIS is [2,3,7,101]" }
+      {
+        "input": "nums = [10,9,2,5,3,7,101,18]",
+        "output": "4",
+        "explanation": "The LIS is [2,3,7,101]."
+      }
     ],
-    "templates": [
-      { "language": "JAVA", "starterCode": "class Solution { public int lengthOfLIS(int[] nums) { return 0; } }" },
-      { "language": "PYTHON", "starterCode": "def lengthOfLIS(nums: List[int]) -> int: pass" }
-    ],
-    "link": "https://leetcode.com/problems/longest-increasing-subsequence/"
+    "link": "https://leetcode.com/problems/longest-increasing-subsequence/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/22/lis_example1.jpg",
+    "status": "Active"
   },
   {
+    "questionID": 5,
     "title": "Valid Parentheses",
     "difficulty": "Easy",
-    "topic": "String",
-    "description": "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.",
+    "topic": "Stack",
+    "description": "Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid. A string is valid if open brackets are closed by the same type and in the correct order.",
     "examples": [
-      { "input": "s = '()[]{}'", "output": "true" },
-      { "input": "s = '(]'", "output": "false" }
+      {
+        "input": "s = '()[]{}'",
+        "output": "true",
+        "explanation": "All brackets are properly closed."
+      },
+      {
+        "input": "s = '(]'",
+        "output": "false",
+        "explanation": "Parentheses are not closed in the correct order."
+      }
     ],
-    "templates": [
-      { "language": "JAVASCRIPT", "starterCode": "var isValid = function(s) { }" },
-      { "language": "PYTHON", "starterCode": "def isValid(s: str) -> bool: pass" }
+    "link": "https://leetcode.com/problems/valid-parentheses/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2021/03/27/valid_parentheses_example.png",
+    "status": "Archived"
+  },
+  {
+    "questionID": 6,
+    "title": "Number of Islands",
+    "difficulty": "Medium",
+    "topic": "Depth-first search",
+    "description": "Given an m x n 2D binary grid representing a map of '1's (land) and '0's (water), return the number of islands. An island is surrounded by water and formed by connecting adjacent lands horizontally or vertically.",
+    "examples": [
+      {
+        "input": "grid = [['1','1','1','1','0'], ['1','1','0','1','0'], ['1','1','0','0','0'], ['0','0','0','0','0']]",
+        "output": "1"
+      },
+      {
+        "input": "grid = [['1','1','0','0','0'], ['1','1','0','0','0'], ['0','0','1','0','0'], ['0','0','0','1','1']]",
+        "output": "3"
+      }
     ],
-    "link": "https://leetcode.com/problems/valid-parentheses/"
+    "link": "https://leetcode.com/problems/number-of-islands/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2021/03/27/island_grid.jpg",
+    "status": "Active"
+  },
+  {
+    "questionID": 7,
+    "title": "Merge Intervals",
+    "difficulty": "Medium",
+    "topic": "Sorting",
+    "description": "Given an array of intervals where intervals[i] = [start_i, end_i], merge all overlapping intervals and return an array of non-overlapping intervals covering all input intervals.",
+    "examples": [
+      {
+        "input": "intervals = [[1,3],[2,6],[8,10],[15,18]]",
+        "output": "[[1,6],[8,10],[15,18]]",
+        "explanation": "Intervals [1,3] and [2,6] overlap and merge into [1,6]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/merge-intervals/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/merge_intervals.jpg",
+    "status": "Active"
+  },
+  {
+    "questionID": 8,
+    "title": "Kth Largest Element in an Array",
+    "difficulty": "Medium",
+    "topic": "Quickselect",
+    "description": "Given an integer array nums and an integer k, return the kth largest element in the array. Note that it is the kth largest element in sorted order, not the kth distinct element.",
+    "examples": [
+      {
+        "input": "nums = [3,2,1,5,6,4], k = 2",
+        "output": "5"
+      },
+      {
+        "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4",
+        "output": "4"
+      }
+    ],
+    "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2020/11/05/find_kth_largest.jpg",
+    "status": "Archived"
+  },
+  {
+    "questionID": 9,
+    "title": "Climbing Stairs",
+    "difficulty": "Easy",
+    "topic": "Dynamic programming",
+    "description": "You are climbing a staircase. It takes n steps to reach the top. Each time you can climb either 1 or 2 steps. Return the number of distinct ways to reach the top.",
+    "examples": [
+      {
+        "input": "n = 2",
+        "output": "2",
+        "explanation": "There are two ways: 1+1 or 2."
+      },
+      {
+        "input": "n = 3",
+        "output": "3",
+        "explanation": "Three ways: 1+1+1, 1+2, 2+1."
+      }
+    ],
+    "link": "https://leetcode.com/problems/climbing-stairs/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2021/01/06/stairs.jpg",
+    "status": "Active"
+  },
+  {
+    "questionID": 10,
+    "title": "Find Peak Element",
+    "difficulty": "Medium",
+    "topic": "Binary search",
+    "description": "A peak element is an element that is strictly greater than its neighbours. Given an integer array nums, find a peak element and return its index. You may assume there is always one peak.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3,1]",
+        "output": "2",
+        "explanation": "nums[2] = 3 is greater than neighbours 2 and 1."
+      },
+      {
+        "input": "nums = [1,2,1,3,5,6,4]",
+        "output": "5",
+        "explanation": "nums[5] = 6 is greater than 3 and 4."
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-peak-element/",
+    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/find_peak_element.jpg",
+    "status": "Active"
   }
 ]

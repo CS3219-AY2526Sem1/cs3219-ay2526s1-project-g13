@@ -85,7 +85,7 @@ class RoomController {
   async fetchQuestionDetails(questionId) {
     try {
       const response = await axios.get(
-        `${config.QUESTION_SERVICE_URL}/v1/questions/${questionId}`,
+        `${config.QUESTION_SERVICE_URL}/v1/questions/${questionId}?includeArchived=true`,
         { timeout: 5000 }
       );
       return {
@@ -93,6 +93,7 @@ class RoomController {
         title: response.data.title,
         difficulty: response.data.difficulty,
         topic: response.data.topic,
+        status: response.data.status,
       };
     } catch (error) {
       if (error.response?.status === 404) {

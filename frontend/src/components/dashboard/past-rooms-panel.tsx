@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/auth-context";
 
@@ -227,10 +228,18 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
                       Completed
                     </span>
                   </div>
-                  <CardDescription>
+                  <CardDescription className="flex items-center gap-2">
                     {room.question
                       ? room.question.title
                       : room.questionId || "No question assigned"}
+                    {room.question?.status === "Archived" && (
+                      <Badge
+                        variant="outline"
+                        className="bg-gray-100 text-gray-800 border-gray-300"
+                      >
+                        Archived
+                      </Badge>
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

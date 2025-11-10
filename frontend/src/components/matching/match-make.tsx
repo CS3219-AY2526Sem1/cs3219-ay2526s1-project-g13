@@ -149,7 +149,7 @@ const MatchMake = () => {
                   <CarouselItem key={chunkIndex} className="pl-2 md:pl-4">
                     <div className="grid grid-cols-4 gap-3">
                       {chunk.map((topic: (typeof topics)[0]) => {
-                        const IconComponent = topic.icon;
+                        // const IconComponent = topic.icon;
                         const isSelected = selectedTopic === topic.name;
 
                         return (
@@ -164,7 +164,7 @@ const MatchMake = () => {
                             })}
                           >
                             <div className="flex justify-center mb-2">
-                              <IconComponent />
+                              {/* <IconComponent /> */}
                             </div>
                             <p className="text-xs font-medium text-gray-700 leading-tight">
                               {topic.name}
