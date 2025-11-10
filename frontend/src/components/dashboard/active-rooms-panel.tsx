@@ -1,7 +1,7 @@
 "use client";
 
 import { RoomDetails } from "@/lib/api-client";
-import { ProgrammingLanguage } from "@/utils/enums";
+import { ProgrammingLanguage, ProgrammingLanguageDisplay } from "@/utils/enums";
 import {
   Card,
   CardContent,
@@ -21,10 +21,19 @@ interface ActiveRoomsPanelProps {
 }
 
 const programmingLanguageDisplayMap: Record<ProgrammingLanguage, string> = {
-  [ProgrammingLanguage.CPP]: "C++",
-  [ProgrammingLanguage.JAVA]: "Java",
-  [ProgrammingLanguage.JAVASCRIPT]: "JavaScript",
-  [ProgrammingLanguage.PYTHON]: "Python",
+  [ProgrammingLanguage.C]: ProgrammingLanguageDisplay.C,
+  [ProgrammingLanguage.CPP]: ProgrammingLanguageDisplay.CPP,
+  [ProgrammingLanguage.CSHARP]: ProgrammingLanguageDisplay.CSHARP,
+  [ProgrammingLanguage.GO]: ProgrammingLanguageDisplay.GO,
+  [ProgrammingLanguage.JAVA]: ProgrammingLanguageDisplay.JAVA,
+  [ProgrammingLanguage.JAVASCRIPT]: ProgrammingLanguageDisplay.JAVASCRIPT,
+  [ProgrammingLanguage.KOTLIN]: ProgrammingLanguageDisplay.KOTLIN,
+  [ProgrammingLanguage.PHP]: ProgrammingLanguageDisplay.PHP,
+  [ProgrammingLanguage.PYTHON]: ProgrammingLanguageDisplay.PYTHON,
+  [ProgrammingLanguage.RUBY]: ProgrammingLanguageDisplay.RUBY,
+  [ProgrammingLanguage.RUST]: ProgrammingLanguageDisplay.RUST,
+  [ProgrammingLanguage.SWIFT]: ProgrammingLanguageDisplay.SWIFT,
+  [ProgrammingLanguage.TYPESCRIPT]: ProgrammingLanguageDisplay.TYPESCRIPT,
 };
 
 const formatDate = (date: Date | null): string => {
