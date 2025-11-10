@@ -166,9 +166,18 @@ services:
     restart: always
     env_file:
       - ./backend/execution-service/.env
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq
+      - QUEUE_NAME=execution_jobs
+      - CALLBACK_URL=http://collaboration-service:8004/api/v1/code/execute-callback
+      - PISTON_URL=http://piston-api:2000/api/v2/execute
     depends_on:
       rabbitmq:
         condition: service_healthy
+      piston-api:
+        condition: service_started
+      collaboration-service:
+        condition: service_started
     networks:
       - cs3219-peerprep-network
     command: pnpm run start
