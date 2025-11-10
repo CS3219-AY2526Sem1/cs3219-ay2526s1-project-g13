@@ -57,12 +57,16 @@ export default function VerifyAccountPage() {
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
         const user = await checkAuth(); // Update auth context
-
         setIcon("user-round-check");
         if (user?.role == "user") {
           setDescription("Redirecting to matching page in 5 seconds...");
           setTimeout(() => {
             router.push("/matching");
+          }, 5000);
+        } else if (user?.role == "admin") {
+          setDescription("Redirecting to question page in 5 seconds...");
+          setTimeout(() => {
+            router.push("/question");
           }, 5000);
         }
       } else {

@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { apiConfig } from "./api-config";
 import { Difficulty, ProgrammingLanguage } from "@/utils/enums";
+import { Topic, Language, TimeComplexity, SpaceComplexity, Status } from "@/types/solution";
 
 export interface LoginRequest {
   username: string;
@@ -71,6 +72,7 @@ export interface QuestionDetails {
   title: string;
   difficulty: string;
   topic: string;
+  status?: "Active" | "Archived";
 }
 
 export interface RoomDetails {
@@ -109,12 +111,42 @@ export interface QuestionExample {
 }
 
 export interface Question {
+  questionID: number;
   title: string;
   description: string;
   difficulty: Difficulty;
   topic: string;
   examples?: QuestionExample[];
   link?: string;
+  status?: "Active" | "Archived";
+}
+
+export const emptyQuestionState: Question = {
+  questionID: 0,
+  title: "",
+  topic: "",
+  difficulty: Difficulty.EASY,
+  description: "",
+};
+
+export type ArchiveQuestionResponse = {
+  message: string;
+  question: Question;
+};
+
+export interface Solution {
+  questionId: string;
+  title: string;
+  difficulty: Difficulty;
+  topic: Topic;
+  language: Language;
+  code: string;
+  explanation: string;
+  timeComplexity?: TimeComplexity;
+  spaceComplexity?: SpaceComplexity;
+  mediaLink?: string;
+  deleted?: boolean;
+  status: Status;
 }
 
 export interface GetUserRoomsResponse {
@@ -132,6 +164,12 @@ const userServiceClient = axios.create({
 // Create axios instance for collaboration service
 const collaborationServiceClient = axios.create({
   baseURL: apiConfig.collaborationService.httpURL,
+  withCredentials: true,
+});
+
+// Create axios instance for question service
+const questionServiceClient = axios.create({
+  baseURL: apiConfig.questionService.baseURL,
   withCredentials: true,
 });
 
@@ -188,6 +226,9 @@ export const authRequest = async <T = unknown>(
       client = collaborationServiceClient;
       // Remove base URL since client already has it
       config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+    } else if (url.startsWith(apiConfig.questionService.baseURL)) {
+      client = questionServiceClient;
+      config.url = url.replace(apiConfig.questionService.baseURL, "");
     } else if (url.startsWith("http://") || url.startsWith("https://")) {
       // For absolute URLs (legacy support), use axios directly
       return await axios(config);
@@ -207,6 +248,9 @@ export const authRequest = async <T = unknown>(
       if (url.startsWith(apiConfig.collaborationService.httpURL)) {
         client = collaborationServiceClient;
         config.url = url.replace(apiConfig.collaborationService.httpURL, "");
+      } else if (url.startsWith(apiConfig.questionService.baseURL)) {
+        client = questionServiceClient;
+        config.url = url.replace(apiConfig.questionService.baseURL, "");
       } else if (url.startsWith("http://") || url.startsWith("https://")) {
         return await axios(config);
       }
@@ -322,11 +366,93 @@ export const collaborationAPI = {
 };
 
 export const questionAPI = {
-  getQuestionById: async (questionId: string): Promise<Question> => {
-    const res = await authRequest<Question>({
-      method: "GET",
-      url: `${apiConfig.questionService.baseURL}/v1/questions/${questionId}`,
-    });
+  getQuestionById: async (questionID: string | number): Promise<Question> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.get<Question>(
+      `/v1/questions/${idStr}?includeArchived=true`,
+    );
     return res.data;
+  },
+
+  getQuestionList: async (): Promise<Question[]> => {
+    try {
+      const activeRes = await questionServiceClient.get<Question[]>(`/v1/questions/active`);
+      console.log("Active questions:", activeRes.data);
+      return activeRes.data;
+    } catch (error) {
+      console.error("Failed to fetch active questions:", error);
+      throw error;
+    }
+  },
+  getArchivedQuestionList: async (): Promise<Question[]> => {
+    try {
+      const archivedRes = await questionServiceClient.get<Question[]>(`/v1/questions/archived`);
+      console.log("Archived questions:", archivedRes.data);
+      return archivedRes.data;
+    } catch (error) {
+      console.error("Failed to fetch archived questions:", error);
+      throw error;
+    }
+  },
+
+  createQuestion: async (payload: Question): Promise<Question> => {
+    const res = await questionServiceClient.post<Question>(`/v1/questions`, payload);
+    return res.data;
+  },
+
+  getTopicList: async (): Promise<string[]> => {
+    const res = await questionServiceClient.get<string[] | { topics: string[] }>(
+      `/v1/questions/topics`,
+    );
+
+    const data = res.data as unknown;
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === "object" && "topics" in data) {
+      return (data as { topics: string[] }).topics;
+    }
+    throw new Error("Unexpected response format for topics");
+  },
+
+  updateQuestion: async (
+    questionID: string | number,
+    payload: Partial<Question>,
+  ): Promise<Question> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.patch<Question>(`/v1/questions/${idStr}`, payload);
+    return res.data;
+  },
+
+  archiveQuestion: async (questionID: string | number): Promise<ArchiveQuestionResponse> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.delete<ArchiveQuestionResponse>(
+      `/v1/questions/${idStr}`,
+    );
+    return res.data;
+  },
+
+  restoreQuestion: async (questionID: string | number): Promise<ArchiveQuestionResponse> => {
+    const idStr = String(questionID);
+    const res = await questionServiceClient.post<ArchiveQuestionResponse>(
+      `/v1/questions/${idStr}/restore`,
+    );
+    return res.data;
+  },
+
+  getSolutionsForQuestion: async (
+    questionID: string | number,
+    language?: string,
+  ): Promise<Solution[]> => {
+    const idStr = String(questionID);
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+    const res = await questionServiceClient.get<Solution[]>(
+      `/v1/questions/${idStr}/solutions${qs}`,
+    );
+    const data: Solution[] = res.data;
+    if (language) {
+      return data.filter(
+        (s) => String(s.language).toLowerCase() === String(language).toLowerCase(),
+      );
+    }
+    return data;
   },
 };

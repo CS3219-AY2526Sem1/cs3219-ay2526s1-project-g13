@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/auth-context";
 import { useMatchingStore } from "@/stores/matching-store";
@@ -85,8 +86,13 @@ export default function ActiveRoomsPanel({ rooms }: ActiveRoomsPanelProps) {
                     Active
                   </span>
                 </div>
-                <CardDescription>
+                <CardDescription className="flex items-center gap-2">
                   {room.question ? room.question.title : room.questionId || "No question assigned"}
+                  {room.question?.status === "Archived" && (
+                    <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">
+                      Archived
+                    </Badge>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
