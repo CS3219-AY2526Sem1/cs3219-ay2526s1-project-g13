@@ -60,9 +60,25 @@ export function SolutionView({ questionId, selectedLang }: SolutionViewProps) {
             )}
           </div>
 
-          <p className="text-sm text-muted-foreground mb-2">
-            {activeSolution.timeComplexity ?? "—"} • {activeSolution.spaceComplexity ?? "—"}
-          </p>
+          {(() => {
+            const time = activeSolution.timeComplexity;
+            const space = activeSolution.spaceComplexity;
+            return (
+              <p className="text-sm text-muted-foreground mb-2">
+                {time ? (
+                  <span className="mr-3">
+                    <span className="font-medium">Time Complexity:</span> {time}
+                  </span>
+                ) : null}
+
+                {space ? (
+                  <span>
+                    <span className="font-medium">Space Complexity:</span> {space}
+                  </span>
+                ) : null}
+              </p>
+            );
+          })()}
 
           <pre className="bg-muted p-3 rounded text-sm overflow-x-auto whitespace-pre-wrap">
             {activeSolution.code}
