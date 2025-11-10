@@ -7,7 +7,7 @@ import { collaborationConfig } from "@/utils/config";
 import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-client";
 
 let executionTimer: NodeJS.Timeout | null = null;
-const EXECUTION_TIMEOUT_MS = 35000; // 35s
+const EXECUTION_TIMEOUT_MS = 60000; // 60s
 const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1500;
@@ -45,6 +45,7 @@ interface CollaborationState {
   setSourceCode: (code: string) => void;
   submitCode: () => Promise<void>;
   setExecutionResult: (result: { output: string; isError: boolean }) => void;
+  setIsExecuting: (isExecuting: boolean) => void;
 
   fetchAgoraToken: (roomId: string, userId: string) => Promise<void>;
 }
@@ -187,6 +188,7 @@ export const useCollaborationStore = create<CollaborationState>()(
 
       set({ isExecuting: true, executionResult: null });
 
+      // clear old timers if exists
       if (executionTimer) {
         clearTimeout(executionTimer);
       }
@@ -233,6 +235,10 @@ export const useCollaborationStore = create<CollaborationState>()(
         });
         toast.error(errorMessage);
       }
+    },
+
+    setIsExecuting(isExecuting: boolean) {
+      set({ isExecuting: isExecuting });
     },
 
     // Reset state
@@ -283,6 +289,7 @@ export const useCollaborationActions = () => {
   const setSourceCode = useCollaborationStore((state) => state.setSourceCode);
   const submitCode = useCollaborationStore((state) => state.submitCode);
   const setExecutionResult = useCollaborationStore((state) => state.setExecutionResult);
+  const setIsExecuting = useCollaborationStore((state) => state.setIsExecuting);
 
   return {
     fetchRoomDetails,
@@ -294,5 +301,6 @@ export const useCollaborationActions = () => {
     setSourceCode,
     submitCode,
     setExecutionResult,
+    setIsExecuting,
   };
 };

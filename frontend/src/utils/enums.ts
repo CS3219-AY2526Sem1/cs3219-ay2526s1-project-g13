@@ -10,10 +10,36 @@ export enum ServiceType {
 }
 
 export enum ProgrammingLanguage {
+  C = "c",
   CPP = "cpp",
+  CSHARP = "csharp",
+  GO = "go",
   JAVA = "java",
   JAVASCRIPT = "javascript",
+  KOTLIN = "kotlin",
+  PHP = "php",
   PYTHON = "python",
+  RUBY = "ruby",
+  RUST = "rust",
+  SWIFT = "swift",
+  TYPESCRIPT = "typescript",
+}
+
+export enum ProgrammingLanguageDisplay {
+  C = "C",
+  CPP = "C++",
+  CSHARP = "C#",
+  GO = "Go",
+  JAVA = "Java",
+  JAVASCRIPT = "JavaScript",
+  KOTLIN = "Kotlin",
+  PHP = "PHP",
+  PYTHON = "Python",
+  RUBY = "Ruby",
+  RUST = "Rust",
+  SCALA = "Scala",
+  SWIFT = "Swift",
+  TYPESCRIPT = "TypeScript",
 }
 
 export enum ConnectionState {

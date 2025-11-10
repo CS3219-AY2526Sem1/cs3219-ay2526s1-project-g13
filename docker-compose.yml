@@ -181,6 +181,9 @@ services:
     ports:
       - '2000:2000'
     privileged: true
+    environment:
+      - PISTON_COMPILE_TIMEOUT=30000
+      - PISTON_RUN_TIMEOUT=10000
     volumes:
       - piston_packages:/piston/packages 
     networks:

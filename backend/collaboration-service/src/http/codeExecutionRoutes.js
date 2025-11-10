@@ -7,7 +7,7 @@ const router = express.Router();
 const RABBITMQ_URL = 'amqp://user:password@rabbitmq';
 const QUEUE_NAME = 'execution_jobs';
 
-const EXECUTION_TIMEOUT_MS = 30000 // 30s
+const EXECUTION_TIMEOUT_MS = 60000 // 60s
 const activeTimers = new Map()
 
 let mqChannel = null
@@ -59,6 +59,9 @@ router.post("/submit-code", async (req, res) => {
         }
 
         console.log(">>> Got code ", job)
+        roomManager.broadcastToRoom(room_id, {
+            type: "code-execution-started"
+        })
 
         // delete old timers
         if (activeTimers.has(room_id)) {
