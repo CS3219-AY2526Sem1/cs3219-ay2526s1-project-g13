@@ -29,7 +29,6 @@ export async function initRabbitMQ() {
 }
 
 async function sendJob(job) {
-    let connection
     try {
         mqChannel.sendToQueue(
             QUEUE_NAME,

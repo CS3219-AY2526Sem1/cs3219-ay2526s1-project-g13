@@ -1,0 +1,23 @@
+@startuml CodeExecutionFlow_HappyPath
+
+title Code Execution Flow (Happy Path)
+
+actor User
+participant FE as "FrontEnd"
+participant Cl as "Collaboration Service"
+participant MQ as "Message Queue"
+participant Exec as "Execution Service"
+participant Piston as "Piston"
+
+User -> FE : click "Execute"
+FE -> Cl : send job details
+Cl -> MQ : publish job
+Exec -> MQ : consume job
+Exec -> Piston : execute job
+Piston -> Exec : result
+Exec -> Cl : send result
+Cl -> FE : broadcast result
+FE -> User : show result 
+
+
+@enduml

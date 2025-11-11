@@ -7,7 +7,7 @@ import { collaborationConfig } from "@/utils/config";
 import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-client";
 
 let executionTimer: NodeJS.Timeout | null = null;
-const EXECUTION_TIMEOUT_MS = 60000; // 60s
+const EXECUTION_TIMEOUT_MS = 70000; // 70s
 const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1500;

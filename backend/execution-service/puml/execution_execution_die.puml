@@ -1,0 +1,19 @@
+@startuml CodeExecutionFlow_ExecutionDie
+
+title Code Execution Flow (Execution Service dies)
+
+actor User
+participant FE as "FrontEnd"
+participant Cl as "Collaboration Service"
+participant MQ as "Message Queue"
+
+User -> FE : click "Execute"
+FE -> Cl : send job details
+Cl -> Cl : start timer
+Cl -> MQ : publish job
+Cl -> Cl : cancel timer
+Cl -> FE : send timeout error
+FE -> User : show error 
+
+
+@enduml
