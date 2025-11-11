@@ -28,6 +28,11 @@ output "collaboration_service_url" {
   value       = google_cloud_run_v2_service.collaboration_service.uri
 }
 
+output "video_call_service_url" {
+  description = "Video call service URL"
+  value       = google_cloud_run_v2_service.video_call_service.uri
+}
+
 output "redis_host" {
   description = "Redis host address"
   value       = google_redis_instance.redis.host

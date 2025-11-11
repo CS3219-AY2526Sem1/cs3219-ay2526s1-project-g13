@@ -4,11 +4,11 @@ import axios, { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import { ProgrammingLanguage } from "@/utils/enums";
 import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-client";
-import { getCollaborationURL } from "@/lib/api-config";
+import { getCollaborationURL, getVideoCallServiceURL } from "@/lib/api-config";
 
 let executionTimer: NodeJS.Timeout | null = null;
 const EXECUTION_TIMEOUT_MS = 60000; // 60s
-const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
+const VIDEO_CALL_URL = getVideoCallServiceURL() + "/v1/video/";
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1500;
 

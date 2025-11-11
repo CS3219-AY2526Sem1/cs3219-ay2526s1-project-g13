@@ -465,6 +465,64 @@ resource "google_cloud_run_v2_service" "collaboration_service" {
   depends_on = [google_project_service.apis]
 }
 
+# Cloud Run Service - Video Call Service
+resource "google_cloud_run_v2_service" "video_call_service" {
+  name                = "video-call-service"
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    service_account = google_service_account.service_account.email
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/video-call-service:latest"
+
+      ports {
+        container_port = 8011
+      }
+
+      env {
+        name = "APP_ID"
+        value_source {
+          secret_key_ref {
+            secret  = "video_call_service_app_id"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "APP_CERTIFICATE"
+        value_source {
+          secret_key_ref {
+            secret  = "video_call_service_app_certificate"
+            version = "latest"
+          }
+        }
+      }
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
+      }
+    }
+  }
+
+  scaling {
+    min_instance_count = 1
+    max_instance_count = 5
+  }
+
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
 # Cloud Run Service - Frontend
 resource "google_cloud_run_v2_service" "frontend" {
   name                = "frontend"
@@ -528,6 +586,13 @@ resource "google_cloud_run_service_iam_member" "matching_service_public" {
 resource "google_cloud_run_service_iam_member" "collaboration_service_public" {
   service  = google_cloud_run_v2_service.collaboration_service.name
   location = google_cloud_run_v2_service.collaboration_service.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_service_iam_member" "video_call_service_public" {
+  service  = google_cloud_run_v2_service.video_call_service.name
+  location = google_cloud_run_v2_service.video_call_service.location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

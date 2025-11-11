@@ -40,6 +40,15 @@ resource "google_compute_region_network_endpoint_group" "collab_service_neg" {
   }
 }
 
+resource "google_compute_region_network_endpoint_group" "video_call_service_neg" {
+  name                  = "video-call-service-neg"
+  network_endpoint_type = "SERVERLESS"
+  region                = var.region
+  cloud_run {
+    service = google_cloud_run_v2_service.video_call_service.name
+  }
+}
+
 resource "google_compute_region_network_endpoint_group" "frontend_neg" {
   name                  = "frontend-neg"
   network_endpoint_type = "SERVERLESS"
@@ -87,6 +96,16 @@ resource "google_compute_backend_service" "collab_service_backend" {
   load_balancing_scheme = "EXTERNAL_MANAGED"
   backend {
     group = google_compute_region_network_endpoint_group.collab_service_neg.id
+  }
+}
+
+resource "google_compute_backend_service" "video_call_service_backend" {
+  name                  = "video-call-service-backend"
+  protocol              = "HTTP"
+  port_name             = "http"
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  backend {
+    group = google_compute_region_network_endpoint_group.video_call_service_neg.id
   }
 }
 
@@ -143,7 +162,7 @@ resource "google_compute_url_map" "api_url_map" {
         }
       }
     }
-    
+
     route_rules {
       priority = 3
       match_rules {
@@ -156,13 +175,26 @@ resource "google_compute_url_map" "api_url_map" {
         }
       }
     }
-    
+
     route_rules {
       priority = 4
       match_rules {
         prefix_match = "/api/collaboration/"
       }
       service = google_compute_backend_service.collab_service_backend.id
+      route_action {
+        url_rewrite {
+          path_prefix_rewrite = "/"
+        }
+      }
+    }
+
+    route_rules {
+      priority = 5
+      match_rules {
+        prefix_match = "/api/video-call/"
+      }
+      service = google_compute_backend_service.video_call_service_backend.id
       route_action {
         url_rewrite {
           path_prefix_rewrite = "/"

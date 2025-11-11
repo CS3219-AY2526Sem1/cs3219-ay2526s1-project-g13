@@ -15,6 +15,7 @@ USER_SERVICE_URL="https://${DOMAIN}/api/user"
 MATCHING_SERVICE_URL="https://${DOMAIN}/api/matching"
 QUESTION_SERVICE_URL="https://${DOMAIN}/api/question"
 COLLABORATION_SERVICE_URL="https://${DOMAIN}/api/collaboration"
+VIDEO_CALL_SERVICE_URL="https://${DOMAIN}/api/video-call"
 
 
 echo "🔨 Building and pushing Docker images to ${REGISTRY}"
@@ -30,6 +31,7 @@ SERVICES=(
   "question-service:backend/question-service:Dockerfile.question"
   "collaboration-service:backend/collaboration-service:Dockerfile.collaboration"
   "execution-service:backend/execution-service:Dockerfile.execution"
+  "video-call-service:backend/video-call-service:Dockerfile.video"
   "frontend:frontend:Dockerfile.frontend"
 )
 
@@ -57,6 +59,7 @@ for SERVICE_CONFIG in "${SERVICES[@]}"; do
       --build-arg MATCHING_SERVICE_URL="$MATCHING_SERVICE_URL" \
       --build-arg QUESTION_SERVICE_URL="$QUESTION_SERVICE_URL" \
       --build-arg COLLABORATION_SERVICE_URL="$COLLABORATION_SERVICE_URL" \
+      --build-arg VIDEO_CALL_SERVICE_URL="$VIDEO_CALL_SERVICE_URL" \
       -f "${SERVICE_PATH}/${DOCKERFILE}" -t "${REGISTRY}/${SERVICE_NAME}:latest" --load "${SERVICE_PATH}"
   else
     docker buildx build --platform linux/amd64 \
