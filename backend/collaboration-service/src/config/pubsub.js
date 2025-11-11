@@ -1,9 +1,12 @@
 import { PubSub } from "@google-cloud/pubsub";
 
+// Room creation topics
 export const ROOM_CREATION_TOPIC = "room_creation_topic";
 export const ROOM_CREATED_TOPIC = "room_created_topic";
-
 export const ROOM_CREATION_SUBSCRIPTION = "room_creation_sub";
+
+// Code execution topics
+export const JOB_EXECUTION_TOPIC = "job_execution_topic";
 
 export class PubSubManager {
   constructor() {
@@ -46,7 +49,11 @@ export class PubSubManager {
         console.log(`Connected to Pub/Sub. Found ${topics.length} topics`);
 
         // Ensure topics exist
-        await this.ensureTopicsExist([ROOM_CREATION_TOPIC, ROOM_CREATED_TOPIC]);
+        await this.ensureTopicsExist([
+          ROOM_CREATION_TOPIC,
+          ROOM_CREATED_TOPIC,
+          JOB_EXECUTION_TOPIC,
+        ]);
 
         this.isConnected = true;
         console.log("Connected to Pub/Sub");
@@ -150,6 +157,28 @@ export class PubSubManager {
       console.log("Published room created event:", { matchId, roomId });
     } catch (error) {
       console.error("Error publishing room created event:", error);
+      throw error;
+    }
+  }
+
+  async publishJob(job) {
+    if (!this.useGcp) {
+      console.log(`[Fallback] Would publish job: ${job.room_id}`);
+      return;
+    }
+
+    try {
+      const topic = this.pubsub.topic(JOB_EXECUTION_TOPIC);
+      const dataBuffer = Buffer.from(JSON.stringify(job));
+
+      await topic.publishMessage({
+        data: dataBuffer,
+        attributes: { room_id: job.room_id },
+      });
+
+      console.log(">>> Sent job: ", job.room_id);
+    } catch (error) {
+      console.error("Error publishing job:", error);
       throw error;
     }
   }

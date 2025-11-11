@@ -164,7 +164,7 @@ services:
       - ./backend/execution-service/.env
     environment:
       - RABBITMQ_URL=amqp://user:password@rabbitmq
-      - QUEUE_NAME=execution_jobs
+      - QUEUE_NAME=job_execution_queue
       - CALLBACK_URL=http://collaboration-service:8004/api/v1/code/execute-callback
       - PISTON_URL=http://piston-api:2000/api/v2/execute
     depends_on:

@@ -78,6 +78,9 @@ importers:
 
   backend/execution-service:
     dependencies:
+      '@google-cloud/pubsub':
+        specifier: ^5.2.0
+        version: 5.2.0
       amqplib:
         specifier: ^0.10.9
         version: 0.10.9

@@ -2,10 +2,10 @@
   "name": "execution-service",
   "version": "1.0.0",
   "description": "",
-  "main": "src/worker.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node src/worker.js",
-    "dev:worker": "nodemon src/worker.js",
+    "start": "node src/index.js",
+    "dev:worker": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
+    "@google-cloud/pubsub": "^5.2.0",
     "amqplib": "^0.10.9",
     "axios": "^1.12.2"
   },
