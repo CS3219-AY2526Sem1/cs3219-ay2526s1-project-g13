@@ -1,7 +1,9 @@
 const { Question, Solution } = require('../models/questionModel')
-const seedSolutions = require('../data/seed-solutions.json')
+const fs = require('fs')
+const path = require('path')
 
 const mongoose = require('mongoose')
+const cloudinary = require('../lib/cloudinary')
 
 // sanitize solution documents for API responses
 const sanitiseSolution = (s) => {
@@ -236,6 +238,16 @@ exports.restoreSolution = async (req, res) => {
  */
 exports.seedSolutions = async (req, res) => {
   try {
+    const seedPath = path.join(__dirname, '..', 'data', 'seed-solutions.json')
+    const seedRaw = fs.readFileSync(seedPath, 'utf8')
+    let seedSolutions
+    try {
+      seedSolutions = JSON.parse(seedRaw)
+    } catch (parseErr) {
+      console.error('seedSolutions error parsing JSON', parseErr)
+      return res.status(500).json({ error: 'Seeding solutions failed: invalid JSON' })
+    }
+
     // delete existing solutions
     await Solution.deleteMany({})
     const created = []
@@ -260,8 +272,13 @@ exports.seedSolutions = async (req, res) => {
         mediaLink: s.mediaLink || null,
           status: 'Active'
       })
-      await sol.save()
-      created.push(sol)
+      try {
+        await sol.save()
+        created.push(sol)
+      } catch (itemErr) {
+        console.error(`seedSolutions item error for questionID=${s.questionID || s.questionTitle} language=${s.language}:`, itemErr && itemErr.message ? itemErr.message : itemErr)
+        continue
+      }
     }
     return res.status(200).json({ inserted: created.length })
   } catch (err) {
