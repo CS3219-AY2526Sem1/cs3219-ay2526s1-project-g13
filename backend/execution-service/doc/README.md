@@ -18,7 +18,7 @@ Basic workflow for code execution is as follows:
 1. Upon completion, the Execution Service acknowledges the job in the MQ and uses a callback function to send the result to the Collaboration Service.
 1. The Collaboration Service then broadcasts this result to the Frontend for all users in the room.
 
-![Code execution workflow](/backend/execution-service/doc/images/CodeExecutionFlow_HappyPath.png)
+![Code execution workflow](images/CodeExecutionFlow_HappyPath.png)
 
 To ensure stability and a reliable user experience, we implement error handling by timeout strategy:
 
@@ -28,7 +28,7 @@ To ensure stability and a reliable user experience, we implement error handling 
 
 For example, below is the sequence diagram for the case when Execution Service is unavailable:
 
-![Execution Service unavailable](/backend/execution-service/doc/images/CodeExecutionFlow_ExecutionDie.png)
+![Execution Service unavailable](images/CodeExecutionFlow_ExecutionDie.png)
 
 ## API
 ### Collaboration Service
