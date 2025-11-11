@@ -1,8 +1,8 @@
-# Matching Service README
+# Matching Service
 
 ## Overview
 
-The Matching Service is responsible for pairing users for collaborative coding practice sessions based on their topic and difficulty preferences. It uses real-time WebSocket communication, Redis for queue management, and Kafka for asynchronous inter-service communication.
+The Matching Service is responsible for pairing users for collaborative coVding practice sessions based on their topic and difficulty preferences. It uses real-time WebSocket communication, Redis for queue management, and a message queue for asynchronous inter-service communication.
 
 ## Architecture & Deployment
 
@@ -24,34 +24,34 @@ The matching process follows this flow:
 1. User connects via Socket.IO and requests a match
 2. User is added to Redis sorted set (matching_queue)
 3. Background worker periodically checks queue and matches compatible users
-4. On match, event is published to Kafka (match_topic)
+4. On match, event is published to message queue (match_topic)
 5. Question service consumes match event and selects a question
-6. Question service publishes question to Kafka (question_topic)
-7. Matching service receives question and requests room creation via Kafka (room_creation_topic)
+6. Question service publishes question to message queue (question_topic)
+7. Matching service receives question and requests room creation via message queue (room_creation_topic)
 8. Collaboration service creates room and publishes room_created event
 9. Matching service notifies both users via Socket.IO with match details
 
 ### Key Integrations
 
 - **Redis**: Queue management, match data storage, distributed locking
-- **Kafka**: Async messaging with question-service and collaboration-service
+- **Message Queue**: Async messaging with question-service and collaboration-service
 - **Socket.IO**: Real-time bidirectional communication with frontend
 - **JWT**: Authentication via user-service
 
-### Architecture Diagram (Mermaid)
+### Architecture Diagram
 
 ```mermaid
 graph TB
     Frontend[Frontend Client] -->|WebSocket| MatchingService[Matching Service<br/>Port 8002]
     MatchingService -->|Queue Management| Redis[(Redis<br/>Port 6379)]
-    MatchingService -->|Publish Match Event| Kafka1[Kafka: match_topic]
-    Kafka1 -->|Consume| QuestionService[Question Service<br/>Port 8003]
-    QuestionService -->|Publish Question| Kafka2[Kafka: question_topic]
-    Kafka2 -->|Consume| MatchingService
-    MatchingService -->|Publish Room Request| Kafka3[Kafka: room_creation_topic]
-    Kafka3 -->|Consume| CollabService[Collaboration Service<br/>Port 8004]
-    CollabService -->|Publish Room Created| Kafka4[Kafka: room_created_topic]
-    Kafka4 -->|Consume| MatchingService
+    MatchingService -->|Publish Match Event| MQ1[Message Queue: match_topic]
+    MQ1 -->|Consume| QuestionService[Question Service<br/>Port 8003]
+    QuestionService -->|Publish Question| MQ2[Message Queue: question_topic]
+    MQ2 -->|Consume| MatchingService
+    MatchingService -->|Publish Room Request| MQ3[Message Queue: room_creation_topic]
+    MQ3 -->|Consume| CollabService[Collaboration Service<br/>Port 8004]
+    CollabService -->|Publish Room Created| MQ4[Message Queue: room_created_topic]
+    MQ4 -->|Consume| MatchingService
     MatchingService -->|Notify Users| Frontend
     MatchingService -->|JWT Auth| UserService[User Service<br/>Port 8001]
 ```
@@ -157,7 +157,7 @@ graph TB
   }
   ```
 
-### Kafka Topics
+### Message Queue Topics
 
 **Produced Topics:**
 
@@ -193,9 +193,9 @@ Required environment variables:
 
 - `PORT`: Service port (default: 8002)
 - `REDIS_URL`: Redis connection URL (default: redis://localhost:6379)
-- `KAFKA_HOST`: Kafka broker host (default: localhost)
-- `KAFKA_PORT`: Kafka broker port (default: 9092)
-- `KAFKA_BROKERS`: Comma-separated Kafka broker list
+- `MESSAGE_QUEUE_HOST`: Message queue broker host (default: localhost)
+- `MESSAGE_QUEUE_PORT`: Message queue broker port (default: 9092)
+- `MESSAGE_QUEUE_BROKERS`: Comma-separated message queue broker list
 - `JWT_SECRET`: Secret for JWT token verification
 - `MATCH_COUNTDOWN_SECONDS`: Countdown duration in seconds (default: 60)
 - `MATCHING_INTERVAL_MS`: Matching worker interval in milliseconds (default: 1000)
@@ -212,14 +212,12 @@ redis-cli
 > HGETALL user:<socketId>
 ```
 
-**View Kafka Messages:**
+**View Message Queue Messages:**
 
 ```bash
-# List topics
-kafka-topics --bootstrap-server localhost:9092 --list
-
-# Consume messages
-kafka-console-consumer --bootstrap-server localhost:9092 --topic match_topic --from-beginning
+# View messages in message queue (implementation depends on message queue provider)
+# For Google Pub/Sub, use gcloud CLI or Pub/Sub console
+# For Kafka, use kafka-console-consumer
 ```
 
 **Check Service Health:**
@@ -247,11 +245,11 @@ docker logs matching-service -f
 - Check matching worker logs for errors
 - Verify topic/difficulty compatibility
 
-**Issue: Kafka connection failures**
+**Issue: Message queue connection failures**
 
-- Verify Kafka is running: `docker ps | grep kafka`
-- Check KAFKA_BROKERS environment variable
-- Review Kafka connection logs
+- Verify message queue service is running
+- Check MESSAGE_QUEUE_BROKERS environment variable
+- Review message queue connection logs
 
 **Issue: Socket authentication failures**
 
@@ -259,19 +257,13 @@ docker logs matching-service -f
 - Check token format in client requests
 - Enable DEBUG_MODE for testing
 
-**Issue: Duplicate matches**
-
-- Check Redis lock mechanism
-- Verify MATCHING_LOCK_TTL is appropriate
-- Review matching worker concurrency
-
 ### Graceful Shutdown
 
 The service handles SIGINT/SIGTERM signals to:
 
 1. Clear all matching data from Redis
-2. Clean up Kafka consumer groups
-3. Disconnect from Redis and Kafka
+2. Clean up message queue consumer groups
+3. Disconnect from Redis and message queue
 4. Exit gracefully
 
 ## Design Documentation
@@ -321,7 +313,7 @@ The matching service uses a greedy matching algorithm:
 ### Error Handling
 
 - **Socket Disconnection**: Automatic queue removal on disconnect
-- **Kafka Failures**: Error logging and user notification via Socket.IO
+- **Message Queue Failures**: Error logging and user notification via Socket.IO
 - **Redis Failures**: Connection retry with exponential backoff
 - **Duplicate Prevention**: Idempotency checks using Redis flags
 
@@ -336,7 +328,7 @@ The matching service uses a greedy matching algorithm:
 - **express**: HTTP server framework
 - **socket.io**: WebSocket server
 - **redis**: Redis client
-- **kafkajs**: Kafka client
+- **kafkajs**: Message queue client (can be replaced with Google Pub/Sub client in production)
 - **jsonwebtoken**: JWT verification
 - **uuid**: Match ID generation
 - **cors**: CORS middleware
@@ -348,7 +340,7 @@ The matching service uses a greedy matching algorithm:
 ```
 backend/matching-service/
 ├── src/
-│   ├── config/          # Configuration (Redis, Kafka, Socket)
+│   ├── config/          # Configuration (Redis, Message Queue, Socket)
 │   ├── constants/       # Constants (events, status)
 │   ├── controllers/     # Matching controller
 │   ├── middleware/      # Authentication middleware
@@ -371,5 +363,5 @@ Currently no automated tests. Manual testing via:
 
 1. Connect multiple clients via Socket.IO
 2. Send matchStart events with different criteria
-3. Verify matching behavior and Kafka message flow
+3. Verify matching behavior and message queue flow
 
