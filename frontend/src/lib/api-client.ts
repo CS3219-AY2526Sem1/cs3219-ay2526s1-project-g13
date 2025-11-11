@@ -118,6 +118,7 @@ export interface Question {
   topic: string;
   examples?: QuestionExample[];
   link?: string;
+  mediaLink?: string;
   status?: "Active" | "Archived";
 }
 
@@ -454,5 +455,29 @@ export const questionAPI = {
       );
     }
     return data;
+  },
+
+  uploadQuestionImage: async (questionID: string | number, file: File) => {
+    const idStr = String(questionID);
+    const form = new FormData();
+    form.append("image", file);
+    const res = await questionServiceClient.post(`/v1/questions/${idStr}/image`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
+  uploadSolutionImage: async (questionID: string | number, solutionId: string, file: File) => {
+    const idStr = String(questionID);
+    const form = new FormData();
+    form.append("image", file);
+    const res = await questionServiceClient.post(
+      `/v1/questions/${idStr}/solutions/${solutionId}/image`,
+      form,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return res.data;
   },
 };
