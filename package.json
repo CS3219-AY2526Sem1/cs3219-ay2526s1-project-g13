@@ -10,7 +10,8 @@
     "format": "pnpm --filter frontend format",
     "format:check": "pnpm --filter frontend format:check",
     "typecheck": "pnpm --filter frontend typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "frontend:generate-lock": "node scripts/generate-frontend-lock.js"
   },
   "lint-staged": {
     "frontend/**/*.{ts,tsx,js,jsx}": [
@@ -19,6 +20,10 @@
     ],
     "frontend/**/*.{json,md,css,scss,mdx}": [
       "prettier --write"
+    ],
+    "frontend/package.json": [
+      "prettier --write",
+      "pnpm frontend:generate-lock"
     ]
   },
   "devDependencies": {

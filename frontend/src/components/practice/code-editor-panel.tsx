@@ -20,25 +20,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCollaborationState, useCollaborationActions } from "@/stores/collaboration-store";
-import { ProgrammingLanguage, ConnectionState } from "@/utils/enums";
+import { ProgrammingLanguage, ProgrammingLanguageDisplay, ConnectionState } from "@/utils/enums";
 import { collaborationConfig } from "@/utils/config";
 
 interface CodeEditorPanelProps {
   readOnly?: boolean;
 }
 
-const programmingLanguageMonacoMap: Record<ProgrammingLanguage, string> = {
-  [ProgrammingLanguage.PYTHON]: "python",
-  [ProgrammingLanguage.JAVASCRIPT]: "javascript",
-  [ProgrammingLanguage.JAVA]: "java",
-  [ProgrammingLanguage.CPP]: "cpp",
-};
-
 const programmingLanguageDisplayMap: Record<ProgrammingLanguage, string> = {
-  [ProgrammingLanguage.PYTHON]: "Python",
-  [ProgrammingLanguage.JAVASCRIPT]: "JavaScript",
-  [ProgrammingLanguage.JAVA]: "Java",
-  [ProgrammingLanguage.CPP]: "C++",
+  [ProgrammingLanguage.C]: ProgrammingLanguageDisplay.C,
+  [ProgrammingLanguage.CPP]: ProgrammingLanguageDisplay.CPP,
+  [ProgrammingLanguage.CSHARP]: ProgrammingLanguageDisplay.CSHARP,
+  [ProgrammingLanguage.GO]: ProgrammingLanguageDisplay.GO,
+  [ProgrammingLanguage.JAVA]: ProgrammingLanguageDisplay.JAVA,
+  [ProgrammingLanguage.JAVASCRIPT]: ProgrammingLanguageDisplay.JAVASCRIPT,
+  [ProgrammingLanguage.KOTLIN]: ProgrammingLanguageDisplay.KOTLIN,
+  [ProgrammingLanguage.PHP]: ProgrammingLanguageDisplay.PHP,
+  [ProgrammingLanguage.PYTHON]: ProgrammingLanguageDisplay.PYTHON,
+  [ProgrammingLanguage.RUBY]: ProgrammingLanguageDisplay.RUBY,
+  [ProgrammingLanguage.RUST]: ProgrammingLanguageDisplay.RUST,
+  [ProgrammingLanguage.SWIFT]: ProgrammingLanguageDisplay.SWIFT,
+  [ProgrammingLanguage.TYPESCRIPT]: ProgrammingLanguageDisplay.TYPESCRIPT,
 };
 
 export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelProps) {
@@ -46,7 +48,7 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
   const roomId = params?.id as string;
 
   const { roomDetails, documentContent } = useCollaborationState();
-  const { changeLanguage, updateLanguage, setSourceCode, setExecutionResult } =
+  const { changeLanguage, updateLanguage, setSourceCode, setExecutionResult, setIsExecuting } =
     useCollaborationActions();
 
   const [editorInstance, setEditorInstance] = useState<editor.IStandaloneCodeEditor | null>(null);
@@ -60,7 +62,7 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
   const bindingRef = useRef<MonacoBinding | null>(null);
 
   const currentLanguage = roomDetails?.programmingLanguage || ProgrammingLanguage.PYTHON;
-  const monacoLanguage = programmingLanguageMonacoMap[currentLanguage];
+  const monacoLanguage = currentLanguage;
 
   // Initialize Yjs and WebSocket provider for active rooms
   useEffect(() => {
@@ -128,6 +130,8 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
             toast.warn("The collaboration room has been closed");
           } else if (message.type === "code-execution-result") {
             setExecutionResult(message.data);
+          } else if (message.type === "code-execution-started") {
+            setIsExecuting(true);
           }
         } catch {
           // Ignore non-JSON messages (e.g., Yjs updates)
@@ -151,6 +155,7 @@ export default function CodeEditorPanel({ readOnly = false }: CodeEditorPanelPro
     updateLanguage,
     setSourceCode,
     setExecutionResult,
+    setIsExecuting,
   ]);
 
   // Update Monaco language when room language changes

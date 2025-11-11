@@ -16,6 +16,7 @@ languages=(
     "mono:*"
     "swift:*"
     "kotlin:*"
+    "scala:*"
 )
 
 install_language() {
