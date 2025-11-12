@@ -5,13 +5,11 @@ const connectDB = require('./config/db')
 const { kafkaManager } = require('./config/kafka')
 const { pubsubManager } = require('./config/pubsub')
 
-connectDB()
-
 const app = express()
 
 app.use(
   cors({
-    origin: process.env.WEB_BASE_URL,
+    origin: process.env.WEB_BASE_URL || "*", // Allow all origins if not set
     credentials: true,
     optionsSuccessStatus: 200,
   }),
@@ -20,16 +18,36 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'question-service' })
+})
+
 const PORT = process.env.PORT || 8003
 const useGcp = !!process.env.PUBSUB_PROJECT_ID;
 
 app.listen(PORT, async () => {
   console.log(`Question service is running on port ${PORT}...`)
   
-  if (useGcp) {
-    await pubsubManager.setupSubscribers();
+
+  if (process.env.MONGO_URI) {
+    connectDB().catch((err) => {
+      console.log("MongoDB connection error:", err);
+      console.log("Server is running but MongoDB is not connected");
+    });
   } else {
-    await kafkaManager.setupSubscribers();
+    console.log("MONGO_URI not set, skipping MongoDB connection");
+  }
+  
+  // Setup subscribers
+  try {
+    if (useGcp) {
+      await pubsubManager.setupSubscribers();
+    } else {
+      await kafkaManager.setupSubscribers();
+    }
+  } catch (error) {
+    console.error("Error setting up subscribers:", error);
   }
 })
 

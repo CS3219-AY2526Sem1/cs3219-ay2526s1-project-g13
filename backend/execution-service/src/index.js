@@ -7,27 +7,38 @@ const PORT = process.env.PORT || 8080;
 
 async function main() {
   let worker;
-
-  if (useGcp) {
-    console.log("Starting Pub/Sub worker...");
-    worker = new PubSubWorker();
-  } else {
-    console.log("Starting RabbitMQ worker...");
-    worker = new RabbitMQWorker();
-  }
-
-  await worker.start();
-
   let server = null;
+
+  // Start HTTP server first for Cloud Run health checks
   if (useGcp) {
-    // Create a minimal HTTP server for GCP Cloud Run health checks
     server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         data: 'Hello World!',
+        status: 'ok',
       }));
     });
-    server.listen(PORT);
+    server.listen(PORT, () => {
+      console.log(`HTTP server listening on port ${PORT}`);
+    });
+  }
+
+
+  try {
+    if (useGcp) {
+      console.log("Starting Pub/Sub worker...");
+      worker = new PubSubWorker();
+    } else {
+      console.log("Starting RabbitMQ worker...");
+      worker = new RabbitMQWorker();
+    }
+
+
+    worker.start().catch((error) => {
+      console.error("Failed to start worker:", error);
+    });
+  } catch (error) {
+    console.error("Error initializing worker:", error);
   }
 
   // Graceful shutdown

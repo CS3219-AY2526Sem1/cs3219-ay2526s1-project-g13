@@ -238,6 +238,36 @@ resource "google_cloud_run_v2_service" "user_service" {
         }
       }
 
+      env {
+        name = "ADMIN_EMAIL"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_email"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ADMIN_USERNAME"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_username"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ADMIN_PW"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_pw"
+            version = "latest"
+          }
+        }
+      }
+
       resources {
         limits = {
           cpu    = "1"
@@ -294,6 +324,46 @@ resource "google_cloud_run_v2_service" "question_service" {
       env {
         name  = "PUBSUB_PROJECT_ID"
         value = var.project_id
+      }
+
+      env {
+        name = "CLOUDINARY_CLOUD_NAME"
+        value_source {
+          secret_key_ref {
+            secret  = "cloudinary_cloud_name"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "CLOUDINARY_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = "cloudinary_api_key"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "CLOUDINARY_API_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = "cloudinary_api_secret"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "JWT_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = "jwt_secret"
+            version = "latest"
+          }
+        }
       }
 
       resources {
