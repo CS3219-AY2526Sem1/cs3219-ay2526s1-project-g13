@@ -209,6 +209,35 @@ jobs:
             ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
             # Optional: Set callback URL if collaboration service is deployed
             # ENV_VARS="${ENV_VARS},CALLBACK_URL=https://collaboration-service-preview-${BRANCH}.${{ env.REGION }}.run.app/api/v1/code/execute-callback"
+          elif [ "$SERVICE_NAME" == "user-service" ]; then
+            # User service needs MONGO_URI, JWT_SECRET, WEB_BASE_URL, and email config
+            # These should come from Secret Manager or GitHub secrets
+          
+            if [ -n "${{ secrets.MONGO_URI }}" ]; then
+              ENV_VARS="${ENV_VARS},MONGO_URI=${{ secrets.MONGO_URI }}"
+            fi  # For preview, use the same MongoDB as dev/staging or set up a separate one
+            if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+              ENV_VARS="${ENV_VARS},JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            fi
+            # WEB_BASE_URL for preview deployments
+            ENV_VARS="${ENV_VARS},WEB_BASE_URL=https://frontend-preview-${BRANCH}.${{ env.REGION }}.run.app"
+            # Email config (optional for previews)
+            if [ -n "${{ secrets.EMAIL_USER }}" ]; then
+              ENV_VARS="${ENV_VARS},EMAIL_USER=${{ secrets.EMAIL_USER }}"
+            fi
+            if [ -n "${{ secrets.EMAIL_PASSWORD }}" ]; then
+              ENV_VARS="${ENV_VARS},EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}"
+            fi
+            # Admin config (optional for previews)
+            if [ -n "${{ secrets.ADMIN_EMAIL }}" ]; then
+              ENV_VARS="${ENV_VARS},ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}"
+            fi
+            if [ -n "${{ secrets.ADMIN_USERNAME }}" ]; then
+              ENV_VARS="${ENV_VARS},ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}"
+            fi
+            if [ -n "${{ secrets.ADMIN_PW }}" ]; then
+              ENV_VARS="${ENV_VARS},ADMIN_PW=${{ secrets.ADMIN_PW }}"
+            fi
           elif [ "$SERVICE_NAME" == "matching-service" ]; then
             # Matching service needs PUBSUB_PROJECT_ID, REDIS_URL, and JWT_SECRET
             ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
