@@ -1,3 +1,11 @@
+/*
+AI Assistance Disclosure: 
+Tool: ChatGPT (model: GPT‑4o), date: 2025-09-29
+Scope: Generated comments to explain existing code functionality
+Author review: I validated correctness and edited for style
+*/
+
+
 const { Question, Solution } = require('../models/questionModel')
 const fs = require('fs')
 const path = require('path')
