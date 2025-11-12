@@ -1,0 +1,18 @@
+FROM ghcr.io/engineer-man/piston:latest
+
+# Install required tools for scripts
+RUN apt-get update && \
+    apt-get install -y curl python3 jq && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* || true
+
+# Copy the language installation script
+COPY init-languages.sh /init-languages.sh
+RUN chmod +x /init-languages.sh
+
+# Create an entrypoint script that starts piston and installs languages
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+

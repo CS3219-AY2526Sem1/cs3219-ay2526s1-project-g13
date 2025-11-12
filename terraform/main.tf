@@ -575,7 +575,7 @@ resource "google_cloud_run_v2_service" "execution_service" {
 
       env {
         name  = "PISTON_URL"
-        value = "https://emkc.org/api/v2/piston/execute"
+        value = "${google_cloud_run_v2_service.piston_api.uri}/api/v2/execute"
       }
       env {
         name  = "PUBSUB_PROJECT_ID"
@@ -586,6 +586,54 @@ resource "google_cloud_run_v2_service" "execution_service" {
         limits = {
           cpu    = "1"
           memory = "512Mi"
+        }
+      }
+    }
+  }
+
+  scaling {
+    min_instance_count = 1
+    max_instance_count = 5
+  }
+
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
+# Cloud Run Service - Piston API
+resource "google_cloud_run_v2_service" "piston_api" {
+  name                = "piston-api"
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    service_account = google_service_account.service_account.email
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/piston-api:latest"
+
+      ports {
+        container_port = 2000
+      }
+
+      env {
+        name  = "PISTON_COMPILE_TIMEOUT"
+        value = "30000"
+      }
+
+      env {
+        name  = "PISTON_RUN_TIMEOUT"
+        value = "10000"
+      }
+
+      resources {
+        limits = {
+          cpu    = "2"
+          memory = "2Gi"
         }
       }
     }
@@ -746,6 +794,13 @@ resource "google_cloud_run_service_iam_member" "video_call_service_public" {
 resource "google_cloud_run_service_iam_member" "frontend_public" {
   service  = google_cloud_run_v2_service.frontend.name
   location = google_cloud_run_v2_service.frontend.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_service_iam_member" "piston_api_public" {
+  service  = google_cloud_run_v2_service.piston_api.name
+  location = google_cloud_run_v2_service.piston_api.location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

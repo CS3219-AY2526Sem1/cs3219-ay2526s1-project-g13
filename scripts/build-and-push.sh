@@ -18,10 +18,10 @@ COLLABORATION_SERVICE_URL="https://${DOMAIN}/api/collaboration"
 VIDEO_CALL_SERVICE_URL="https://${DOMAIN}/api/video-call"
 
 
-echo "🔨 Building and pushing Docker images to ${REGISTRY}"
+echo "Building and pushing Docker images to ${REGISTRY}"
 
 # Authenticate with Google Cloud
-echo "🔐 Authenticating with Google Cloud..."
+echo "Authenticating with Google Cloud..."
 gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
 # Services to build (service-name:context-path:dockerfile-name)
@@ -33,17 +33,18 @@ SERVICES=(
   "execution-service:backend/execution-service:Dockerfile.execution"
   "video-call-service:backend/video-call-service:Dockerfile.video"
   "frontend:frontend:Dockerfile.frontend"
+  "piston-api:backend/piston-service:Dockerfile.piston"
 )
 
 for SERVICE_CONFIG in "${SERVICES[@]}"; do
   IFS=':' read -r SERVICE_NAME SERVICE_PATH DOCKERFILE <<< "$SERVICE_CONFIG"
   
   echo ""
-  echo "📦 Building ${SERVICE_NAME}..."
+  echo "Building ${SERVICE_NAME}..."
   
   # Check if Dockerfile exists
   if [ ! -f "${SERVICE_PATH}/${DOCKERFILE}" ]; then
-    echo "❌ Error: ${DOCKERFILE} not found at ${SERVICE_PATH}/${DOCKERFILE}"
+    echo "Error: ${DOCKERFILE} not found at ${SERVICE_PATH}/${DOCKERFILE}"
     echo "   Please ensure the Dockerfile exists before building."
     exit 1
   fi
@@ -67,14 +68,14 @@ for SERVICE_CONFIG in "${SERVICES[@]}"; do
   fi
   
   # Push image
-  echo "⬆️  Pushing ${SERVICE_NAME}..."
+  echo "Pushing ${SERVICE_NAME}..."
   docker push "${REGISTRY}/${SERVICE_NAME}:latest"
   
-  echo "✅ ${SERVICE_NAME} pushed successfully"
+  echo "${SERVICE_NAME} pushed successfully"
 done
 
 echo ""
-echo "🎉 All images built and pushed successfully!"
+echo "All images built and pushed successfully!"
 echo "   Registry: ${REGISTRY}"
 echo ""
 echo "Images pushed:"
