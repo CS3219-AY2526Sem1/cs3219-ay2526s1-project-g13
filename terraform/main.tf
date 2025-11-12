@@ -75,7 +75,7 @@ resource "google_redis_instance" "redis" {
   depends_on = [google_project_service.apis]
 }
 
-# Pub/Sub Topics (Kafka replacement)
+# Pub/Sub Topics (Kafka/RabbitMQ replacement)
 resource "google_pubsub_topic" "match_topic" {
   name = "match_topic"
 
@@ -100,7 +100,13 @@ resource "google_pubsub_topic" "room_created_topic" {
   depends_on = [google_project_service.apis]
 }
 
-# Pub/Sub Subscriptions (Kafka replacement)
+resource "google_pubsub_topic" "job_execution_topic" {
+  name = "job_execution_topic"
+
+  depends_on = [google_project_service.apis]
+}
+
+# Pub/Sub Subscriptions (Kafka/RabbitMQ replacement)
 resource "google_pubsub_subscription" "match_sub" {
   name  = "match_sub"
   topic = google_pubsub_topic.match_topic.name
@@ -140,6 +146,18 @@ resource "google_pubsub_subscription" "room_creation_sub" {
 resource "google_pubsub_subscription" "room_created_sub" {
   name  = "room_created_sub"
   topic = google_pubsub_topic.room_created_topic.name
+
+  ack_deadline_seconds = 20
+
+  retry_policy {
+    minimum_backoff = "10s"
+    maximum_backoff = "600s"
+  }
+}
+
+resource "google_pubsub_subscription" "job_execution_sub" {
+  name  = "job_execution_sub"
+  topic = google_pubsub_topic.job_execution_topic.name
 
   ack_deadline_seconds = 20
 
@@ -465,6 +483,57 @@ resource "google_cloud_run_v2_service" "collaboration_service" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_cloud_run_v2_service" "execution_service" {
+  name                = "execution-service"
+  location            = var.region
+  deletion_protection = false
+
+  template {
+    service_account = google_service_account.service_account.email
+
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/docker-repo/execution-service:latest"
+
+      ports {
+        container_port = 8080
+      }
+
+      env {
+        name  = "CALLBACK_URL"
+        value = "${google_cloud_run_v2_service.collaboration_service.uri}/api/v1/code/execute-callback"
+      }
+
+      env {
+        name  = "PISTON_URL"
+        value = "https://emkc.org/api/v2/piston/execute"
+      }
+      env {
+        name  = "PUBSUB_PROJECT_ID"
+        value = var.project_id
+      }
+
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
+      }
+    }
+  }
+
+  scaling {
+    min_instance_count = 1
+    max_instance_count = 5
+  }
+
+  traffic {
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+    percent = 100
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
 # Cloud Run Service - Video Call Service
 resource "google_cloud_run_v2_service" "video_call_service" {
   name                = "video-call-service"
@@ -586,6 +655,13 @@ resource "google_cloud_run_service_iam_member" "matching_service_public" {
 resource "google_cloud_run_service_iam_member" "collaboration_service_public" {
   service  = google_cloud_run_v2_service.collaboration_service.name
   location = google_cloud_run_v2_service.collaboration_service.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_service_iam_member" "execution_service_public" {
+  service  = google_cloud_run_v2_service.execution_service.name
+  location = google_cloud_run_v2_service.execution_service.location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

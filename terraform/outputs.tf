@@ -28,6 +28,11 @@ output "collaboration_service_url" {
   value       = google_cloud_run_v2_service.collaboration_service.uri
 }
 
+output "execution_service_url" {
+  description = "Execution service URL"
+  value       = google_cloud_run_v2_service.execution_service.uri
+}
+
 output "video_call_service_url" {
   description = "Video call service URL"
   value       = google_cloud_run_v2_service.video_call_service.uri
