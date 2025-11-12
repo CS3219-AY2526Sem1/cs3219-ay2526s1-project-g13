@@ -2,9 +2,103 @@
 # CS3219 Project (PeerPrep) - AY2526S1
 ## Group: G13
 
-## Quick Start
+## Live Deployment
 
-### Frontend
+**Deployment URL:** [https://cs3219-ay2526s1-g13.com/](https://cs3219-ay2526s1-g13.com/)
+
+## Local Development
+
+This section provides instructions for running the application locally on your machine.
+
+### Prerequisites
+
+Before starting, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [pnpm](https://pnpm.io/) package manager
+- [Docker](https://www.docker.com/) and Docker Compose
+- Git
+
+### Step 1: Start Infrastructure Services
+
+Start all required infrastructure services (MongoDB, Redis, RabbitMQ, Kafka, Piston API) using Docker Compose:
+
+```bash
+# Start all infrastructure services
+docker-compose up -d mongodb redis rabbitmq zookeeper kafka piston-api
+
+# Verify services are running
+docker-compose ps
+```
+
+**Note:** The Piston API container needs language packages installed. After the services start, run the initialization script (see Step 2).
+
+### Step 2: Initialize Piston Language Packages
+
+After starting the Docker services, install language packages for the Piston API:
+
+**Linux/Mac (Bash):**
+```bash
+chmod +x init-piston-languages.sh
+./init-piston-languages.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File .\init-piston-languages.ps1
+```
+
+Alternatively, if your PowerShell execution policy allows it:
+```powershell
+.\init-piston-languages.ps1
+```
+
+**Note:** Language installation happens asynchronously in the background. Some languages may take 10-30 minutes to install. The API will be functional even while languages are installing.
+
+### Step 3: Start Backend Services
+
+Each backend service should be started individually. Navigate to each service directory and start them:
+
+```bash
+# User Service (Port 8001)
+cd backend/user-service
+pnpm install
+pnpm start
+
+# Matching Service (Port 8002)
+cd backend/matching-service
+pnpm install
+pnpm start
+
+# Question Service (Port 8003)
+cd backend/question-service
+pnpm install
+pnpm start
+
+# Collaboration Service (Port 8004)
+cd backend/collaboration-service
+pnpm install
+pnpm start
+
+# Execution Service
+cd backend/execution-service
+pnpm install
+pnpm start
+
+# Video Call Service (Port 8011)
+cd backend/video-call-service
+pnpm install
+pnpm start
+```
+
+**Alternative:** You can also start all backend services using Docker Compose:
+
+```bash
+# Start all services including backend
+docker-compose up -d
+```
+
+### Step 4: Start Frontend
+
 ```bash
 # Install dependencies
 pnpm install
@@ -12,14 +106,26 @@ pnpm install
 # Start development server
 pnpm dev
 
-# Open http://localhost:3000
+# Open http://localhost:3000 in your browser
 ```
 
-### Available Commands
+### Available Frontend Commands
 - `pnpm dev` - Start frontend development server
 - `pnpm build` - Build frontend for production
 - `pnpm lint` - Run linting
 - `pnpm format` - Format code
+
+### Service Ports
+
+When running locally, services are available at:
+- **Frontend:** http://localhost:3000
+- **User Service:** http://localhost:8001
+- **Matching Service:** http://localhost:8002
+- **Question Service:** http://localhost:8003
+- **Collaboration Service:** http://localhost:8004
+- **Video Call Service:** http://localhost:8011
+- **Piston API:** http://localhost:2000
+- **RabbitMQ Management:** http://localhost:15672 (user: `user`, password: `password`)
 
 ## MongoDB Setup
 
@@ -104,30 +210,37 @@ docker exec mongodb mongodump --username admin --password password --out /data/b
 docker exec mongodb mongorestore --username admin --password password /data/backup
 ```
 
+## Project Structure
+
+- **Frontend:** Next.js application in `frontend/` directory
+- **Backend Services:** Individual microservices in `backend/` directory:
+  - `user-service/` - User authentication and management
+  - `matching-service/` - User matching for practice sessions
+  - `question-service/` - Question management
+  - `collaboration-service/` - Real-time collaboration features
+  - `execution-service/` - Code execution service
+  - `video-call-service/` - Video call functionality
+- **Infrastructure:** Docker Compose configuration and Terraform deployment scripts
+- **Terraform:** Infrastructure as code for GCP deployment in `terraform/` directory
+
 ### Note: 
 - You are required to develop individual microservices within separate folders within this repository.
 - The teaching team should be given access to the repositories as we may require viewing the history of the repository in case of any disputes or disagreements. 
 
-## Note for execution service
-- After run docker compose-up, run the next commands in terminal to install language packages for Piston
+### Execution Service API
 
-### Linux/Mac (Bash)
-```bash
-chmod +x init-piston-languages.sh
-./init-piston-languages.sh
-```
+The execution service provides the following endpoints:
 
-### Windows (PowerShell)
-```powershell
-powershell -ExecutionPolicy Bypass -File .\init-piston-languages.ps1
-```
-
-Alternatively, if your PowerShell execution policy allows it:
-```powershell
-.\init-piston-languages.ps1
-```
-- APIs
 ```bash
 POST /v1/execution/submit # submit language, code -> submit_id
 GET /v1/execution/submit/{submit_id} # get result -> submit_status = {pending | processing | done}, result
 ```
+
+## Deployment
+
+For deployment instructions, please refer to the documentation in the `terraform/` folder:
+
+- **General Deployment:** See the README and configuration files in the `terraform/` directory
+- **Piston API Setup:** See [`terraform/PISTON_API_INSTALLATION_GUIDE.md`](terraform/PISTON_API_INSTALLATION_GUIDE.md) for detailed instructions on setting up Piston API on Google Cloud Platform
+
+The deployment uses Google Cloud Platform (GCP) with Terraform for infrastructure as code.
