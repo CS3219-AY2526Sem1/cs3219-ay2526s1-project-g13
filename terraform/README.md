@@ -4,104 +4,78 @@ Infrastructure as Code for deploying PeerPrep to Google Cloud Platform using Ter
 
 ## Architecture
 
-### GCP Infrastructure Overview
-
 ```mermaid
-graph TB
-    Internet([Internet]) --> LB[Load Balancer<br/>Static IP + SSL]
-    LB --> |/| FE[Frontend<br/>Cloud Run]
-    LB --> |/api/user/*| US[User Service<br/>Cloud Run]
-    LB --> |/api/question/*| QS[Question Service<br/>Cloud Run]
-    LB --> |/api/matching/*| MS[Matching Service<br/>Cloud Run]
-    LB --> |/api/collaboration/*| CS[Collaboration Service<br/>Cloud Run]
-    LB --> |/api/video-call/*| VS[Video Call Service<br/>Cloud Run]
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph InternetZone["🌐 Internet"]
+        Internet(["User"])
+  end
 
-    MS --> VPC[VPC Connector]
-    VPC --> Redis[(Redis<br/>Memorystore)]
+ subgraph LbZone["🌀 Load Balancer Layer"]
+        LB["Load Balancer<br>Static IP + SSL"]
+  end
 
-    MS --> PS[Pub/Sub Topics]
-    CS --> PS
-    QS --> PS
-    ES --> PS
+ subgraph CloudRun["☁️ Cloud Run Services"]
+        FE["Frontend"]
+        US["User Service"]
+        QS["Question Service"]
+        MS["Matching Service"]
+        CS["Collaboration Service"]
+        VS["Video Call Service"]
+        ES["Execution Service"]
+  end
 
-    US --> DB1[(MongoDB Atlas<br/>User DB)]
-    QS --> DB2[(MongoDB Atlas<br/>Question DB)]
-    CS --> DB3[(MongoDB Atlas<br/>Collab DB)]
+ subgraph VPC["🔒 Private VPC Network"]
+        Connector["VPC Connector<br>10.8.0.0/28"]
+        Redis[("Redis<br>Memorystore")]
+        Subnet["Subnet<br>10.0.0.0/24"]
+  end
 
-    CS --> ES[Execution Service<br/>Cloud Run]
-    ES --> Piston[Piston API<br/>External]
+ subgraph Databases["🗄️ MongoDB Atlas"]
+        DB1[("User DB")]
+        DB2[("Question DB")]
+        DB3[("Collab DB")]
+  end
 
-    subgraph "Secret Manager"
-        Secrets[JWT Secret<br/>MongoDB URIs<br/>API Keys]
-    end
+ subgraph Messaging["🪶 Pub/Sub"]
+        PS["Pub/Sub Topics<br>&amp; Subscriptions"]
+  end
 
-    US -.-> Secrets
-    QS -.-> Secrets
-    MS -.-> Secrets
-    CS -.-> Secrets
-    VS -.-> Secrets
-```
+ subgraph Artifacts["🧱 Artifacts"]
+        AR["Artifact Registry<br>Docker Images"]
+  end
 
-### Resource Organization
+ subgraph Security["🔐 Security & IAM"]
+        SA["Service Account"]
+        SM["Secret Manager<br>JWT Secrets, API Keys, etc."]
+  end
 
-```mermaid
-graph LR
-    subgraph "Public Internet-Facing"
-        direction TB
-        IP[Static IP];
-        SSL[SSL Certificate];
-        LB[Load Balancer];
-        IP --> LB;
-        SSL --> LB;
-    end
+ subgraph External["⚙️ External Services"]
+        Piston["Piston API<br>Code Executor"]
+  end
 
-    subgraph "Private VPC"
-        direction TB
-        Subnet["Subnet<br/>10.0.0.0/24<br/>"];
-        Connector["VPC Connector<br/>10.8.0.0/28<br/>"];
-        Redis[(Redis)];
-    end
+    Internet --> LB
+    LB -- / --> FE
+    LB -- /api/user/* --> US
+    LB -- /api/question/* --> QS
+    LB -- /api/matching/* --> MS
+    LB -- /api/collaboration/* --> CS
+    LB -- "/api/video-call/*" --> VS
 
-    subgraph "Public Services"
-        direction TB
-        FE[Frontend];
-        US[User Service];
-        QS[Question Service];
-        MS[Matching Service];
-        CS[Collaboration Service];
-        ES[Execution Service];
-        VS[Video Call Service];
-        CR[Cloud Run Instances];
-        CR -- "/" --> FE;
-        CR -- "/api/user/*" --> US;
-        CR -- "/api/question/*" --> QS;
-        CR -- "/api/matching/*" --> MS;
-        CR -- "/api/collaboration/*" --> CS;
-        CR -- "/api/video-call/*" --> VS;
-    end
+    Connector --> Redis
+    MS --> Connector & PS
+    US --> DB1
+    QS --> DB2 & PS
+    CS --> DB3 & PS & ES
+    ES --> PS & Piston
 
-    subgraph "Data & Messaging"
-        direction TB
-        PS[Pub/Sub Topics<br/>& Subscriptions];
-        AR[Artifact Registry];
-    end
+    SA --> CloudRun
+    SM --> CloudRun
+    AR --> CloudRun
 
-    subgraph "Security"
-        direction TB
-        SA[Service Account];
-        SM[Secret Manager];
-    end
-
-    %% --- CONNECTIONS ---
-    LB --> CR;
-
-    MS --> Connector;
-    Connector --> Redis;
-
-    SA --> CR;
-    SM --> CR;
-    PS --> CR;
-    AR --> CR;
 ```
 
 ## Infrastructure Components
