@@ -18,12 +18,9 @@ const questionSchema = mongoose.Schema({
     topic: {
         type: String,
         enum: [
-            'Array', 'Algorithms', 'Backtracking', 'Breadth-first search', 'Binary search', 'Bit manipulation',
-            'Brainteaser', 'Data Structures', 'Databases', 'Depth-first search', 'Divide and conquer',
-            'Dynamic programming', 'Greedy', 'Hash table', 'Linked list', 'Math',
-            'Matrix', 'Memoization', 'Monotonic stack', 'Recursion', 'Segment tree',
-            'Sorting', 'Stack', 'String', 'Topological sort', 'Tree',
-            'Trie', 'Two pointers', 'Queue', 'Quickselect', 'Union find'
+            'Array', 'Algorithms', 'Backtracking', 'Binary search', 'Bit manipulation',
+            'Dynamic programming', 'Linked list', 'Math', 'Depth-first search', 
+            'Sorting', 'Stack', 'String', 'Tree','Quickselect', 
           ],
         required: true
     },
@@ -91,12 +88,9 @@ const solutionSchema = mongoose.Schema({
     topic: {
         type: String,
         enum: [
-            'Array', 'Algorithms', 'Backtracking', 'Breadth-first search', 'Binary search', 'Bit manipulation',
-            'Brainteaser', 'Data Structures', 'Databases', 'Depth-first search', 'Divide and conquer',
-            'Dynamic programming', 'Greedy', 'Hash table', 'Linked list', 'Math',
-            'Matrix', 'Memoization', 'Monotonic stack', 'Recursion', 'Segment tree',
-            'Sorting', 'Stack', 'String', 'Topological sort', 'Tree',
-            'Trie', 'Two pointers', 'Queue', 'Quickselect', 'Union find'
+            'Array', 'Algorithms', 'Backtracking', 'Binary search', 'Bit manipulation',
+            'Dynamic programming', 'Linked list', 'Math', 'Depth-first search', 
+            'Sorting', 'Stack', 'String', 'Tree','Quickselect', 
           ],
         required: true
     },

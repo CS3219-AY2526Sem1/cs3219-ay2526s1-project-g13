@@ -36,11 +36,13 @@ export function SolutionView({ questionId, selectedLang }: SolutionViewProps) {
     };
   }, [questionId]);
 
-  // 🔎 just pick by language
-  const activeSolution = useMemo(
-    () => solutions.find((s) => s.language === selectedLang) ?? null,
-    [solutions, selectedLang],
-  );
+  const activeSolution = useMemo(() => {
+    if (!solutions || solutions.length === 0) return null;
+    const exact = solutions.find(
+      (s) => String(s.language).toLowerCase() === String(selectedLang).toLowerCase(),
+    );
+    return exact ?? solutions[0];
+  }, [solutions, selectedLang]);
 
   if (loading) return <p>Loading…</p>;
   if (solutions.length === 0) return <p>No solutions yet.</p>;

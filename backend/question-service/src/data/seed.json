@@ -1,4 +1,4 @@
-[
+ [ 
   {
     "questionID": 1,
     "title": "Two Sum",
@@ -13,7 +13,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/two-sum/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/two-sum-diagram.png",
     "status": "Active"
   },
   {
@@ -64,7 +63,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/longest-increasing-subsequence/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/22/lis_example1.jpg",
     "status": "Active"
   },
   {
@@ -86,7 +84,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/valid-parentheses/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2021/03/27/valid_parentheses_example.png",
     "status": "Archived"
   },
   {
@@ -106,7 +103,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/number-of-islands/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2021/03/27/island_grid.jpg",
     "status": "Active"
   },
   {
@@ -123,7 +119,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/merge-intervals/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/merge_intervals.jpg",
     "status": "Active"
   },
   {
@@ -143,7 +138,6 @@
       }
     ],
     "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2020/11/05/find_kth_largest.jpg",
     "status": "Archived"
   },
   {
@@ -187,7 +181,2376 @@
       }
     ],
     "link": "https://leetcode.com/problems/find-peak-element/",
-    "mediaLink": "https://assets.leetcode.com/uploads/2020/10/02/find_peak_element.jpg",
+    "status": "Active"
+  },
+  {
+  "questionID": 11,
+  "title": "Valid Sudoku",
+  "difficulty": "Medium",
+  "topic": "Array",
+  "description": "Determine if a 9 x 9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules: 1) Each row must contain the digits 1-9 without repetition. 2) Each column must contain the digits 1-9 without repetition. 3) Each of the nine 3 x 3 sub-boxes of the grid must contain the digits 1-9 without repetition. The Sudoku board could be partially filled, where empty cells are filled with the character '.'.",
+  "examples": [
+    {
+      "input": "board = [['5','3','.','.','7','.','.','.','.'], ['6','.','.','1','9','5','.','.','.'], ['.','9','8','.','.','.','.','6','.'], ['8','.','.','.','6','.','.','.','3'], ['4','.','.','8','.','3','.','.','1'], ['7','.','.','.','2','.','.','.','6'], ['.','6','.','.','.','.','2','8','.'], ['.','.','.','4','1','9','.','.','5'], ['.','.','.','.','8','.','.','7','9']]",
+      "output": "true",
+      "explanation": "Each row, column, and 3x3 sub-box contains no repeated digits."
+    },
+    {
+      "input": "board = [['8','3','.','.','7','.','.','.','.'], ['6','.','.','1','9','5','.','.','.'], ['.','9','8','.','.','.','.','6','.'], ['8','.','.','.','6','.','.','.','3'], ['4','.','.','8','.','3','.','.','1'], ['7','.','.','.','2','.','.','.','6'], ['.','6','.','.','.','.','2','8','.'], ['.','.','.','4','1','9','.','.','5'], ['.','.','.','.','8','.','.','7','9']]",
+      "output": "false",
+      "explanation": "There are two 8's in the first column, violating Sudoku rules."
+    }
+  ],
+  "link": "https://leetcode.com/problems/valid-sudoku/",
+  "mediaLink": "https://res.cloudinary.com/dhjknervo/image/upload/v1762774983/validSudoku_tvywyr.jpg",
+  "status": "Active"
+}
+
+,
+  {
+    "questionID": 12,
+    "title": "Merge k Sorted Lists",
+    "difficulty": "Hard",
+    "topic": "Linked list",
+    "description": "Merge k sorted linked lists and return it as one sorted list. Analyze and describe its complexity.",
+    "examples": [
+      {
+        "input": "lists = [[1,4,5],[1,3,4],[2,6]]",
+        "output": "[1,1,2,3,4,4,5,6]",
+        "explanation": "The merged list in sorted order contains all nodes from the input lists."
+      }
+    ],
+    "link": "https://leetcode.com/problems/merge-k-sorted-lists/",
+    "status": "Active"
+  },
+  {
+    "questionID": 13,
+    "title": "Reverse Nodes in k-Group",
+    "difficulty": "Hard",
+    "topic": "Linked list",
+    "description": "Given a linked list, reverse the nodes of a linked list k at a time and return its modified list. k is a positive integer and is less than or equal to the length of the linked list. If the number of nodes is not a multiple of k then left-out nodes in the end should remain as is.",
+    "examples": [
+      {
+        "input": "head = [1,2,3,4,5], k = 2",
+        "output": "[2,1,4,3,5]",
+        "explanation": "Nodes are reversed in groups of two."
+      }
+    ],
+    "link": "https://leetcode.com/problems/reverse-nodes-in-k-group/",
+    "status": "Active"
+  },
+  {
+    "questionID": 14,
+    "title": "Copy List with Random Pointer",
+    "difficulty": "Hard",
+    "topic": "Linked list",
+    "description": "A linked list is given such that each node contains an additional random pointer which could point to any node in the list or null. Return a deep copy of the list.",
+    "examples": [
+      {
+        "input": "head = [[7,null],[13,0],[11,4],[10,2],[1,0]]",
+        "output": "[[7,null],[13,0],[11,4],[10,2],[1,0]]",
+        "explanation": "A deep copy with the same next and random pointer structure should be returned."
+      }
+    ],
+    "link": "https://leetcode.com/problems/copy-list-with-random-pointer/",
+    "status": "Active"
+  },
+  {
+    "questionID": 15,
+    "title": "Sort List",
+    "difficulty": "Medium",
+    "topic": "Linked list",
+    "description": "Sort a linked list in O(n log n) time and constant space complexity (in-place). Return the sorted list.",
+    "examples": [
+      {
+        "input": "head = [4,2,1,3]",
+        "output": "[1,2,3,4]",
+        "explanation": "The nodes are rearranged to form a sorted list."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sort-list/",
+    "status": "Active"
+  },
+  {
+    "questionID": 16,
+    "title": "Add Two Numbers",
+    "difficulty": "Medium",
+    "topic": "Linked list",
+    "description": "You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.",
+    "examples": [
+      {
+        "input": "l1 = [2,4,3], l2 = [5,6,4]",
+        "output": "[7,0,8]",
+        "explanation": "342 + 465 = 807. The result is returned as [7,0,8]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/add-two-numbers/",
+    "status": "Active"
+  },
+  {
+    "questionID": 17,
+    "title": "Linked List Cycle II",
+    "difficulty": "Medium",
+    "topic": "Linked list",
+    "description": "Given a linked list, return the node where the cycle begins. If there is no cycle, return null. Try to solve it without using extra space.",
+    "examples": [
+      {
+        "input": "head = [3,2,0,-4], pos = 1",
+        "output": "node with value 2",
+        "explanation": "There is a cycle that starts at node index 1 (0-based)."
+      }
+    ],
+    "link": "https://leetcode.com/problems/linked-list-cycle-ii/",
+    "mediaLink":"https://assets.leetcode.com/uploads/2018/12/07/circularlinkedlist.png",
+    "status": "Active"
+  }
+,
+  {
+    "questionID": 18,
+    "title": "Product of Array Except Self",
+    "difficulty": "Hard",
+    "topic": "Array",
+    "description": "Given an array nums of n integers where n > 1, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i]. Solve without using division and in O(n) time.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3,4]",
+        "output": "[24,12,8,6]",
+        "explanation": "Product of all other elements for each index."
+      }
+    ],
+    "link": "https://leetcode.com/problems/product-of-array-except-self/",
+    "status": "Active"
+  },
+  {
+    "questionID": 19,
+    "title": "Trapping Rain Water",
+    "difficulty": "Hard",
+    "topic": "Array",
+    "description": "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
+    "examples": [
+      {
+        "input": "height = [0,1,0,2,1,0,1,3,2,1,2,1]",
+        "output": "6",
+        "explanation": "The elevation map traps 6 units of rain water."
+      }
+    ],
+    "link": "https://leetcode.com/problems/trapping-rain-water/",
+    "status": "Active"
+  },
+  {
+    "questionID": 20,
+    "title": "Longest Consecutive Sequence",
+    "difficulty": "Hard",
+    "topic": "Array",
+    "description": "Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence. Your algorithm should run in O(n) time.",
+    "examples": [
+      {
+        "input": "nums = [100,4,200,1,3,2]",
+        "output": "4",
+        "explanation": "The longest consecutive sequence is [1,2,3,4]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/longest-consecutive-sequence/",
+    "status": "Active"
+  },
+  {
+    "questionID": 21,
+    "title": "3Sum",
+    "difficulty": "Medium",
+    "topic": "Array",
+    "description": "Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0. The solution set must not contain duplicate triplets.",
+    "examples": [
+      {
+        "input": "nums = [-1,0,1,2,-1,-4]",
+        "output": "[[-1,-1,2],[-1,0,1]]",
+        "explanation": "Two unique triplets sum to zero."
+      }
+    ],
+    "link": "https://leetcode.com/problems/3sum/",
+    "status": "Active"
+  },
+  {
+    "questionID": 22,
+    "title": "Best Time to Buy and Sell Stock II",
+    "difficulty": "Medium",
+    "topic": "Array",
+    "description": "Given an array prices where prices[i] is the price of a given stock on the i-th day, return the maximum profit you can achieve. You may complete as many transactions as you like (i.e., buy one and sell one share of the stock multiple times).",
+    "examples": [
+      {
+        "input": "prices = [7,1,5,3,6,4]",
+        "output": "7",
+        "explanation": "Buy on day 2 and sell on day 3, profit = 4. Buy on day 4 and sell on day 5, profit = 3. Total = 7."
+      }
+    ],
+    "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 23,
+    "title": "Find Minimum in Rotated Sorted Array",
+    "difficulty": "Medium",
+    "topic": "Array",
+    "description": "Suppose an array of length n sorted in ascending order is rotated between 1 and n times. Given the rotated array nums of unique elements, return the minimum element of this array in O(log n) time.",
+    "examples": [
+      {
+        "input": "nums = [4,5,6,7,0,1,2]",
+        "output": "0",
+        "explanation": "0 is the minimum value after rotation."
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 24,
+    "title": "Remove Duplicates from Sorted Array",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Given a sorted array nums, remove the duplicates in-place such that each element appears only once and return the new length. Do not allocate extra space for another array; modify the input array in-place.",
+    "examples": [
+      {
+        "input": "nums = [1,1,2]",
+        "output": "2",
+        "explanation": "The first two elements of nums after removal are 1 and 2."
+      }
+    ],
+    "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 25,
+    "title": "Move Zeroes",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Given an integer array nums, move all 0's to the end of it while maintaining the relative order of the non-zero elements. Do this in-place with minimal operations.",
+    "examples": [
+      {
+        "input": "nums = [0,1,0,3,12]",
+        "output": "[1,3,12,0,0]",
+        "explanation": "All zeros are moved to the end preserving order of other elements."
+      }
+    ],
+    "link": "https://leetcode.com/problems/move-zeroes/",
+    "status": "Active"
+  },
+  {
+    "questionID": 26,
+    "title": "Reverse String",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Write a function that reverses a string. The input is given as an array of characters s. You must do this by modifying the input array in-place with O(1) extra memory.",
+    "examples": [
+      {
+        "input": "s = [\"h\",\"e\",\"l\",\"l\",\"o\"]",
+        "output": "[\"o\",\"l\",\"l\",\"e\",\"h\"]",
+        "explanation": "The characters are reversed in-place."
+      }
+    ],
+    "link": "https://leetcode.com/problems/reverse-string/",
+    "status": "Active"
+  }
+
+,
+  {
+    "questionID": 27,
+    "title": "Median of Two Sorted Arrays",
+    "difficulty": "Hard",
+    "topic": "Algorithms",
+    "description": "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).",
+    "examples": [
+      {
+        "input": "nums1 = [1,3], nums2 = [2]",
+        "output": "2.0",
+        "explanation": "Merged array = [1,2,3], median is 2.0"
+      }
+    ],
+    "link": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+    "status": "Active"
+  },
+  {
+    "questionID": 28,
+    "title": "LFU Cache",
+    "difficulty": "Hard",
+    "topic": "Algorithms",
+    "description": "Design and implement a data structure for a Least Frequently Used (LFU) cache. It should support get and put operations in O(1) time complexity.",
+    "examples": [
+      {
+        "input": "operations = [put(1,1), put(2,2), get(1), put(3,3)]",
+        "output": "[null,null,1,null]",
+        "explanation": "Access patterns update frequencies and evict least frequently used items on capacity overflow."
+      }
+    ],
+    "link": "https://leetcode.com/problems/lfu-cache/",
+    "status": "Active"
+  },
+  {
+    "questionID": 29,
+    "title": "N-Queens",
+    "difficulty": "Hard",
+    "topic": "Algorithms",
+    "description": "The n-queens puzzle is the problem of placing n queens on an n x n chessboard such that no two queens attack each other. Return all distinct solutions.",
+    "examples": [
+      {
+        "input": "n = 4",
+        "output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]",
+        "explanation": "There are two distinct solutions to the 4-queens puzzle."
+      }
+    ],
+    "link": "https://leetcode.com/problems/n-queens/",
+    "status": "Active"
+  },
+  {
+    "questionID": 30,
+    "title": "Top K Frequent Elements",
+    "difficulty": "Medium",
+    "topic": "Algorithms",
+    "description": "Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.",
+    "examples": [
+      {
+        "input": "nums = [1,1,1,2,2,3], k = 2",
+        "output": "[1,2]",
+        "explanation": "1 and 2 are the two most frequent elements."
+      }
+    ],
+    "link": "https://leetcode.com/problems/top-k-frequent-elements/",
+    "status": "Active"
+  },
+  {
+    "questionID": 31,
+    "title": "K Closest Points to Origin",
+    "difficulty": "Medium",
+    "topic": "Algorithms",
+    "description": "Given an array of points where points[i] = [xi, yi] and an integer k, return the k closest points to the origin (0, 0).",
+    "examples": [
+      {
+        "input": "points = [[1,3],[-2,2]], k = 1",
+        "output": "[[-2,2]]",
+        "explanation": "The point [-2,2] is closer to the origin than [1,3]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/k-closest-points-to-origin/",
+    "status": "Active"
+  },
+  {
+    "questionID": 32,
+    "title": "Course Schedule",
+    "difficulty": "Medium",
+    "topic": "Algorithms",
+    "description": "There are a total of numCourses you have to take, labeled from 0 to numCourses-1. Some courses may have prerequisites. Determine if you can finish all courses.",
+    "examples": [
+      {
+        "input": "numCourses = 2, prerequisites = [[1,0]]",
+        "output": "true",
+        "explanation": "You can take course 0 then course 1."
+      }
+    ],
+    "link": "https://leetcode.com/problems/course-schedule/",
+    "status": "Active"
+  },
+  {
+    "questionID": 33,
+    "title": "Contains Duplicate",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3,1]",
+        "output": "true",
+        "explanation": "1 appears twice."
+      }
+    ],
+    "link": "https://leetcode.com/problems/contains-duplicate/",
+    "status": "Active"
+  },
+  {
+    "questionID": 34,
+    "title": "Single Number",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Given a non-empty array of integers nums, every element appears twice except for one. Find that single one.",
+    "examples": [
+      {
+        "input": "nums = [4,1,2,1,2]",
+        "output": "4",
+        "explanation": "4 is the single number."
+      }
+    ],
+    "link": "https://leetcode.com/problems/single-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 35,
+    "title": "Intersection of Two Arrays II",
+    "difficulty": "Easy",
+    "topic": "Array",
+    "description": "Given two integer arrays nums1 and nums2, return an array of their intersection. Each element in the result should appear as many times as it shows in both arrays.",
+    "examples": [
+      {
+        "input": "nums1 = [1,2,2,1], nums2 = [2,2]",
+        "output": "[2,2]",
+        "explanation": "Both arrays contain two 2's."
+      }
+    ],
+    "link": "https://leetcode.com/problems/intersection-of-two-arrays-ii/",
+    "status": "Active"
+  }
+  ,
+  {
+    "questionID": 36,
+    "title": "Power of Two",
+    "difficulty": "Easy",
+    "topic": "Algorithms",
+    "description": "Given an integer n, return true if it is a power of two. An integer n is a power of two if there exists an integer x such that n == 2^x.",
+    "examples": [
+      {
+        "input": "n = 16",
+        "output": "true",
+        "explanation": "16 is 2^4"
+      },
+      {
+        "input": "n = 3",
+        "output": "false",
+        "explanation": "3 is not a power of two"
+      }
+    ],
+    "link": "https://leetcode.com/problems/power-of-two/",
+    "status": "Active"
+  },
+  {
+    "questionID": 37,
+    "title": "Majority Element",
+    "difficulty": "Easy",
+    "topic": "Algorithms",
+    "description": "Given an array nums of size n, return the majority element. The majority element is the element that appears more than floor(n/2) times. You may assume that the majority element always exists in the array.",
+    "examples": [
+      {
+        "input": "nums = [3,2,3]",
+        "output": "3",
+        "explanation": "3 appears twice which is more than floor(3/2)."
+      }
+    ],
+    "link": "https://leetcode.com/problems/majority-element/",
+    "status": "Active"
+  },
+  {
+    "questionID": 38,
+    "title": "Happy Number",
+    "difficulty": "Easy",
+    "topic": "Algorithms",
+    "description": "Write an algorithm to determine if a number n is a happy number. A happy number is defined by the following process: starting with any positive integer, replace the number by the sum of the squares of its digits, and repeat until the number equals 1 (where it will stay), or it loops endlessly in a cycle which does not include 1. Return true if n is a happy number.",
+    "examples": [
+      {
+        "input": "n = 19",
+        "output": "true",
+        "explanation": "19 -> 1^2 + 9^2 = 82 -> ... -> 1"
+      }
+    ],
+    "link": "https://leetcode.com/problems/happy-number/",
+    "status": "Active"
+  }
+,
+  {
+    "questionID": 39,
+    "title": "Word Search II",
+    "difficulty": "Hard",
+    "topic": "Backtracking",
+    "description": "Given a 2D board of characters and a list of words from the dictionary, return all words on the board. Words must be constructed from letters of sequentially adjacent cells, where adjacent cells are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.",
+    "examples": [
+      {
+        "input": "board = [['o','a','a','n'],['e','t','a','e'],['i','h','k','r'],['i','f','l','v']], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",
+        "output": "[\"oath\",\"eat\"]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/word-search-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 40,
+    "title": "Sudoku Solver",
+    "difficulty": "Hard",
+    "topic": "Backtracking",
+    "description": "Write a program to solve a Sudoku puzzle by filling the empty cells. A solution must satisfy the Sudoku rules: each of the digits 1-9 must occur exactly once in each row, column and 3x3 sub-box.",
+    "examples": [
+      {
+        "input": "board = [[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"], [\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"], [\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"], [\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"], [\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"], [\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"], [\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"], [\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"], [\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
+        "output": "Solved board (unique valid Sudoku solution)"
+      }
+    ],
+    "link": "https://leetcode.com/problems/sudoku-solver/",
+    "status": "Active"
+  },
+  {
+    "questionID": 41,
+    "title": "Palindrome Partitioning II",
+    "difficulty": "Hard",
+    "topic": "Backtracking",
+    "description": "Given a string s, partition s such that every substring of the partition is a palindrome. Return the minimum number of cuts needed for a palindrome partitioning of s.",
+    "examples": [
+      {
+        "input": "s = \"aab\"",
+        "output": "1",
+        "explanation": "The palindrome partitioning [\"aa\",\"b\"] requires 1 cut."
+      }
+    ],
+    "link": "https://leetcode.com/problems/palindrome-partitioning-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 42,
+    "title": "Combination Sum",
+    "difficulty": "Medium",
+    "topic": "Backtracking",
+    "description": "Given an array of distinct integers candidates and a target integer target, return a list of all unique combinations of candidates where the chosen numbers sum to target. The same repeated number may be chosen from candidates unlimited times.",
+    "examples": [
+      {
+        "input": "candidates = [2,3,6,7], target = 7",
+        "output": "[[2,2,3],[7]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/combination-sum/",
+    "status": "Active"
+  },
+  {
+    "questionID": 43,
+    "title": "Permutations",
+    "difficulty": "Medium",
+    "topic": "Backtracking",
+    "description": "Given an array nums of distinct integers, return all possible permutations in any order.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3]",
+        "output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/permutations/",
+    "status": "Active"
+  },
+  {
+    "questionID": 44,
+    "title": "Subsets",
+    "difficulty": "Medium",
+    "topic": "Backtracking",
+    "description": "Given an integer array nums of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3]",
+        "output": "[[3],[1],[2],[1,2,3],[1,3],[2,3],[1,2],[]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/subsets/",
+    "status": "Active"
+  },
+  {
+    "questionID": 45,
+    "title": "Generate Parentheses",
+    "difficulty": "Easy",
+    "topic": "Backtracking",
+    "description": "Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.",
+    "examples": [
+      {
+        "input": "n = 3",
+        "output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/generate-parentheses/",
+    "status": "Active"
+  },
+  {
+    "questionID": 46,
+    "title": "Letter Case Permutation",
+    "difficulty": "Easy",
+    "topic": "Backtracking",
+    "description": "Given a string s, you can transform every letter individually to be lowercase or uppercase to create another string. Return a list of all possible strings we could create.",
+    "examples": [
+      {
+        "input": "s = \"a1b2\"",
+        "output": "[\"a1b2\",\"a1B2\",\"A1b2\",\"A1B2\"]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/letter-case-permutation/",
+    "status": "Active"
+  },
+  {
+    "questionID": 47,
+    "title": "Combination Sum III",
+    "difficulty": "Easy",
+    "topic": "Backtracking",
+    "description": "Find all valid combinations of k numbers that sum to n such that the numbers are from 1 to 9 and each combination is unique. Return a list of all possible valid combinations.",
+    "examples": [
+      {
+        "input": "k = 3, n = 7",
+        "output": "[[1,2,4]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/combination-sum-iii/",
+    "status": "Active"
+  }
+
+  ,
+  {
+    "questionID": 48,
+    "title": "Median of Two Sorted Arrays",
+    "difficulty": "Hard",
+    "topic": "Binary search",
+    "description": "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.",
+    "examples": [
+      {
+        "input": "nums1 = [1,3], nums2 = [2]",
+        "output": "2.0",
+        "explanation": "The merged array is [1,2,3] and the median is 2.0"
+      }
+    ],
+    "link": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+    "status": "Active"
+  },
+  {
+    "questionID": 49,
+    "title": "K-th Smallest Pair Distance",
+    "difficulty": "Hard",
+    "topic": "Binary search",
+    "description": "Given an integer array nums and an integer k, return the k-th smallest distance among all the pairs (i, j). The distance of a pair is the absolute difference between the two numbers.",
+    "examples": [
+      {
+        "input": "nums = [1,3,1], k = 1",
+        "output": "0",
+        "explanation": "The pair (1,1) has distance 0 which is the smallest."
+      }
+    ],
+    "link": "https://leetcode.com/problems/k-th-smallest-pair-distance/",
+    "status": "Active"
+  },
+  {
+    "questionID": 50,
+    "title": "Split Array Largest Sum",
+    "difficulty": "Hard",
+    "topic": "Binary search",
+    "description": "Given an array nums and an integer m, split the array into m non-empty continuous subarrays to minimize the largest sum among these subarrays and return that minimized largest sum.",
+    "examples": [
+      {
+        "input": "nums = [7,2,5,10,8], m = 2",
+        "output": "18",
+        "explanation": "Split into [7,2,5] and [10,8], largest sum is 14 and 18, so minimized largest is 18."
+      }
+    ],
+    "link": "https://leetcode.com/problems/split-array-largest-sum/",
+    "status": "Active"
+  },
+  {
+    "questionID": 51,
+    "title": "Search in Rotated Sorted Array",
+    "difficulty": "Medium",
+    "topic": "Binary search",
+    "description": "Given the array nums after the rotation and an integer target, return the index of target if it is in nums, or -1 if it is not in nums.",
+    "examples": [
+      {
+        "input": "nums = [4,5,6,7,0,1,2], target = 0",
+        "output": "4"
+      }
+    ],
+    "link": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 52,
+    "title": "Find First and Last Position of Element in Sorted Array",
+    "difficulty": "Medium",
+    "topic": "Binary search",
+    "description": "Given an array of integers nums sorted in non-decreasing order, find the starting and ending position of a given target value. If target is not found, return [-1, -1].",
+    "examples": [
+      {
+        "input": "nums = [5,7,7,8,8,10], target = 8",
+        "output": "[3,4]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 53,
+    "title": "Find Minimum in Rotated Sorted Array",
+    "difficulty": "Medium",
+    "topic": "Binary search",
+    "description": "Suppose an array nums of length n sorted in ascending order is rotated between 1 and n times. Return the minimum element of this array.",
+    "examples": [
+      {
+        "input": "nums = [3,4,5,1,2]",
+        "output": "1"
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 54,
+    "title": "Binary Search",
+    "difficulty": "Easy",
+    "topic": "Binary search",
+    "description": "Given a sorted (ascending) integer array nums of n elements and a target value, write a function to search target in nums. If target exists, then return its index, otherwise return -1.",
+    "examples": [
+      {
+        "input": "nums = [-1,0,3,5,9,12], target = 9",
+        "output": "4"
+      }
+    ],
+    "link": "https://leetcode.com/problems/binary-search/",
+    "status": "Active"
+  },
+  {
+    "questionID": 55,
+    "title": "Sqrt(x)",
+    "difficulty": "Easy",
+    "topic": "Binary search",
+    "description": "Given a non-negative integer x, compute and return the integer square root of x, i.e., return the floor of sqrt(x).",
+    "examples": [
+      {
+        "input": "x = 8",
+        "output": "2",
+        "explanation": "The square root of 8 is 2.828..., and its floor is 2."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sqrtx/",
+    "status": "Active"
+  },
+  {
+    "questionID": 56,
+    "title": "First Bad Version",
+    "difficulty": "Easy",
+    "topic": "Binary search",
+    "description": "You are a product manager and currently leading a team to develop a new product. Given n versions and an API isBadVersion(version) which returns whether the version is bad, find the first bad version.",
+    "examples": [
+      {
+        "input": "n = 5; versions: [1,2,3,4,5]; first bad = 4",
+        "output": "4"
+      }
+    ],
+    "link": "https://leetcode.com/problems/first-bad-version/",
+    "status": "Active"
+  },
+  {
+    "questionID": 57,
+    "title": "Longest Increasing Path in a Matrix",
+    "difficulty": "Hard",
+    "topic": "Depth-first search",
+    "description": "Given an m x n integers matrix, return the length of the longest increasing path in the matrix. From each cell, you can move in four directions (up, down, left, right). You may not move diagonally or move outside the boundary.",
+    "examples": [
+      {
+        "input": "matrix = [[9,9,4],[6,6,8],[2,1,1]]",
+        "output": "4",
+        "explanation": "The longest increasing path is [1, 2, 6, 9]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+    "status": "Active"
+  },
+  {
+    "questionID": 58,
+    "title": "Critical Connections in a Network",
+    "difficulty": "Hard",
+    "topic": "Depth-first search",
+    "description": "You are given an undirected network of n servers labeled from 0 to n-1 and a list of connections where connections[i] = [u, v] represents a connection between servers u and v. A critical connection is an edge that, if removed, will make some servers unable to reach some other server. Return all critical connections in the network in any order.",
+    "examples": [
+      {
+        "input": "n = 4, connections = [[0,1],[1,2],[2,0],[1,3]]",
+        "output": "[[1,3]]",
+        "explanation": "Removing [1,3] disconnects server 3."
+      }
+    ],
+    "link": "https://leetcode.com/problems/critical-connections-in-a-network/",
+    "status": "Active"
+  },
+  {
+    "questionID": 59,
+    "title": "Word Ladder II",
+    "difficulty": "Hard",
+    "topic": "Depth-first search",
+    "description": "Given two words beginWord and endWord, and a dictionary wordList, return all the shortest transformation sequences from beginWord to endWord, or an empty list if no such sequence exists. Each transformed word must exist in wordList. Each transformation changes exactly one letter.",
+    "examples": [
+      {
+        "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
+        "output": "[[\"hit\",\"hot\",\"dot\",\"dog\",\"cog\"],[\"hit\",\"hot\",\"lot\",\"log\",\"cog\"]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/word-ladder-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 60,
+    "title": "Clone Graph",
+    "difficulty": "Medium",
+    "topic": "Depth-first search",
+    "description": "Given a reference of a node in a connected undirected graph, return a deep copy (clone) of the graph. Each node contains a value and a list of its neighbors.",
+    "examples": [
+      {
+        "input": "adjList = [[2,4],[1,3],[2,4],[1,3]]",
+        "output": "[[2,4],[1,3],[2,4],[1,3]]",
+        "explanation": "The graph is cloned node-for-node with corresponding edges."
+      }
+    ],
+    "link": "https://leetcode.com/problems/clone-graph/",
+    "status": "Active"
+  },
+  {
+    "questionID": 61,
+    "title": "Max Area of Island",
+    "difficulty": "Medium",
+    "topic": "Depth-first search",
+    "description": "Given a binary matrix grid where 1 represents land and 0 represents water, return the maximum area of an island in grid. If there is no island, return 0. An island is a group of 1's connected 4-directionally.",
+    "examples": [
+      {
+        "input": "grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0]]",
+        "output": "6"
+      }
+    ],
+    "link": "https://leetcode.com/problems/max-area-of-island/",
+    "status": "Active"
+  },
+  {
+    "questionID": 62,
+    "title": "Pacific Atlantic Water Flow",
+    "difficulty": "Medium",
+    "topic": "Depth-first search",
+    "description": "Given an m x n matrix of non-negative integers representing the height of each cell, return a list of grid coordinates where water can flow to both the Pacific and Atlantic oceans. Water can flow from a cell to neighboring cells with height less than or equal to the current cell.",
+    "examples": [
+      {
+        "input": "heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]",
+        "output": "[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/pacific-atlantic-water-flow/",
+    "status": "Active"
+  },
+  {
+    "questionID": 63,
+    "title": "Flood Fill",
+    "difficulty": "Easy",
+    "topic": "Depth-first search",
+    "description": "An image is represented by an m x n integer grid image where image[i][j] is the pixel value. Given a starting pixel (sr, sc) and a newColor, perform a flood fill to replace the color of the starting pixel and all connected pixels (4-directionally) that have the same original color.",
+    "examples": [
+      {
+        "input": "image = [[1,1,1],[1,1,0],[1,0,1]], sr = 1, sc = 1, newColor = 2",
+        "output": "[[2,2,2],[2,2,0],[2,0,1]]"
+      }
+    ],
+    "link": "https://leetcode.com/problems/flood-fill/",
+    "status": "Active"
+  },
+  {
+    "questionID": 64,
+    "title": "Path Sum",
+    "difficulty": "Easy",
+    "topic": "Depth-first search",
+    "description": "Given the root of a binary tree and an integer targetSum, return true if the tree has a root-to-leaf path such that adding up all the values along the path equals targetSum.",
+    "examples": [
+      {
+        "input": "root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22",
+        "output": "true",
+        "explanation": "There exists a root-to-leaf path 5->4->11->2 which sums to 22."
+      }
+    ],
+    "link": "https://leetcode.com/problems/path-sum/",
+    "status": "Active"
+  },
+  {
+    "questionID": 65,
+    "title": "Same Tree",
+    "difficulty": "Easy",
+    "topic": "Depth-first search",
+    "description": "Given the roots of two binary trees p and q, write a function to check if they are structurally identical and the nodes have the same values.",
+    "examples": [
+      {
+        "input": "p = [1,2,3], q = [1,2,3]",
+        "output": "true"
+      }
+    ],
+    "link": "https://leetcode.com/problems/same-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 66,
+    "title": "Kth Largest Element in an Array",
+    "difficulty": "Hard",
+    "topic": "Quickselect",
+    "description": "Given an integer array nums and an integer k, return the kth largest element in the array. Note that it is the kth largest element in the sorted order, not the kth distinct element.",
+    "examples": [
+      {
+        "input": "nums = [3,2,1,5,6,4], k = 2",
+        "output": "5",
+        "explanation": "The 2nd largest element is 5 after sorting the array [1,2,3,4,5,6]."
+      },
+      {
+        "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4",
+        "output": "4",
+        "explanation": "The 4th largest element is 4 in the sorted array [1,2,2,3,3,4,5,5,6]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/kth-largest-element-in-an-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 67,
+    "title": "Wiggle Sort II",
+    "difficulty": "Hard",
+    "topic": "Quickselect",
+    "description": "Given an integer array nums, reorder it such that nums[0] < nums[1] > nums[2] < nums[3].... You may assume all input has valid answers.",
+    "examples": [
+      {
+        "input": "nums = [1,5,1,1,6,4]",
+        "output": "[1,6,1,5,1,4]",
+        "explanation": "One possible answer is [1,6,1,5,1,4] which satisfies the wiggle pattern."
+      },
+      {
+        "input": "nums = [1,3,2,2,3,1]",
+        "output": "[2,3,1,3,1,2]",
+        "explanation": "Another valid arrangement is [2,3,1,3,1,2]."
+      }
+    ],
+    "link": "https://leetcode.com/problems/wiggle-sort-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 68,
+    "title": "Top K Frequent Words",
+    "difficulty": "Hard",
+    "topic": "Quickselect",
+    "description": "Given an array of strings words and an integer k, return the k most frequent strings. Return the answer sorted by frequency from highest to lowest. Sort words with the same frequency by their lexicographical order.",
+    "examples": [
+      {
+        "input": "words = [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2",
+        "output": "[\"i\",\"love\"]",
+        "explanation": "\"i\" and \"love\" are the two most frequent words with frequency 2 each."
+      },
+      {
+        "input": "words = [\"the\",\"day\",\"is\",\"sunny\",\"the\",\"the\",\"the\",\"sunny\",\"is\",\"is\"], k = 4",
+        "output": "[\"the\",\"is\",\"sunny\",\"day\"]",
+        "explanation": "Frequencies: \"the\"=4, \"is\"=3, \"sunny\"=2, \"day\"=1."
+      }
+    ],
+    "link": "https://leetcode.com/problems/top-k-frequent-words/",
+    "status": "Active"
+  },
+  {
+    "questionID": 69,
+    "title": "Find K Closest Elements",
+    "difficulty": "Medium",
+    "topic": "Quickselect",
+    "description": "Given a sorted integer array arr, two integers k and x, return the k closest integers to x in the array. The result should also be sorted in ascending order.",
+    "examples": [
+      {
+        "input": "arr = [1,2,3,4,5], k = 4, x = 3",
+        "output": "[1,2,3,4]",
+        "explanation": "The 4 closest elements to 3 are [1,2,3,4]."
+      },
+      {
+        "input": "arr = [1,2,3,4,5], k = 4, x = -1",
+        "output": "[1,2,3,4]",
+        "explanation": "The 4 closest elements to -1 are [1,2,3,4] since -1 is less than all elements."
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-k-closest-elements/",
+    "status": "Active"
+  },
+  {
+    "questionID": 70,
+    "title": "Kth Largest Element in a Stream",
+    "difficulty": "Medium",
+    "topic": "Quickselect",
+    "description": "Design a class to find the kth largest element in a stream. Note that it is the kth largest element in the sorted order, not the kth distinct element.",
+    "examples": [
+      {
+        "input": "[\"KthLargest\", \"add\", \"add\", \"add\", \"add\", \"add\"]\n[[3, [4, 5, 8, 2]], [3], [5], [10], [9], [4]]",
+        "output": "[null, 4, 5, 5, 8, 8]",
+        "explanation": "After adding numbers, the kth largest element changes accordingly."
+      }
+    ],
+    "link": "https://leetcode.com/problems/kth-largest-element-in-a-stream/",
+    "status": "Active"
+  },
+  {
+    "questionID": 71,
+    "title": "Sort Characters By Frequency",
+    "difficulty": "Medium",
+    "topic": "Quickselect",
+    "description": "Given a string s, sort it in decreasing order based on the frequency of characters. Return the sorted string.",
+    "examples": [
+      {
+        "input": "s = \"tree\"",
+        "output": "\"eert\"",
+        "explanation": "'e' appears twice while 'r' and 't' appear once, so 'e' must appear before both 'r' and 't'."
+      },
+      {
+        "input": "s = \"cccaaa\"",
+        "output": "\"aaaccc\"",
+        "explanation": "Both 'c' and 'a' appear three times, so sorted lexicographically."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sort-characters-by-frequency/",
+    "status": "Active"
+  },
+  {
+    "questionID": 72,
+    "title": "Third Maximum Number",
+    "difficulty": "Easy",
+    "topic": "Quickselect",
+    "description": "Given an integer array nums, return the third distinct maximum number in this array. If the third maximum does not exist, return the maximum number.",
+    "examples": [
+      {
+        "input": "nums = [3,2,1]",
+        "output": "1",
+        "explanation": "The first distinct maximum is 3, second is 2, third is 1."
+      },
+      {
+        "input": "nums = [1,2]",
+        "output": "2",
+        "explanation": "The third maximum does not exist, so the maximum (2) is returned."
+      }
+    ],
+    "link": "https://leetcode.com/problems/third-maximum-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 73,
+    "title": "Kth Missing Positive Number",
+    "difficulty": "Easy",
+    "topic": "Quickselect",
+    "description": "Given an array arr of positive integers sorted in strictly increasing order, and an integer k. Return the kth positive integer that is missing from this array.",
+    "examples": [
+      {
+        "input": "arr = [2,3,4,7,11], k = 5",
+        "output": "9",
+        "explanation": "The missing positive integers are [1,5,6,8,9,10,12,...]. The 5th missing number is 9."
+      },
+      {
+        "input": "arr = [1,2,3,4], k = 2",
+        "output": "6",
+        "explanation": "The missing positive integers are [5,6,7,...]. The 2nd missing number is 6."
+      }
+    ],
+    "link": "https://leetcode.com/problems/kth-missing-positive-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 74,
+    "title": "Array Partition",
+    "difficulty": "Easy",
+    "topic": "Quickselect",
+    "description": "Given an integer array nums of 2n integers, group these integers into n pairs such that the sum of min(ai, bi) for all i is maximized. Return the maximized sum.",
+    "examples": [
+      {
+        "input": "nums = [1,4,3,2]",
+        "output": "4",
+        "explanation": "All possible pairings: (1,4)=1, (2,3)=2 sum=3; (1,3)=1, (2,4)=2 sum=3; (1,2)=1, (3,4)=3 sum=4."
+      },
+      {
+        "input": "nums = [6,2,6,5,1,2]",
+        "output": "9",
+        "explanation": "The optimal pairing is (2,1), (2,5), (6,6). min(2,1)=1, min(2,5)=2, min(6,6)=6, sum=9."
+      }
+    ],
+    "link": "https://leetcode.com/problems/array-partition/",
+    "status": "Active"
+  },
+  {
+    "questionID": 75,
+    "title": "Binary Tree Maximum Path Sum",
+    "difficulty": "Hard",
+    "topic": "Tree",
+    "description": "A path in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence at most once. The path sum of a path is the sum of the node values in the path. Given the root of a binary tree, return the maximum path sum of any non-empty path.",
+    "examples": [
+      {
+        "input": "root = [1,2,3]",
+        "output": "6",
+        "explanation": "The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6."
+      },
+      {
+        "input": "root = [-10,9,20,null,null,15,7]",
+        "output": "42",
+        "explanation": "The optimal path is 15 -> 20 -> 7 with a path sum of 15 + 20 + 7 = 42."
+      }
+    ],
+    "link": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
+    "status": "Active"
+  },
+  {
+    "questionID": 76,
+    "title": "Serialize and Deserialize Binary Tree",
+    "difficulty": "Hard",
+    "topic": "Tree",
+    "description": "Design an algorithm to serialize and deserialize a binary tree. There is no restriction on how your serialization/deserialization algorithm should work. You just need to ensure that a binary tree can be serialized to a string and this string can be deserialized to the original tree structure.",
+    "examples": [
+      {
+        "input": "root = [1,2,3,null,null,4,5]",
+        "output": "[1,2,3,null,null,4,5]",
+        "explanation": "The tree should be serialized and deserialized to the same structure."
+      }
+    ],
+    "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 77,
+    "title": "Binary Tree Cameras",
+    "difficulty": "Hard",
+    "topic": "Tree",
+    "description": "You are given the root of a binary tree. We install cameras on the tree nodes where each camera can monitor its parent, itself, and its immediate children. Return the minimum number of cameras needed to monitor all nodes of the tree.",
+    "examples": [
+      {
+        "input": "root = [0,0,null,0,0]",
+        "output": "1",
+        "explanation": "One camera is enough to monitor all nodes if placed correctly."
+      },
+      {
+        "input": "root = [0,0,null,0,null,0,null,null,0]",
+        "output": "2",
+        "explanation": "At least two cameras are needed to monitor all nodes."
+      }
+    ],
+    "link": "https://leetcode.com/problems/binary-tree-cameras/",
+    "status": "Active"
+  },
+  {
+    "questionID": 78,
+    "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+    "difficulty": "Medium",
+    "topic": "Tree",
+    "description": "Given two integer arrays preorder and inorder where preorder is the preorder traversal of a binary tree and inorder is the inorder traversal of the same tree, construct and return the binary tree.",
+    "examples": [
+      {
+        "input": "preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]",
+        "output": "[3,9,20,null,null,15,7]",
+        "explanation": "The binary tree is constructed from the given traversal sequences."
+      }
+    ],
+    "link": "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
+    "status": "Active"
+  },
+  {
+    "questionID": 79,
+    "title": "Validate Binary Search Tree",
+    "difficulty": "Medium",
+    "topic": "Tree",
+    "description": "Given the root of a binary tree, determine if it is a valid binary search tree (BST). A valid BST is defined as follows: The left subtree of a node contains only nodes with keys less than the node's key. The right subtree of a node contains only nodes with keys greater than the node's key. Both the left and right subtrees must also be binary search trees.",
+    "examples": [
+      {
+        "input": "root = [2,1,3]",
+        "output": "true",
+        "explanation": "The tree satisfies all BST properties."
+      },
+      {
+        "input": "root = [5,1,4,null,null,3,6]",
+        "output": "false",
+        "explanation": "The root node's value is 5 but its right child's value is 4 which is less than 5."
+      }
+    ],
+    "link": "https://leetcode.com/problems/validate-binary-search-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 80,
+    "title": "Binary Tree Right Side View",
+    "difficulty": "Medium",
+    "topic": "Tree",
+    "description": "Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.",
+    "examples": [
+      {
+        "input": "root = [1,2,3,null,5,null,4]",
+        "output": "[1,3,4]",
+        "explanation": "From the right side, you can see nodes 1, 3, and 4."
+      },
+      {
+        "input": "root = [1,null,3]",
+        "output": "[1,3]",
+        "explanation": "Only nodes 1 and 3 are visible from the right."
+      }
+    ],
+    "link": "https://leetcode.com/problems/binary-tree-right-side-view/",
+    "status": "Active"
+  },
+  {
+    "questionID": 81,
+    "title": "Invert Binary Tree",
+    "difficulty": "Easy",
+    "topic": "Tree",
+    "description": "Given the root of a binary tree, invert the tree, and return its root. Inverting a binary tree means swapping every left child with its corresponding right child.",
+    "examples": [
+      {
+        "input": "root = [4,2,7,1,3,6,9]",
+        "output": "[4,7,2,9,6,3,1]",
+        "explanation": "The tree is mirrored horizontally."
+      }
+    ],
+    "link": "https://leetcode.com/problems/invert-binary-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 82,
+    "title": "Maximum Depth of Binary Tree",
+    "difficulty": "Easy",
+    "topic": "Tree",
+    "description": "Given the root of a binary tree, return its maximum depth. The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.",
+    "examples": [
+      {
+        "input": "root = [3,9,20,null,null,15,7]",
+        "output": "3",
+        "explanation": "The tree has 3 levels: root (3), second level (9,20), third level (15,7)."
+      },
+      {
+        "input": "root = [1,null,2]",
+        "output": "2",
+        "explanation": "The tree has 2 levels: root (1) and right child (2)."
+      }
+    ],
+    "link": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 83,
+    "title": "Convert Sorted Array to Binary Search Tree",
+    "difficulty": "Easy",
+    "topic": "Tree",
+    "description": "Given an integer array nums where the elements are sorted in ascending order, convert it to a height-balanced binary search tree. A height-balanced binary tree is a binary tree in which the depth of the two subtrees of every node never differs by more than one.",
+    "examples": [
+      {
+        "input": "nums = [-10,-3,0,5,9]",
+        "output": "[0,-3,9,-10,null,5]",
+        "explanation": "One possible height-balanced BST is shown."
+      },
+      {
+        "input": "nums = [1,3]",
+        "output": "[3,1]",
+        "explanation": "Another possible height-balanced BST."
+      }
+    ],
+    "link": "https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/",
+    "status": "Active"
+  },
+  {
+    "questionID": 84,
+    "title": "Largest Rectangle in Histogram",
+    "difficulty": "Hard",
+    "topic": "Stack",
+    "description": "Given an array of integers heights representing the histogram's bar height where the width of each bar is 1, return the area of the largest rectangle in the histogram.",
+    "examples": [
+      {
+        "input": "heights = [2,1,5,6,2,3]",
+        "output": "10",
+        "explanation": "The largest rectangle is shown in the red area, which has an area = 10 units."
+      },
+      {
+        "input": "heights = [2,4]",
+        "output": "4",
+        "explanation": "The largest rectangle has area 4 from bars of height 2 and 4."
+      }
+    ],
+    "link": "https://leetcode.com/problems/largest-rectangle-in-histogram/",
+    "status": "Active"
+  },
+  {
+    "questionID": 85,
+    "title": "Basic Calculator",
+    "difficulty": "Hard",
+    "topic": "Stack",
+    "description": "Given a string s representing a valid expression, implement a basic calculator to evaluate it, and return the result of the evaluation. The expression may contain open and closing parentheses, the plus and minus operators, and non-negative integers.",
+    "examples": [
+      {
+        "input": "s = \"1 + 1\"",
+        "output": "2",
+        "explanation": "Simple addition of two numbers."
+      },
+      {
+        "input": "s = \" 2-1 + 2 \"",
+        "output": "3",
+        "explanation": "Operations are evaluated from left to right."
+      },
+      {
+        "input": "s = \"(1+(4+5+2)-3)+(6+8)\"",
+        "output": "23",
+        "explanation": "Parentheses change the order of operations."
+      }
+    ],
+    "link": "https://leetcode.com/problems/basic-calculator/",
+    "status": "Active"
+  },
+  {
+    "questionID": 86,
+    "title": "Maximal Rectangle",
+    "difficulty": "Hard",
+    "topic": "Stack",
+    "description": "Given a rows x cols binary matrix filled with 0's and 1's, find the largest rectangle containing only 1's and return its area.",
+    "examples": [
+      {
+        "input": "matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]",
+        "output": "6",
+        "explanation": "The maximal rectangle is shown in the bottom right corner."
+      },
+      {
+        "input": "matrix = [[\"0\"]]",
+        "output": "0",
+        "explanation": "There are no 1's in the matrix."
+      }
+    ],
+    "link": "https://leetcode.com/problems/maximal-rectangle/",
+    "status": "Active"
+  },
+  {
+    "questionID": 87,
+    "title": "Evaluate Reverse Polish Notation",
+    "difficulty": "Medium",
+    "topic": "Stack",
+    "description": "Evaluate the value of an arithmetic expression in Reverse Polish Notation. Valid operators are +, -, *, and /. Each operand may be an integer or another expression. Division between two integers should truncate toward zero.",
+    "examples": [
+      {
+        "input": "tokens = [\"2\",\"1\",\"+\",\"3\",\"*\"]",
+        "output": "9",
+        "explanation": "((2 + 1) * 3) = 9"
+      },
+      {
+        "input": "tokens = [\"4\",\"13\",\"5\",\"/\",\"+\"]",
+        "output": "6",
+        "explanation": "(4 + (13 / 5)) = 6"
+      }
+    ],
+    "link": "https://leetcode.com/problems/evaluate-reverse-polish-notation/",
+    "status": "Active"
+  },
+  {
+    "questionID": 88,
+    "title": "Daily Temperatures",
+    "difficulty": "Medium",
+    "topic": "Stack",
+    "description": "Given an array of integers temperatures represents the daily temperatures, return an array answer such that answer[i] is the number of days you have to wait after the ith day to get a warmer temperature. If there is no future day for which this is possible, put 0 instead.",
+    "examples": [
+      {
+        "input": "temperatures = [73,74,75,71,69,72,76,73]",
+        "output": "[1,1,4,2,1,1,0,0]",
+        "explanation": "For day 0 (73), the next warmer day is at index 1 (74) which is 1 day away."
+      },
+      {
+        "input": "temperatures = [30,40,50,60]",
+        "output": "[1,1,1,0]",
+        "explanation": "Each day has a warmer temperature the next day except the last one."
+      }
+    ],
+    "link": "https://leetcode.com/problems/daily-temperatures/",
+    "status": "Active"
+  },
+  {
+    "questionID": 89,
+    "title": "Asteroid Collision",
+    "difficulty": "Medium",
+    "topic": "Stack",
+    "description": "We are given an array asteroids of integers representing asteroids in a row. For each asteroid, the absolute value represents its size, and the sign represents its direction (positive meaning right, negative meaning left). Asteroids moving in the same direction never meet. Find out the state of the asteroids after all collisions.",
+    "examples": [
+      {
+        "input": "asteroids = [5,10,-5]",
+        "output": "[5,10]",
+        "explanation": "The 10 and -5 collide resulting in 10. The 5 and 10 never collide."
+      },
+      {
+        "input": "asteroids = [8,-8]",
+        "output": "[]",
+        "explanation": "Both asteroids explode since they are the same size."
+      }
+    ],
+    "link": "https://leetcode.com/problems/asteroid-collision/",
+    "status": "Active"
+  },
+  {
+    "questionID": 90,
+    "title": "Min Stack",
+    "difficulty": "Easy",
+    "topic": "Stack",
+    "description": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time. Implement the MinStack class: MinStack() initializes the stack object. void push(int val) pushes the element val onto the stack. void pop() removes the element on the top of the stack. int top() gets the top element of the stack. int getMin() retrieves the minimum element in the stack.",
+    "examples": [
+      {
+        "input": "[\"MinStack\",\"push\",\"push\",\"push\",\"getMin\",\"pop\",\"top\",\"getMin\"]\n[[],[-2],[0],[-3],[],[],[],[]]",
+        "output": "[null,null,null,null,-3,null,0,-2]",
+        "explanation": "MinStack minStack = new MinStack(); minStack.push(-2); minStack.push(0); minStack.push(-3); minStack.getMin(); // return -3 minStack.pop(); minStack.top(); // return 0 minStack.getMin(); // return -2"
+      }
+    ],
+    "link": "https://leetcode.com/problems/min-stack/",
+    "status": "Active"
+  },
+  {
+    "questionID": 91,
+    "title": "Next Greater Element I",
+    "difficulty": "Easy",
+    "topic": "Stack",
+    "description": "The next greater element of some element x in an array is the first greater element that is to the right of x in the same array. You are given two distinct 0-indexed integer arrays nums1 and nums2, where nums1 is a subset of nums2. For each 0 <= i < nums1.length, find the index j such that nums1[i] == nums2[j] and determine the next greater element of nums2[j] in nums2. If there is no next greater element, then the answer for this query is -1.",
+    "examples": [
+      {
+        "input": "nums1 = [4,1,2], nums2 = [1,3,4,2]",
+        "output": "[-1,3,-1]",
+        "explanation": "The next greater element for each value of nums1 is calculated."
+      },
+      {
+        "input": "nums1 = [2,4], nums2 = [1,2,3,4]",
+        "output": "[3,-1]",
+        "explanation": "For 2 in nums2, the next greater is 3. For 4, there is no greater element."
+      }
+    ],
+    "link": "https://leetcode.com/problems/next-greater-element-i/",
+    "status": "Active"
+  },
+  {
+    "questionID": 92,
+    "title": "Implement Queue using Stacks",
+    "difficulty": "Easy",
+    "topic": "Stack",
+    "description": "Implement a first in first out (FIFO) queue using only two stacks. The implemented queue should support all the functions of a normal queue (push, peek, pop, and empty).",
+    "examples": [
+      {
+        "input": "[\"MyQueue\", \"push\", \"push\", \"peek\", \"pop\", \"empty\"]\n[[], [1], [2], [], [], []]",
+        "output": "[null, null, null, 1, 1, false]",
+        "explanation": "MyQueue myQueue = new MyQueue(); myQueue.push(1); myQueue.push(2); myQueue.peek(); // return 1 myQueue.pop(); // return 1 myQueue.empty(); // return false"
+      }
+    ],
+    "link": "https://leetcode.com/problems/implement-queue-using-stacks/",
+    "status": "Active"
+  },
+  {
+    "questionID": 93,
+    "title": "Sort List",
+    "difficulty": "Hard",
+    "topic": "Sorting",
+    "description": "Given the head of a linked list, return the list after sorting it in ascending order.",
+    "examples": [
+      {
+        "input": "head = [4,2,1,3]",
+        "output": "[1,2,3,4]",
+        "explanation": "The linked list is sorted in ascending order."
+      },
+      {
+        "input": "head = [-1,5,3,4,0]",
+        "output": "[-1,0,3,4,5]",
+        "explanation": "The linked list is sorted including negative numbers."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sort-list/",
+    "status": "Active"
+  },
+  {
+    "questionID": 94,
+    "title": "Largest Number",
+    "difficulty": "Hard",
+    "topic": "Sorting",
+    "description": "Given a list of non-negative integers nums, arrange them such that they form the largest number and return it. Since the result may be very large, you need to return a string instead of an integer.",
+    "examples": [
+      {
+        "input": "nums = [10,2]",
+        "output": "\"210\"",
+        "explanation": "210 is the largest possible number formed by 10 and 2."
+      },
+      {
+        "input": "nums = [3,30,34,5,9]",
+        "output": "\"9534330\"",
+        "explanation": "9534330 is the largest possible number formed by the given numbers."
+      }
+    ],
+    "link": "https://leetcode.com/problems/largest-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 95,
+    "title": "Minimum Number of Arrows to Burst Balloons",
+    "difficulty": "Hard",
+    "topic": "Sorting",
+    "description": "There are some spherical balloons taped onto a flat wall that represents the XY-plane. The balloons are represented as a 2D integer array points where points[i] = [xstart, xend] denotes a balloon whose horizontal diameter stretches between xstart and xend. An arrow can be shot up exactly vertically from different points along the x-axis. Find the minimum number of arrows that must be shot to burst all balloons.",
+    "examples": [
+      {
+        "input": "points = [[10,16],[2,8],[1,6],[7,12]]",
+        "output": "2",
+        "explanation": "One arrow can burst balloons at [1,6] and [2,8], another arrow can burst balloons at [7,12] and [10,16]."
+      },
+      {
+        "input": "points = [[1,2],[3,4],[5,6],[7,8]]",
+        "output": "4",
+        "explanation": "Each balloon requires its own arrow since they don't overlap."
+      }
+    ],
+    "link": "https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/",
+    "status": "Active"
+  },
+  {
+    "questionID": 96,
+    "title": "Sort Colors",
+    "difficulty": "Medium",
+    "topic": "Sorting",
+    "description": "Given an array nums with n objects colored red, white, or blue, sort them in-place so that objects of the same color are adjacent, with the colors in the order red, white, and blue. We will use the integers 0, 1, and 2 to represent the color red, white, and blue, respectively.",
+    "examples": [
+      {
+        "input": "nums = [2,0,2,1,1,0]",
+        "output": "[0,0,1,1,2,2]",
+        "explanation": "The array is sorted so that all 0s come first, then 1s, then 2s."
+      },
+      {
+        "input": "nums = [2,0,1]",
+        "output": "[0,1,2]",
+        "explanation": "The three colors are sorted in the correct order."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sort-colors/",
+    "status": "Active"
+  },
+  {
+    "questionID": 97,
+    "title": "Top K Frequent Elements",
+    "difficulty": "Medium",
+    "topic": "Sorting",
+    "description": "Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.",
+    "examples": [
+      {
+        "input": "nums = [1,1,1,2,2,3], k = 2",
+        "output": "[1,2]",
+        "explanation": "1 appears 3 times and 2 appears 2 times, so these are the two most frequent elements."
+      },
+      {
+        "input": "nums = [1], k = 1",
+        "output": "[1]",
+        "explanation": "1 is the only element, so it's the most frequent."
+      }
+    ],
+    "link": "https://leetcode.com/problems/top-k-frequent-elements/",
+    "status": "Active"
+  },
+  {
+    "questionID": 98,
+    "title": "Meeting Rooms II",
+    "difficulty": "Medium",
+    "topic": "Sorting",
+    "description": "Given an array of meeting time intervals intervals where intervals[i] = [starti, endi], return the minimum number of conference rooms required.",
+    "examples": [
+      {
+        "input": "intervals = [[0,30],[5,10],[15,20]]",
+        "output": "2",
+        "explanation": "We need two meeting rooms since [0,30] overlaps with both [5,10] and [15,20]."
+      },
+      {
+        "input": "intervals = [[7,10],[2,4]]",
+        "output": "1",
+        "explanation": "These intervals don't overlap, so one room is sufficient."
+      }
+    ],
+    "link": "https://leetcode.com/problems/meeting-rooms-ii/",
+    "status": "Active"
+  },
+  {
+    "questionID": 99,
+    "title": "Valid Anagram",
+    "difficulty": "Easy",
+    "topic": "Sorting",
+    "description": "Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.",
+    "examples": [
+      {
+        "input": "s = \"anagram\", t = \"nagaram\"",
+        "output": "true",
+        "explanation": "Both strings contain the same characters in different orders."
+      },
+      {
+        "input": "s = \"rat\", t = \"car\"",
+        "output": "false",
+        "explanation": "The strings have different characters."
+      }
+    ],
+    "link": "https://leetcode.com/problems/valid-anagram/",
+    "status": "Active"
+  },
+  {
+    "questionID": 100,
+    "title": "Merge Sorted Array",
+    "difficulty": "Easy",
+    "topic": "Sorting",
+    "description": "You are given two integer arrays nums1 and nums2, sorted in non-decreasing order, and two integers m and n, representing the number of elements in nums1 and nums2 respectively. Merge nums2 into nums1 as one sorted array.",
+    "examples": [
+      {
+        "input": "nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3",
+        "output": "[1,2,2,3,5,6]",
+        "explanation": "The arrays are merged into nums1 in sorted order."
+      },
+      {
+        "input": "nums1 = [1], m = 1, nums2 = [], n = 0",
+        "output": "[1]",
+        "explanation": "nums2 is empty, so nums1 remains unchanged."
+      }
+    ],
+    "link": "https://leetcode.com/problems/merge-sorted-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 101,
+    "title": "Relative Sort Array",
+    "difficulty": "Easy",
+    "topic": "Sorting",
+    "description": "Given two arrays arr1 and arr2, the elements of arr2 are distinct and all elements in arr2 are also in arr1. Sort the elements of arr1 such that the relative ordering of items in arr1 are the same as in arr2. Elements that do not appear in arr2 should be placed at the end of arr1 in ascending order.",
+    "examples": [
+      {
+        "input": "arr1 = [2,3,1,3,2,4,6,7,9,2,19], arr2 = [2,1,4,3,9,6]",
+        "output": "[2,2,2,1,4,3,3,9,6,7,19]",
+        "explanation": "Elements are sorted according to arr2's order, with remaining elements sorted ascending."
+      },
+      {
+        "input": "arr1 = [28,6,22,8,44,17], arr2 = [22,28,8,6]",
+        "output": "[22,28,8,6,17,44]",
+        "explanation": "Elements follow arr2's order, then 17 and 44 are sorted ascending."
+      }
+    ],
+    "link": "https://leetcode.com/problems/relative-sort-array/",
+    "status": "Active"
+  },
+  {
+    "questionID": 102,
+    "title": "Edit Distance",
+    "difficulty": "Hard",
+    "topic": "Dynamic programming",
+    "description": "Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2. You have the following three operations permitted on a word: Insert a character, Delete a character, Replace a character.",
+    "examples": [
+      {
+        "input": "word1 = \"horse\", word2 = \"ros\"",
+        "output": "3",
+        "explanation": "horse -> rorse (replace 'h' with 'r'), rorse -> rose (remove 'r'), rose -> ros (remove 'e')"
+      },
+      {
+        "input": "word1 = \"intention\", word2 = \"execution\"",
+        "output": "5",
+        "explanation": "intention -> inention (remove 't'), inention -> enention (replace 'i' with 'e'), enention -> exention (replace 'n' with 'x'), exention -> exection (replace 'n' with 'c'), exection -> execution (insert 'u')"
+      }
+    ],
+    "link": "https://leetcode.com/problems/edit-distance/",
+    "status": "Active"
+  },
+  {
+    "questionID": 103,
+    "title": "Best Time to Buy and Sell Stock IV",
+    "difficulty": "Hard",
+    "topic": "Dynamic programming",
+    "description": "You are given an integer array prices where prices[i] is the price of a given stock on the ith day, and an integer k. Find the maximum profit you can achieve. You may complete at most k transactions.",
+    "examples": [
+      {
+        "input": "k = 2, prices = [2,4,1]",
+        "output": "2",
+        "explanation": "Buy on day 1 (price=2) and sell on day 2 (price=4), profit = 4-2 = 2."
+      },
+      {
+        "input": "k = 2, prices = [3,2,6,5,0,3]",
+        "output": "7",
+        "explanation": "Buy on day 2 (price=2) and sell on day 3 (price=6), profit = 6-2 = 4. Then buy on day 5 (price=0) and sell on day 6 (price=3), profit = 3-0 = 3."
+      }
+    ],
+    "link": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/",
+    "status": "Active"
+  },
+  {
+    "questionID": 104,
+    "title": "Word Break",
+    "difficulty": "Hard",
+    "topic": "Dynamic programming",
+    "description": "Given a string s and a dictionary of strings wordDict, return true if s can be segmented into a space-separated sequence of one or more dictionary words. The same word in the dictionary may be reused multiple times in the segmentation.",
+    "examples": [
+      {
+        "input": "s = \"leetcode\", wordDict = [\"leet\",\"code\"]",
+        "output": "true",
+        "explanation": "Return true because \"leetcode\" can be segmented as \"leet code\"."
+      },
+      {
+        "input": "s = \"applepenapple\", wordDict = [\"apple\",\"pen\"]",
+        "output": "true",
+        "explanation": "Return true because \"applepenapple\" can be segmented as \"apple pen apple\"."
+      }
+    ],
+    "link": "https://leetcode.com/problems/word-break/",
+    "status": "Active"
+  },
+  {
+    "questionID": 105,
+    "title": "Coin Change",
+    "difficulty": "Medium",
+    "topic": "Dynamic programming",
+    "description": "You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money. Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.",
+    "examples": [
+      {
+        "input": "coins = [1,2,5], amount = 11",
+        "output": "3",
+        "explanation": "11 = 5 + 5 + 1"
+      },
+      {
+        "input": "coins = [2], amount = 3",
+        "output": "-1",
+        "explanation": "3 cannot be made with coin of denomination 2."
+      }
+    ],
+    "link": "https://leetcode.com/problems/coin-change/",
+    "status": "Active"
+  },
+  {
+    "questionID": 106,
+    "title": "House Robber",
+    "difficulty": "Medium",
+    "topic": "Dynamic programming",
+    "description": "You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected and it will automatically contact the police if two adjacent houses were broken into on the same night. Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3,1]",
+        "output": "4",
+        "explanation": "Rob house 1 (money=1) and then house 3 (money=3). Total amount you can rob = 1 + 3 = 4."
+      },
+      {
+        "input": "nums = [2,7,9,3,1]",
+        "output": "12",
+        "explanation": "Rob house 1 (money=2), house 3 (money=9) and house 5 (money=1). Total amount = 2 + 9 + 1 = 12."
+      }
+    ],
+    "link": "https://leetcode.com/problems/house-robber/",
+    "status": "Active"
+  },
+  {
+    "questionID": 107,
+    "title": "Unique Paths",
+    "difficulty": "Medium",
+    "topic": "Dynamic programming",
+    "description": "There is a robot on an m x n grid. The robot is initially located at the top-left corner (i.e., grid[0][0]). The robot tries to move to the bottom-right corner (i.e., grid[m-1][n-1]). The robot can only move either down or right at any point in time. Given the two integers m and n, return the number of possible unique paths that the robot can take to reach the bottom-right corner.",
+    "examples": [
+      {
+        "input": "m = 3, n = 7",
+        "output": "28",
+        "explanation": "There are 28 unique paths from top-left to bottom-right in a 3x7 grid."
+      },
+      {
+        "input": "m = 3, n = 2",
+        "output": "3",
+        "explanation": "From top-left corner, there are 3 ways to reach bottom-right corner: Right -> Down -> Down, Down -> Down -> Right, Down -> Right -> Down"
+      }
+    ],
+    "link": "https://leetcode.com/problems/unique-paths/",
+    "status": "Active"
+  },
+  {
+    "questionID": 108,
+    "title": "Maximum Subarray",
+    "difficulty": "Easy",
+    "topic": "Dynamic programming",
+    "description": "Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+    "examples": [
+      {
+        "input": "nums = [-2,1,-3,4,-1,2,1,-5,4]",
+        "output": "6",
+        "explanation": "[4,-1,2,1] has the largest sum = 6."
+      },
+      {
+        "input": "nums = [1]",
+        "output": "1",
+        "explanation": "The array itself is the maximum subarray."
+      }
+    ],
+    "link": "https://leetcode.com/problems/maximum-subarray/",
+    "status": "Active"
+  },
+  {
+    "questionID": 109,
+    "title": "House Robber",
+    "difficulty": "Easy",
+    "topic": "Dynamic programming",
+    "description": "You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. The only constraint stopping you from robbing each of them is that adjacent houses have security systems connected and it will automatically contact the police if two adjacent houses were broken into on the same night. Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.",
+    "examples": [
+      {
+        "input": "nums = [1,2,3,1]",
+        "output": "4",
+        "explanation": "Rob house 1 (money=1) and then house 3 (money=3). Total amount you can rob = 1 + 3 = 4."
+      },
+      {
+        "input": "nums = [2,7,9,3,1]",
+        "output": "12",
+        "explanation": "Rob house 1 (money=2), house 3 (money=9) and house 5 (money=1). Total amount = 2 + 9 + 1 = 12."
+      }
+    ],
+    "link": "https://leetcode.com/problems/house-robber/",
+    "status": "Active"
+  },
+  {
+    "questionID": 110,
+    "title": "Divisor Game",
+    "difficulty": "Easy",
+    "topic": "Dynamic programming",
+    "description": "Alice and Bob take turns playing a game, with Alice starting first. Initially, there is a number n on the chalkboard. On each player's turn, that player makes a move consisting of: Choosing any x with 0 < x < n and n % x == 0. Replacing the number n on the chalkboard with n - x. If a player cannot make a move, they lose the game. Return true if and only if Alice wins the game, assuming both players play optimally.",
+    "examples": [
+      {
+        "input": "n = 2",
+        "output": "true",
+        "explanation": "Alice chooses 1, and Bob has no more moves."
+      },
+      {
+        "input": "n = 3",
+        "output": "false",
+        "explanation": "Alice chooses 1, Bob chooses 1, and Alice has no more moves."
+      }
+    ],
+    "link": "https://leetcode.com/problems/divisor-game/",
+    "status": "Active"
+  },
+  {
+    "questionID": 111,
+    "title": "Max Points on a Line",
+    "difficulty": "Hard",
+    "topic": "Math",
+    "description": "Given an array of points where points[i] = [xi, yi] represents a point on the X-Y plane, return the maximum number of points that lie on the same straight line.",
+    "examples": [
+      {
+        "input": "points = [[1,1],[2,2],[3,3]]",
+        "output": "3",
+        "explanation": "All three points are on the same line."
+      },
+      {
+        "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]",
+        "output": "4",
+        "explanation": "The maximum number of points on a line is 4."
+      }
+    ],
+    "link": "https://leetcode.com/problems/max-points-on-a-line/",
+    "status": "Active"
+  },
+  {
+    "questionID": 112,
+    "title": "Largest Palindrome Product",
+    "difficulty": "Hard",
+    "topic": "Math",
+    "description": "Given an integer n, return the largest palindromic integer that can be represented as the product of two n-digit integers. Since the answer can be very large, return it modulo 1337.",
+    "examples": [
+      {
+        "input": "n = 2",
+        "output": "987",
+        "explanation": "99 x 91 = 9009, 9009 % 1337 = 987"
+      },
+      {
+        "input": "n = 1",
+        "output": "9",
+        "explanation": "9 x 1 = 9"
+      }
+    ],
+    "link": "https://leetcode.com/problems/largest-palindrome-product/",
+    "status": "Active"
+  },
+  {
+    "questionID": 113,
+    "title": "Robot Bounded In Circle",
+    "difficulty": "Hard",
+    "topic": "Math",
+    "description": "On an infinite plane, a robot initially stands at (0, 0) and faces north. The robot can receive one of three instructions: 'G': go straight 1 unit; 'L': turn 90 degrees to the left; 'R': turn 90 degrees to the right. The robot performs the instructions given in order, and repeats them forever. Return true if and only if there exists a circle in the plane such that the robot never leaves the circle.",
+    "examples": [
+      {
+        "input": "instructions = \"GGLLGG\"",
+        "output": "true",
+        "explanation": "The robot moves from (0,0) to (0,2), turns 180 degrees, and then returns to (0,0)."
+      },
+      {
+        "input": "instructions = \"GG\"",
+        "output": "false",
+        "explanation": "The robot moves north indefinitely."
+      }
+    ],
+    "link": "https://leetcode.com/problems/robot-bounded-in-circle/",
+    "status": "Active"
+  },
+  {
+    "questionID": 114,
+    "title": "Rotate Function",
+    "difficulty": "Medium",
+    "topic": "Math",
+    "description": "You are given an integer array nums of length n. Assume arrk to be an array obtained by rotating nums by k positions clock-wise. We define the rotation function F on nums as follow: F(k) = 0 * arrk[0] + 1 * arrk[1] + ... + (n - 1) * arrk[n - 1]. Return the maximum value of F(0), F(1), ..., F(n-1).",
+    "examples": [
+      {
+        "input": "nums = [4,3,2,6]",
+        "output": "26",
+        "explanation": "F(0) = (0*4) + (1*3) + (2*2) + (3*6) = 0 + 3 + 4 + 18 = 25, F(1) = (0*6) + (1*4) + (2*3) + (3*2) = 0 + 4 + 6 + 6 = 16, F(2) = (0*2) + (1*6) + (2*4) + (3*3) = 0 + 6 + 8 + 9 = 23, F(3) = (0*3) + (1*2) + (2*6) + (3*4) = 0 + 2 + 12 + 12 = 26. So the maximum value is F(3) = 26."
+      },
+      {
+        "input": "nums = [100]",
+        "output": "0",
+        "explanation": "F(0) = 0*100 = 0"
+      }
+    ],
+    "link": "https://leetcode.com/problems/rotate-function/",
+    "status": "Active"
+  },
+  {
+    "questionID": 115,
+    "title": "Integer Break",
+    "difficulty": "Medium",
+    "topic": "Math",
+    "description": "Given an integer n, break it into the sum of k positive integers, where k >= 2, and maximize the product of those integers. Return the maximum product you can get.",
+    "examples": [
+      {
+        "input": "n = 2",
+        "output": "1",
+        "explanation": "2 = 1 + 1, 1 × 1 = 1"
+      },
+      {
+        "input": "n = 10",
+        "output": "36",
+        "explanation": "10 = 3 + 3 + 4, 3 × 3 × 4 = 36"
+      }
+    ],
+    "link": "https://leetcode.com/problems/integer-break/",
+    "status": "Active"
+  },
+  {
+    "questionID": 116,
+    "title": "Super Pow",
+    "difficulty": "Medium",
+    "topic": "Math",
+    "description": "Your task is to calculate a^b mod 1337 where a is a positive integer and b is an extremely large positive integer given in the form of an array.",
+    "examples": [
+      {
+        "input": "a = 2, b = [3]",
+        "output": "8",
+        "explanation": "2^3 = 8"
+      },
+      {
+        "input": "a = 2, b = [1,0]",
+        "output": "1024",
+        "explanation": "2^10 = 1024"
+      }
+    ],
+    "link": "https://leetcode.com/problems/super-pow/",
+    "status": "Active"
+  },
+  {
+    "questionID": 117,
+    "title": "Add Digits",
+    "difficulty": "Easy",
+    "topic": "Math",
+    "description": "Given an integer num, repeatedly add all its digits until the result has only one digit, and return it.",
+    "examples": [
+      {
+        "input": "num = 38",
+        "output": "2",
+        "explanation": "The process is: 38 --> 3 + 8 = 11, 11 --> 1 + 1 = 2. Since 2 has only one digit, return it."
+      },
+      {
+        "input": "num = 0",
+        "output": "0",
+        "explanation": "0 has only one digit."
+      }
+    ],
+    "link": "https://leetcode.com/problems/add-digits/",
+    "status": "Active"
+  },
+  {
+    "questionID": 118,
+    "title": "Palindrome Number",
+    "difficulty": "Easy",
+    "topic": "Math",
+    "description": "Given an integer x, return true if x is a palindrome, and false otherwise.",
+    "examples": [
+      {
+        "input": "x = 121",
+        "output": "true",
+        "explanation": "121 reads as 121 from left to right and from right to left."
+      },
+      {
+        "input": "x = -121",
+        "output": "false",
+        "explanation": "From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome."
+      }
+    ],
+    "link": "https://leetcode.com/problems/palindrome-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 119,
+    "title": "Roman to Integer",
+    "difficulty": "Easy",
+    "topic": "Math",
+    "description": "Given a roman numeral, convert it to an integer.",
+    "examples": [
+      {
+        "input": "s = \"III\"",
+        "output": "3",
+        "explanation": "III = 3"
+      },
+      {
+        "input": "s = \"LVIII\"",
+        "output": "58",
+        "explanation": "L = 50, V= 5, III = 3"
+      }
+    ],
+    "link": "https://leetcode.com/problems/roman-to-integer/",
+    "status": "Active"
+  },
+  {
+    "questionID": 120,
+    "title": "Minimum Number of Flips to Make the Binary String Alternating",
+    "difficulty": "Hard",
+    "topic": "Bit manipulation",
+    "description": "You are given a binary string s. You can flip at most one '0' to be '1'. Return the minimum number of flips to make the binary string alternating. A binary string is alternating if no two adjacent characters are equal.",
+    "examples": [
+      {
+        "input": "s = \"111000\"",
+        "output": "2",
+        "explanation": "Flip the middle '0' to get \"111100\" which is alternating."
+      },
+      {
+        "input": "s = \"010\"",
+        "output": "0",
+        "explanation": "The string is already alternating."
+      }
+    ],
+    "link": "https://leetcode.com/problems/minimum-number-of-flips-to-make-the-binary-string-alternating/",
+    "status": "Active"
+  },
+  {
+    "questionID": 121,
+    "title": "Find XOR Sum of All Pairs Bitwise AND",
+    "difficulty": "Hard",
+    "topic": "Bit manipulation",
+    "description": "The XOR sum of a list is the bitwise XOR of all its elements. Given two arrays arr1 and arr2, find the XOR sum of the bitwise AND of every pair of elements where one element comes from arr1 and the other from arr2.",
+    "examples": [
+      {
+        "input": "arr1 = [1,2,3], arr2 = [6,5]",
+        "output": "0",
+        "explanation": "The list = [1 AND 6, 1 AND 5, 2 AND 6, 2 AND 5, 3 AND 6, 3 AND 5] = [0,1,2,0,2,1]. The XOR sum = 0 XOR 1 XOR 2 XOR 0 XOR 2 XOR 1 = 0."
+      },
+      {
+        "input": "arr1 = [12], arr2 = [4]",
+        "output": "4",
+        "explanation": "The list = [12 AND 4] = [4]. The XOR sum = 4."
+      }
+    ],
+    "link": "https://leetcode.com/problems/find-xor-sum-of-all-pairs-bitwise-and/",
+    "status": "Active"
+  },
+  {
+    "questionID": 122,
+    "title": "Minimum One Bit Operations to Make Integers Zero",
+    "difficulty": "Hard",
+    "topic": "Bit manipulation",
+    "description": "Given an integer n, you must transform it into 0 using the following operations any number of times: Change the rightmost (0th) bit in the binary representation of n. Change the ith bit in the binary representation of n if the (i-1)th bit is set to 1 and all bits from (i-2)th to 0th bit are set to 0. Return the minimum number of operations to transform n into 0.",
+    "examples": [
+      {
+        "input": "n = 3",
+        "output": "2",
+        "explanation": "The binary representation of 3 is \"11\". Operation 1: Change the rightmost bit to get \"10\". Operation 2: Change the leftmost bit to get \"00\"."
+      },
+      {
+        "input": "n = 6",
+        "output": "4",
+        "explanation": "The binary representation of 6 is \"110\"."
+      }
+    ],
+    "link": "https://leetcode.com/problems/minimum-one-bit-operations-to-make-integers-zero/",
+    "status": "Active"
+  },
+  {
+    "questionID": 123,
+    "title": "Total Hamming Distance",
+    "difficulty": "Medium",
+    "topic": "Bit manipulation",
+    "description": "The Hamming distance between two integers is the number of positions at which the corresponding bits are different. Given an integer array nums, return the sum of Hamming distances between all the pairs of the integers in nums.",
+    "examples": [
+      {
+        "input": "nums = [4,14,2]",
+        "output": "6",
+        "explanation": "In binary representation, the 4 is 0100, 14 is 1110, and 2 is 0010. The Hamming distances are: 4 and 14: 2, 4 and 2: 2, 14 and 2: 2. Total = 2 + 2 + 2 = 6."
+      },
+      {
+        "input": "nums = [4,14,4]",
+        "output": "4",
+        "explanation": "Hamming distances: 4-14: 2, 4-4: 0, 14-4: 2. Total = 4."
+      }
+    ],
+    "link": "https://leetcode.com/problems/total-hamming-distance/",
+    "status": "Active"
+  },
+  {
+    "questionID": 124,
+    "title": "Bitwise AND of Numbers Range",
+    "difficulty": "Medium",
+    "topic": "Bit manipulation",
+    "description": "Given two integers left and right that represent the range [left, right], return the bitwise AND of all numbers in this range, inclusive.",
+    "examples": [
+      {
+        "input": "left = 5, right = 7",
+        "output": "4",
+        "explanation": "5: 101, 6: 110, 7: 111. Bitwise AND: 100 which is 4."
+      },
+      {
+        "input": "left = 0, right = 0",
+        "output": "0",
+        "explanation": "Single number 0."
+      }
+    ],
+    "link": "https://leetcode.com/problems/bitwise-and-of-numbers-range/",
+    "status": "Active"
+  },
+  {
+    "questionID": 125,
+    "title": "Sum of Two Integers",
+    "difficulty": "Medium",
+    "topic": "Bit manipulation",
+    "description": "Given two integers a and b, return the sum of the two integers without using the operators + and -.",
+    "examples": [
+      {
+        "input": "a = 1, b = 2",
+        "output": "3",
+        "explanation": "1 + 2 = 3 without using + operator."
+      },
+      {
+        "input": "a = 2, b = 3",
+        "output": "5",
+        "explanation": "2 + 3 = 5 using bit manipulation."
+      }
+    ],
+    "link": "https://leetcode.com/problems/sum-of-two-integers/",
+    "status": "Active"
+  },
+  {
+    "questionID": 126,
+    "title": "Number of 1 Bits",
+    "difficulty": "Easy",
+    "topic": "Bit manipulation",
+    "description": "Write a function that takes an unsigned integer and returns the number of '1' bits it has (also known as the Hamming weight).",
+    "examples": [
+      {
+        "input": "n = 00000000000000000000000000001011",
+        "output": "3",
+        "explanation": "The input binary string has three '1' bits."
+      },
+      {
+        "input": "n = 00000000000000000000000010000000",
+        "output": "1",
+        "explanation": "The input binary string has one '1' bit."
+      }
+    ],
+    "link": "https://leetcode.com/problems/number-of-1-bits/",
+    "status": "Active"
+  },
+  {
+    "questionID": 127,
+    "title": "Reverse Bits",
+    "difficulty": "Easy",
+    "topic": "Bit manipulation",
+    "description": "Reverse bits of a given 32 bits unsigned integer.",
+    "examples": [
+      {
+        "input": "n = 00000010100101000001111010011100",
+        "output": "964176192 (00111001011110000010100101000000)",
+        "explanation": "The input binary string 00000010100101000001111010011100 represents the unsigned integer 43261596, so return 964176192 which its binary representation is 00111001011110000010100101000000."
+      },
+      {
+        "input": "n = 11111111111111111111111111111101",
+        "output": "3221225471 (10111111111111111111111111111111)",
+        "explanation": "The input binary string 11111111111111111111111111111101 represents the unsigned integer 4294967293, so return 3221225471 which its binary representation is 10111111111111111111111111111111."
+      }
+    ],
+    "link": "https://leetcode.com/problems/reverse-bits/",
+    "status": "Active"
+  },
+  {
+    "questionID": 128,
+    "title": "Missing Number",
+    "difficulty": "Easy",
+    "topic": "Bit manipulation",
+    "description": "Given an array nums containing n distinct numbers in the range [0, n], return the only number in the range that is missing from the array.",
+    "examples": [
+      {
+        "input": "nums = [3,0,1]",
+        "output": "2",
+        "explanation": "n = 3 since there are 3 numbers, so all numbers are in the range [0,3]. 2 is the missing number."
+      },
+      {
+        "input": "nums = [0,1]",
+        "output": "2",
+        "explanation": "n = 2 since there are 2 numbers, so all numbers are in the range [0,2]. 2 is the missing number."
+      }
+    ],
+    "link": "https://leetcode.com/problems/missing-number/",
+    "status": "Active"
+  },
+  {
+    "questionID": 129,
+    "title": "Text Justification",
+    "difficulty": "Hard",
+    "topic": "String",
+    "description": "Given an array of strings words and a width maxWidth, format the text such that each line has exactly maxWidth characters and is fully (left and right) justified. You should pack your words in a greedy approach; that is, pack as many words as you can in each line. Pad extra spaces ' ' when necessary so that each line has exactly maxWidth characters. Extra spaces between words should be distributed as evenly as possible. If the number of spaces on a line does not divide evenly between words, the empty slots on the left will be assigned more spaces than the slots on the right. For the last line of text, it should be left-justified and no extra space is inserted between words.",
+    "examples": [
+      {
+        "input": "words = [\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"], maxWidth = 16",
+        "output": "[\"This    is    an\", \"example  of text\", \"justification.  \"]",
+        "explanation": "Words are packed greedily and spaces are distributed evenly."
+      },
+      {
+        "input": "words = [\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"], maxWidth = 16",
+        "output": "[\"What   must   be\", \"acknowledgment  \", \"shall be        \"]",
+        "explanation": "Last line is left-justified with extra spaces at the end."
+      }
+    ],
+    "link": "https://leetcode.com/problems/text-justification/",
+    "status": "Active"
+  },
+  {
+    "questionID": 130,
+    "title": "Minimum Window Substring",
+    "difficulty": "Hard",
+    "topic": "String",
+    "description": "Given two strings s and t of lengths m and n respectively, return the minimum window substring of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string \"\".",
+    "examples": [
+      {
+        "input": "s = \"ADOBECODEBANC\", t = \"ABC\"",
+        "output": "\"BANC\"",
+        "explanation": "The minimum window substring \"BANC\" includes 'A', 'B', and 'C' from string t."
+      },
+      {
+        "input": "s = \"a\", t = \"a\"",
+        "output": "\"a\"",
+        "explanation": "The entire string s is the minimum window."
+      }
+    ],
+    "link": "https://leetcode.com/problems/minimum-window-substring/",
+    "status": "Active"
+  },
+  {
+    "questionID": 131,
+    "title": "Regular Expression Matching",
+    "difficulty": "Hard",
+    "topic": "String",
+    "description": "Given an input string s and a pattern p, implement regular expression matching with support for '.' and '*' where: '.' Matches any single character. '*' Matches zero or more of the preceding element. The matching should cover the entire input string (not partial).",
+    "examples": [
+      {
+        "input": "s = \"aa\", p = \"a\"",
+        "output": "false",
+        "explanation": "\"a\" does not match the entire string \"aa\"."
+      },
+      {
+        "input": "s = \"aa\", p = \"a*\"",
+        "output": "true",
+        "explanation": "'*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes \"aa\"."
+      }
+    ],
+    "link": "https://leetcode.com/problems/regular-expression-matching/",
+    "status": "Active"
+  },
+  {
+    "questionID": 132,
+    "title": "Longest Palindromic Substring",
+    "difficulty": "Medium",
+    "topic": "String",
+    "description": "Given a string s, return the longest palindromic substring in s.",
+    "examples": [
+      {
+        "input": "s = \"babad\"",
+        "output": "\"bab\"",
+        "explanation": "\"aba\" is also a valid answer."
+      },
+      {
+        "input": "s = \"cbbd\"",
+        "output": "\"bb\"",
+        "explanation": "The longest palindromic substring is \"bb\"."
+      }
+    ],
+    "link": "https://leetcode.com/problems/longest-palindromic-substring/",
+    "status": "Active"
+  },
+  {
+    "questionID": 133,
+    "title": "Longest Substring Without Repeating Characters",
+    "difficulty": "Medium",
+    "topic": "String",
+    "description": "Given a string s, find the length of the longest substring without repeating characters.",
+    "examples": [
+      {
+        "input": "s = \"abcabcbb\"",
+        "output": "3",
+        "explanation": "The answer is \"abc\", with the length of 3."
+      },
+      {
+        "input": "s = \"bbbbb\"",
+        "output": "1",
+        "explanation": "The answer is \"b\", with the length of 1."
+      }
+    ],
+    "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+    "status": "Active"
+  },
+  {
+    "questionID": 134,
+    "title": "String to Integer (atoi)",
+    "difficulty": "Medium",
+    "topic": "String",
+    "description": "Implement the myAtoi(string s) function, which converts a string to a 32-bit signed integer (similar to C/C++'s atoi function). The algorithm for myAtoi(string s) is as follows: Read in and ignore any leading whitespace. Check if the next character (if not already at the end of the string) is '-' or '+'. Read this character in if it is either. This determines if the final result is negative or positive respectively. Assume the result is positive if neither is present. Read in next the characters until the next non-digit character or the end of the input is reached. The rest of the string is ignored. Convert these digits into an integer (i.e. \"123\" -> 123, \"0032\" -> 32). If no digits were read, then the integer is 0. Change the sign as necessary (from step 2). If the integer is out of the 32-bit signed integer range [-231, 231 - 1], then clamp the integer so that it remains in the range. Specifically, integers less than -231 should be clamped to -231, and integers greater than 231 - 1 should be clamped to 231 - 1. Return the integer as the final result.",
+    "examples": [
+      {
+        "input": "s = \"42\"",
+        "output": "42",
+        "explanation": "The underlined characters are what is read in, the caret is the current reader position."
+      },
+      {
+        "input": "s = \"   -42\"",
+        "output": "-42",
+        "explanation": "Leading whitespace is read and ignored, '-' is read, then \"42\" is read."
+      }
+    ],
+    "link": "https://leetcode.com/problems/string-to-integer-atoi/",
+    "status": "Active"
+  },
+  {
+    "questionID": 135,
+    "title": "Valid Palindrome",
+    "difficulty": "Easy",
+    "topic": "String",
+    "description": "A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers. Given a string s, return true if it is a palindrome, or false otherwise.",
+    "examples": [
+      {
+        "input": "s = \"A man, a plan, a canal: Panama\"",
+        "output": "true",
+        "explanation": "\"amanaplanacanalpanama\" is a palindrome."
+      },
+      {
+        "input": "s = \"race a car\"",
+        "output": "false",
+        "explanation": "\"raceacar\" is not a palindrome."
+      }
+    ],
+    "link": "https://leetcode.com/problems/valid-palindrome/",
+    "status": "Active"
+  },
+  {
+    "questionID": 136,
+    "title": "Longest Common Prefix",
+    "difficulty": "Easy",
+    "topic": "String",
+    "description": "Write a function to find the longest common prefix string amongst an array of strings. If there is no common prefix, return an empty string \"\".",
+    "examples": [
+      {
+        "input": "strs = [\"flower\",\"flow\",\"flight\"]",
+        "output": "\"fl\"",
+        "explanation": "All strings start with \"fl\"."
+      },
+      {
+        "input": "strs = [\"dog\",\"racecar\",\"car\"]",
+        "output": "\"\"",
+        "explanation": "There is no common prefix among the input strings."
+      }
+    ],
+    "link": "https://leetcode.com/problems/longest-common-prefix/",
+    "status": "Active"
+  },
+  {
+    "questionID": 137,
+    "title": "First Unique Character in a String",
+    "difficulty": "Easy",
+    "topic": "String",
+    "description": "Given a string s, find the first non-repeating character in it and return its index. If it does not exist, return -1.",
+    "examples": [
+      {
+        "input": "s = \"leetcode\"",
+        "output": "0",
+        "explanation": "The character 'l' at index 0 is the first non-repeating character."
+      },
+      {
+        "input": "s = \"loveleetcode\"",
+        "output": "2",
+        "explanation": "The character 'v' at index 2 is the first non-repeating character."
+      }
+    ],
+    "link": "https://leetcode.com/problems/first-unique-character-in-a-string/",
     "status": "Active"
   }
 ]
