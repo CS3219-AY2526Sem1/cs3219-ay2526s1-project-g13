@@ -20,3 +20,9 @@ variable "room_timeout_minutes" {
   type        = number
   default     = 10
 }
+
+variable "piston_api_url" {
+  description = "Piston API URL (e.g., http://VM_EXTERNAL_IP:2000/api/v2/execute)"
+  type        = string
+  default     = "http://34.126.108.247:2000/api/v2/execute"
+}

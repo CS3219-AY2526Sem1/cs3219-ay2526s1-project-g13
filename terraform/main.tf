@@ -575,7 +575,7 @@ resource "google_cloud_run_v2_service" "execution_service" {
 
       env {
         name  = "PISTON_URL"
-        value = "https://emkc.org/api/v2/piston/execute"
+        value = var.piston_api_url
       }
       env {
         name  = "PUBSUB_PROJECT_ID"
