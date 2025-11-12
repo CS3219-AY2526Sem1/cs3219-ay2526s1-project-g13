@@ -1,0 +1,20 @@
+@startuml VideoCall_HappyPath
+
+title Video Call Flow 
+
+participant FE as "FrontEnd"
+participant V as "Video call service"
+participant A as "Agora\n SD-RTN"
+
+group join a call
+    FE -> V : send room_id and user_id
+    V -> FE : return AgoraToken
+    FE -> A : join channel
+    FE -> A : publish local audio and video data
+    A -> FE : receive remote audio and video data
+end 
+group leave a call 
+    FE -> A : leave channel, turn of tracks
+end
+
+@enduml
