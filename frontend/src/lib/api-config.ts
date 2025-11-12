@@ -9,13 +9,15 @@ export const apiConfig = {
     baseURL: process.env.NEXT_PUBLIC_QUESTION_SERVICE_URL || "http://localhost:8003",
   },
   collaborationService: {
-    httpURL: process.env.NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL || "http://localhost:8004",
-    wsURL: process.env.NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL || "ws://localhost:8005",
+    baseURL: process.env.NEXT_PUBLIC_COLLABORATION_SERVICE_URL || "http://localhost:8004",
+  },
+  videoCallService: {
+    baseURL: process.env.NEXT_PUBLIC_VIDEO_CALL_SERVICE_URL || "http://localhost:8011",
   },
 } as const;
 
 export const getUserServiceURL = () => apiConfig.userService.baseURL;
 export const getMatchingServiceURL = () => apiConfig.matchingService.baseURL;
 export const getQuestionServiceURL = () => apiConfig.questionService.baseURL;
-export const getCollaborationHTTPURL = () => apiConfig.collaborationService.httpURL;
-export const getCollaborationWSURL = () => apiConfig.collaborationService.wsURL;
+export const getCollaborationURL = () => apiConfig.collaborationService.baseURL;
+export const getVideoCallServiceURL = () => apiConfig.videoCallService.baseURL;

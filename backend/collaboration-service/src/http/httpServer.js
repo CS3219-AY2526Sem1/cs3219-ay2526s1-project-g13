@@ -58,12 +58,12 @@ class HttpServer {
   start() {
     return new Promise((resolve, reject) => {
       this.server = http.createServer(this.app);
-      this.server.listen(config.HTTP_PORT, (error) => {
+      this.server.listen(config.PORT, (error) => {
         if (error) {
           console.error("Failed to start HTTP server:", error);
           reject(error);
         } else {
-          console.log(`HTTP API server running on http://localhost:${config.HTTP_PORT}`);
+          console.log(`HTTP API server running on http://localhost:${config.PORT}`);
           resolve(this.server);
         }
       });

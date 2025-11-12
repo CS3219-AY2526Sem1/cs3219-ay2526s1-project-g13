@@ -1,7 +1,7 @@
 import db from "./db.js";
 import httpServer from "./http/httpServer.js";
 import webSocketServer from "./websocket/websocketServer.js";
-import {initRabbitMQ} from "./http/codeExecutionRoutes.js";
+import { initCodeExecution } from "./http/codeExecutionRoutes.js";
 import { setupRoomCreationConsumer } from "./consumers/roomCreationConsumer.js";
 
 async function startServer() {
@@ -9,14 +9,14 @@ async function startServer() {
     // Step 1: Connect to MongoDB
     await db.connect();
 
-    // Step 2: Connect to RabbitMQ
-    await initRabbitMQ();
+    // Step 2: Connect to RabbitMQ for code execution
+    await initCodeExecution();
 
     // Step 3: Start HTTP server
     await httpServer.start();
 
     // Step 4: Start WebSocket server
-    await webSocketServer.start();
+    await webSocketServer.start(httpServer.server);
 
     // Step 4: Start Kafka consumer for room creation
     await setupRoomCreationConsumer();

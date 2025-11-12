@@ -1,12 +1,15 @@
 import { redis, redisConfig } from '../config/redis';
 import { getSocket } from '../config/socket';
 import { kafkaManager, MATCH_TOPIC, ROOM_CREATION_TOPIC } from '../config/kafka';
+import { pubsubManager } from '../config/pubsub';
 import { User } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { SOCKET_EVENTS } from '../constants/socketEvents';
 import { clearMatchCountdownFor } from '../controllers/matchingController';
 import { acquireLock, releaseLock } from '../config/redislock';
 import { ALL_DIFFICULTIES, ALL_TOPICS, MATCHING_INTERVAL_MS, MATCHING_LOCK_KEY, MATCHING_LOCK_TTL } from '../constants/matchingStatus';
+
+const useGcp = !!process.env.PUBSUB_PROJECT_ID;
 
 function topicsCompatible(a: string, b: string): boolean {
   if (!a || !b) return false;
@@ -44,7 +47,8 @@ async function handleMatch(u1: User, u2: User) {
     clearMatchCountdownFor(u2.socketId);
   }
 
-  const producer = kafkaManager.getProducer();
+  // Use Pub/Sub if on GCP, otherwise use Kafka
+  const producer = useGcp ? pubsubManager.getProducer() : kafkaManager.getProducer();
   console.log(`Match found: ${u1.socketId} + ${u2.socketId} (${u1.topic}/${u1.difficulty})`);
   const topic = pickFinal(u1.topic, u2.topic);
   const difficulty = pickFinalDifficulty(u1.difficulty, u2.difficulty);
@@ -241,7 +245,8 @@ export async function handleQuestionMessage(message: { key?: string | null; valu
       userIds: userIds,
     };
     
-    const producer = kafkaManager.getProducer();
+    // Use Pub/Sub if on GCP, otherwise use Kafka
+    const producer = useGcp ? pubsubManager.getProducer() : kafkaManager.getProducer();
     await producer.send({
       topic: ROOM_CREATION_TOPIC,
       messages: [
@@ -252,7 +257,7 @@ export async function handleQuestionMessage(message: { key?: string | null; valu
       ],
     });
     
-    console.log('Sent room creation request to Kafka:', roomCreationRequest);
+    console.log('Sent room creation request:', roomCreationRequest);
 
   } catch (error) {
     console.error('Error sending room creation request to Kafka:', error);
