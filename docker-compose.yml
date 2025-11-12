@@ -123,11 +123,9 @@ services:
     env_file:
       - ./backend/user-service/.env
     environment:
-      MONGO_URI: mongodb://admin:password@mongodb:27017/peerprepUserDB?authSource=admin
+      MONGO_URI: mongodb://admin:password@mongodb:27017/peerprepUserServiceDB?authSource=admin
       WEB_BASE_URL: http://localhost:3000
-      API_BASE_URL: http://localhost:8001
       PORT: 8001
-      EMAIL_USER: peerprep.team@gmail.com
     networks:
       - cs3219-peerprep-network
 
@@ -139,14 +137,12 @@ services:
     restart: always
     ports:
       - '8004:8004'
-      - '8005:8005'
     env_file:
       - ./backend/collaboration-service/.env
     environment:
       - MONGODB_URI=mongodb://admin:password@mongodb:27017/peerprepCollabServiceDB?authSource=admin
       - WEB_BASE_URL=http://localhost:3000
-      - HTTP_PORT=8004
-      - WS_PORT=8005
+      - PORT=8004
       - ROOM_TIMEOUT_MINUTES=10
       - QUESTION_SERVICE_URL=http://question-service:8003
       - KAFKA_HOST=kafka
@@ -168,7 +164,7 @@ services:
       - ./backend/execution-service/.env
     environment:
       - RABBITMQ_URL=amqp://user:password@rabbitmq
-      - QUEUE_NAME=execution_jobs
+      - QUEUE_NAME=job_execution_queue
       - CALLBACK_URL=http://collaboration-service:8004/api/v1/code/execute-callback
       - PISTON_URL=http://piston-api:2000/api/v2/execute
     depends_on:
@@ -221,6 +217,7 @@ services:
       - '8003:8003'
     environment:
       - MONGO_URI=mongodb://admin:password@mongodb:27017/peerprepQuestionServiceDB?authSource=admin
+      - WEB_BASE_URL=http://localhost:3000
       - PORT=8003
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
@@ -237,16 +234,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
+      args:
+        - USER_SERVICE_URL=http://localhost:8001
+        - MATCHING_SERVICE_URL=http://localhost:8002
+        - QUESTION_SERVICE_URL=http://localhost:8003
+        - COLLABORATION_SERVICE_URL=http://localhost:8004
     container_name: frontend
     restart: always
     ports:
       - '3000:3000'
-    environment:
-      - NEXT_PUBLIC_USER_SERVICE_URL=http://localhost:8001
-      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8002
-      - NEXT_PUBLIC_QUESTION_SERVICE_URL=http://localhost:8003
-      - NEXT_PUBLIC_COLLABORATION_SERVICE_HTTP_URL=http://localhost:8004
-      - NEXT_PUBLIC_COLLABORATION_SERVICE_WS_URL=ws://localhost:8005
     depends_on:
       - user-service
       - collaboration-service

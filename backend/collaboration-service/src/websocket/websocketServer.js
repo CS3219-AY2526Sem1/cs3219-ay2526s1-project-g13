@@ -11,14 +11,15 @@ class WebSocketServerManager {
   }
 
   /**
-   * Start the WebSocket server
+   * Start the WebSocket server by attaching to an existing HTTP server
+   * @param {http.Server} httpServer - The HTTP server instance from Express
    */
-  start() {
+  start(httpServer) {
     return new Promise((resolve, reject) => {
       try {
-        this.wss = new WebSocketServer({ port: config.WS_PORT });
+        this.wss = new WebSocketServer({ server: httpServer });
         this.wss.on("connection", this.handleConnection.bind(this));
-        console.log(`WebSocket server running on ws://localhost:${config.WS_PORT}`);
+        console.log(`WebSocket server is attached to HTTP server on port ${config.PORT}`);
         resolve(this.wss);
       } catch (error) {
         console.error("Failed to start WebSocket server:", error);

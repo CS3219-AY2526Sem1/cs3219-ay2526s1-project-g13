@@ -3,12 +3,12 @@ import { subscribeWithSelector } from "zustand/middleware";
 import axios, { AxiosError } from "axios";
 import { toast } from "react-toastify";
 import { ProgrammingLanguage } from "@/utils/enums";
-import { collaborationConfig } from "@/utils/config";
 import { collaborationAPI, RoomDetails, questionAPI, Question } from "@/lib/api-client";
+import { getCollaborationURL, getVideoCallServiceURL } from "@/lib/api-config";
 
 let executionTimer: NodeJS.Timeout | null = null;
 const EXECUTION_TIMEOUT_MS = 60000; // 60s
-const VIDEO_CALL_URL = "http://localhost:8011/v1/video/";
+const VIDEO_CALL_URL = getVideoCallServiceURL() + "/v1/video/";
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1500;
 
@@ -206,14 +206,11 @@ export const useCollaborationStore = create<CollaborationState>()(
 
       // call POST api
       try {
-        const response = await axios.post(
-          `${collaborationConfig.HTTP_URL}/api/v1/code/submit-code`,
-          {
-            room_id: roomDetails.roomId,
-            language: roomDetails.programmingLanguage,
-            source_code: sourceCode,
-          },
-        );
+        const response = await axios.post(`${getCollaborationURL()}/api/v1/code/submit-code`, {
+          room_id: roomDetails.roomId,
+          language: roomDetails.programmingLanguage,
+          source_code: sourceCode,
+        });
 
         if (response.status !== 202) {
           throw new Error(response.data.error || "Failed to submit code");

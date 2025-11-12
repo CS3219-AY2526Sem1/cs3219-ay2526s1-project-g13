@@ -7,6 +7,14 @@ export const ROOM_CREATED_TOPIC = 'room_created_topic';
 export class KafkaManager {
   constructor() {
     console.log('Collaboration Service KafkaManager constructor');
+    const isGCP = !!process.env.PUBSUB_PROJECT_ID;
+    if (isGCP) {
+      console.log('GCP environment detected, Kafka not configured for GCP');
+      this.kafka = null;
+      this.producer = null;
+      this.consumer = null;
+      return;
+    }
     const host = process.env.KAFKA_HOST || 'localhost';
     const port = process.env.KAFKA_PORT || '29092';
     const brokers = (process.env.KAFKA_BROKERS || `${host}:${port}`).split(',');

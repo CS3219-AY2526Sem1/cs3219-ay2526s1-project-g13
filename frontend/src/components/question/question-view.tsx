@@ -54,6 +54,15 @@ export function QuestionView({ question, onEdit }: ViewQuestionProps) {
 
         <CardContent>
           <p>{question.description}</p>
+          {question.mediaLink && (
+            <div className="mt-4">
+              <img
+                src={question.mediaLink}
+                alt={`${question.title} image`}
+                className="w-full max-w-xl rounded shadow-sm"
+              />
+            </div>
+          )}
           {question.examples && question.examples.length > 0 && (
             <div>
               <h3 className="font-semibold text-lg mb-2">

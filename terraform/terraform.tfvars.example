@@ -1,0 +1,4 @@
+project_id           = <gcp_project_id>
+region               = <gcp_region>
+environment          = "production"
+room_timeout_minutes = 10

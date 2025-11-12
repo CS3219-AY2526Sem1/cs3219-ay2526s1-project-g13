@@ -1,60 +1,68 @@
+# ---------- deps ----------
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@9.12.1 --activate
 
-# Copy package files
-COPY package.json ./
+RUN echo "node-linker=hoisted" > .npmrc
 
-# Install dependencies
-RUN pnpm install --no-frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
 
+# Pre-fetch store
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm fetch
+
+# ---------- builder ----------
 FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@9.12.1 --activate
+RUN echo "node-linker=hoisted" > .npmrc
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/package.json ./package.json
+ARG USER_SERVICE_URL
+ARG MATCHING_SERVICE_URL
+ARG QUESTION_SERVICE_URL
+ARG COLLABORATION_SERVICE_URL
+ARG VIDEO_CALL_SERVICE_URL
 
-# Copy source code
+ENV NEXT_PUBLIC_USER_SERVICE_URL=$USER_SERVICE_URL \
+    NEXT_PUBLIC_MATCHING_SERVICE_URL=$MATCHING_SERVICE_URL \
+    NEXT_PUBLIC_QUESTION_SERVICE_URL=$QUESTION_SERVICE_URL \
+    NEXT_PUBLIC_COLLABORATION_SERVICE_URL=$COLLABORATION_SERVICE_URL \
+    NEXT_PUBLIC_VIDEO_CALL_SERVICE_URL=$VIDEO_CALL_SERVICE_URL \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_DISABLE_SOURCEMAPS=1
+
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prod=false
+
+# Copy the rest of the source
 COPY . .
 
-# Set environment to production for build
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Build with caches
+RUN --mount=type=cache,target=/app/.next/cache \
+    --mount=type=cache,target=/root/.cache \
+    pnpm build
 
-# Build Next.js application
-RUN pnpm build
-
+# ---------- runner ----------
 FROM node:20-alpine AS runner
 WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy necessary files from builder
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Copy standalone output from Next
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 USER nextjs
-
 EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["pnpm", "start"]
-
+# In standalone output, the entrypoint is `server.js` at repo root
+CMD ["node", "server.js"]

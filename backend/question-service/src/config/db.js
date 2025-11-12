@@ -65,8 +65,8 @@ const connectDB = async () => {
             console.log(`Database contains ${questionCount} questions`)
         }
     } catch (error) {
-        console.log(error)
-        process.exit(1)
+        console.log("MongoDB connection error:", error)
+        throw error
     }
 }
 

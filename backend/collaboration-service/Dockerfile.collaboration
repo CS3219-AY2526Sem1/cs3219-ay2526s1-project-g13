@@ -28,7 +28,7 @@ RUN chown -R collaboration-service:nodejs /app
 USER collaboration-service
 
 # Expose ports for HTTP and WebSocket servers
-EXPOSE 8004 8005
+EXPOSE 8004
 
 # Start the application
 CMD ["pnpm", "start"]

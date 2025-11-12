@@ -1,14 +1,12 @@
 const { Question, Solution } = require('../models/questionModel')
 const seedData = require('../data/seed.json')
+const cloudinary = require('../lib/cloudinary')
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard']
 const TOPICS = [
-        'Array', 'Algorithms', 'Backtracking', 'Breadth-first search', 'Binary search', 'Bit manipulation',
-        'Brainteaser', 'Data Structures', 'Databases', 'Depth-first search', 'Divide and conquer',
-        'Dynamic programming', 'Greedy', 'Hash table', 'Linked list', 'Math',
-        'Matrix', 'Memoization', 'Monotonic stack', 'Recursion', 'Segment tree',
-        'Sorting', 'Stack', 'String', 'Topological sort', 'Tree',
-        'Trie', 'Two pointers', 'Queue', 'Quickselect', 'Union find'
+            'Array', 'Algorithms', 'Backtracking', 'Binary search', 'Bit manipulation',
+            'Dynamic programming', 'Linked list', 'Math', 'Depth-first search', 
+            'Sorting', 'Stack', 'String', 'Tree','Quickselect', 
         ]
 
 
@@ -366,16 +364,54 @@ const pickQuestion = async (req, res) => {
 }
 
 /**
+ * Uploads an image for a question and saves the resulting Cloudinary URL to the question.mediaLink
+ * Expects multipart/form-data with field name 'image'
+ */
+exports.uploadQuestionImage = async (req, res) => {
+    try {
+        const idParam = req.params.id
+        const mongoose = require('mongoose')
+        let q = null
+        if (/^\d+$/.test(idParam)) {
+            q = await Question.findOne({ questionID: Number(idParam) })
+        } else if (mongoose.Types.ObjectId.isValid(idParam)) {
+            q = await Question.findById(idParam)
+        } else {
+            return res.status(400).json({ error: 'Invalid question id' })
+        }
+
+        if (!q) return res.status(404).json({ error: 'Question not found' })
+        if (!req.file || !req.file.buffer) return res.status(400).json({ error: 'No image uploaded' })
+
+        const mime = req.file.mimetype || 'application/octet-stream'
+        const dataUri = `data:${mime};base64,${req.file.buffer.toString('base64')}`
+
+        const result = await cloudinary.uploader.upload(dataUri, {
+            folder: 'cs3219-g13-2526-peerprep/questions',
+            transformation: [{ width: 1200, height: 800, crop: 'limit' }],
+        })
+
+        q.mediaLink = result.secure_url
+        await q.save()
+
+        return res.status(200).json(sanitiseQuestion(q))
+    } catch (err) {
+        console.error('uploadQuestionImage error', err)
+        return res.status(500).json({ error: 'Image upload failed' })
+    }
+}
+
+/**
  * Kafka consumer function to get question based on matching criteria
  * This function is called when the question service receives a message from the matching service
  * @param {Object} message - Kafka message containing matching criteria
  * @param {string} message.key - Message key (optional)
  * @param {string} message.value - JSON string containing topic and difficulty
- * @param {Object} kafkaManager - Kafka manager instance for sending responses
+ * @param {Object} messageManager - Message manager instance (Kafka or Pub/Sub) to send response
  * @param {string} questionTopic - Topic to send the question response to
  * @returns {Object} Question object or error response
  */
-const getQuestion = async (message, kafkaManager, questionTopic) => {
+const getQuestion = async (message, messageManager, questionTopic) => {
     try {
         if (!message.value) {
             console.error('No message value provided');
@@ -432,7 +468,7 @@ const getQuestion = async (message, kafkaManager, questionTopic) => {
         });
 
         const matchId = message.key?.toString();
-        const producer = kafkaManager.getProducer();
+        const producer = messageManager.getProducer();
         await producer.send({
             topic: questionTopic,
             messages: [

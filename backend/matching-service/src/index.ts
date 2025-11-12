@@ -10,6 +10,7 @@ import { redisConfig } from './config/redis';
 import { initSocket } from './config/socket';
 import { startMatchingWorker } from './workers/matchingWorker';
 import { kafkaManager } from './config/kafka';
+import { pubsubManager } from './config/pubsub';
 import { handleQuestionMessage, handleRoomCreatedMessage } from './workers/matchingWorker';
 import { matchingController, cleanupConsumerGroup } from './controllers/matchingController';
 
@@ -22,6 +23,8 @@ app.get('/health', (_req: any, res: any) => {
   res.json({ status: 'OK', service: 'matching-service' });
 });
 
+const useGcp = !!process.env.PUBSUB_PROJECT_ID;
+
 async function startServer() {
   try {
     const httpServer = createServer(app);
@@ -31,11 +34,18 @@ async function startServer() {
     // Start background matching worker
     startMatchingWorker();
 
-    // Subscribe to Kafka topics for question services and room creation
-    await kafkaManager.setupSubscribers({
-      onQuestionMessage: handleQuestionMessage,
-      onRoomCreatedMessage: handleRoomCreatedMessage,
-    });
+    // Subscribe to topics for question services and room creation
+    if (useGcp) {
+      await pubsubManager.setupSubscribers({
+        onQuestionMessage: handleQuestionMessage,
+        onRoomCreatedMessage: handleRoomCreatedMessage,
+      });
+    } else {
+      await kafkaManager.setupSubscribers({
+        onQuestionMessage: handleQuestionMessage,
+        onRoomCreatedMessage: handleRoomCreatedMessage,
+      });
+    }
 
     const port = Number(process.env.PORT) || 8002;
     httpServer.listen(port, () => {
@@ -54,11 +64,15 @@ process.on('SIGINT', async () => {
     await redisConfig.clearAllMatchingData();
     await cleanupConsumerGroup();
     
-    await kafkaManager.resetConsumerOffsets();
-    await kafkaManager.clearAllTopics();
+    if (useGcp) {
+      await pubsubManager.disconnect();
+    } else {
+      await kafkaManager.resetConsumerOffsets();
+      await kafkaManager.clearAllTopics();
+      await kafkaManager.disconnect();
+    }
     
     await redisConfig.disconnect();
-    await kafkaManager.disconnect();
     
     console.log('Shutdown completed successfully');
   } catch (error) {

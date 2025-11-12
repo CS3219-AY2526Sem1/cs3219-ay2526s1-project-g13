@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { RoomDetails } from "@/lib/api-client";
-import { ProgrammingLanguage, ProgrammingLanguageDisplay } from "@/utils/enums";
+import { ProgrammingLanguage, ProgrammingLanguageDisplay, Difficulty } from "@/utils/enums";
 import {
   Card,
   CardContent,
@@ -23,25 +23,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/auth-context";
+import { fetchTopics } from "@/hooks/use-question-topic";
 
 interface PastRoomsPanelProps {
   rooms: RoomDetails[];
 }
-
-// Mock data for difficulty levels - TODO: Fetch from question service
-const MOCK_DIFFICULTIES = ["Easy", "Medium", "Hard"];
-
-// Mock data for topics - TODO: Fetch from question service
-const MOCK_TOPICS = [
-  "String",
-  "Algorithms",
-  "Data Structures",
-  "Databases",
-  "Bit Manipulation",
-  "Recursion",
-  "Arrays",
-  "Brainteaser",
-];
 
 const programmingLanguageDisplayMap: Record<ProgrammingLanguage, string> = {
   [ProgrammingLanguage.C]: ProgrammingLanguageDisplay.C,
@@ -106,6 +92,7 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [topics, setTopics] = useState<string[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,6 +103,27 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
       clearTimeout(timer);
     };
   }, [searchTerm]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadTopics = async () => {
+      try {
+        const result = await fetchTopics();
+        if (!cancelled) {
+          setTopics(result ?? []);
+        }
+      } catch (err) {
+        console.error("Failed to load topics:", err);
+        if (!cancelled) {
+          setTopics([]);
+        }
+      }
+    };
+    loadTopics();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleViewRoom = (roomId: string) => {
     router.push(`/practice/${roomId}`);
@@ -193,7 +201,7 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {MOCK_DIFFICULTIES.map((difficulty) => (
+                  {Object.values(Difficulty).map((difficulty) => (
                     <SelectItem key={difficulty} value={difficulty}>
                       {difficulty}
                     </SelectItem>
@@ -211,7 +219,7 @@ export default function PastRoomsPanel({ rooms }: PastRoomsPanelProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {MOCK_TOPICS.map((topic) => (
+                  {topics.map((topic) => (
                     <SelectItem key={topic} value={topic}>
                       {topic}
                     </SelectItem>
