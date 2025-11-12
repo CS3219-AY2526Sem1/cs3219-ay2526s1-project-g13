@@ -200,6 +200,17 @@ jobs:
           echo "Cloud Run Service: $CLOUD_RUN_SERVICE"
           echo "Image: $IMAGE"
           
+          # Prepare environment variables
+          ENV_VARS="ENVIRONMENT=preview,BRANCH=${{ needs.determine-branch.outputs.branch-name }}"
+          
+          # Add service-specific environment variables
+          if [ "$SERVICE_NAME" == "execution-service" ]; then
+            # Execution service needs PUBSUB_PROJECT_ID to start HTTP server for health checks
+            ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+            # Optional: Set callback URL if collaboration service is deployed
+            # ENV_VARS="${ENV_VARS},CALLBACK_URL=https://collaboration-service-preview-${BRANCH}.${{ env.REGION }}.run.app/api/v1/code/execute-callback"
+          fi
+          
           # Deploy with preview configuration
           gcloud run deploy "$CLOUD_RUN_SERVICE" \
             --image="$IMAGE" \
@@ -213,7 +224,7 @@ jobs:
             --memory=512Mi \
             --cpu=1 \
             --timeout=300 \
-            --set-env-vars="ENVIRONMENT=preview,BRANCH=${{ needs.determine-branch.outputs.branch-name }}" \
+            --set-env-vars="$ENV_VARS" \
             --quiet
           
           # Get the service URL

@@ -233,6 +233,15 @@ jobs:
             echo "Deploying as PRIVATE (dev/staging environment - team access only)"
           fi
           
+          # Prepare environment variables
+          ENV_VARS="ENVIRONMENT=$ENV"
+          
+          # Add service-specific environment variables
+          if [ "$SERVICE_NAME" == "execution-service" ]; then
+            # Execution service needs PUBSUB_PROJECT_ID to start HTTP server for health checks
+            ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+          fi
+          
           # Deploy with environment-specific configuration
           gcloud run deploy "$SERVICE_NAME-$ENV" \
             --image="$IMAGE" \
@@ -246,7 +255,7 @@ jobs:
             --memory=512Mi \
             --cpu=1 \
             --timeout=300 \
-            --set-env-vars="ENVIRONMENT=$ENV" \
+            --set-env-vars="$ENV_VARS" \
             --quiet
           
           # Grant access to team members for dev/staging environments
