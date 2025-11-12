@@ -283,10 +283,6 @@ sequenceDiagram
 ```
 ### Activity Diagram
 ```mermaid
----
-config:
-  layout: elk
----
 stateDiagram
   direction TB
   state AccountChoice <<choice>>
@@ -387,7 +383,7 @@ stateDiagram
   - Keep admin credentials secret and rotate periodically.
   - Prefer updating admin credentials via secure DB tooling or an internal admin-only script that correctly hashes passwords.
   - The service enforces admin-only access on privileged endpoints using role checks in middleware.
-  
+
 ### Security Considerations
 
 - Passwords hashed with bcrypt (10 rounds salt)
