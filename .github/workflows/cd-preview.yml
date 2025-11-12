@@ -238,6 +238,17 @@ jobs:
             if [ -n "${{ secrets.ADMIN_PW }}" ]; then
               ENV_VARS="${ENV_VARS},ADMIN_PW=${{ secrets.ADMIN_PW }}"
             fi
+          elif [ "$SERVICE_NAME" == "question-service" ]; then
+            # Question service needs MONGO_URI, PUBSUB_PROJECT_ID, JWT_SECRET, and WEB_BASE_URL
+            if [ -n "${{ secrets.MONGO_URI }}" ]; then
+              ENV_VARS="${ENV_VARS},MONGO_URI=${{ secrets.MONGO_URI }}"
+            fi
+            ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+            if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+              ENV_VARS="${ENV_VARS},JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            fi
+            # WEB_BASE_URL for preview deployments
+            ENV_VARS="${ENV_VARS},WEB_BASE_URL=https://frontend-preview-${BRANCH}.${{ env.REGION }}.run.app"
           elif [ "$SERVICE_NAME" == "matching-service" ]; then
             # Matching service needs PUBSUB_PROJECT_ID, REDIS_URL, and JWT_SECRET
             ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
@@ -254,6 +265,9 @@ jobs:
               ENV_VARS="${ENV_VARS},JWT_SECRET=${{ secrets.JWT_SECRET }}"
             fi
           fi
+          
+          # Add PORT to environment variables (must be last to ensure it's always set)
+          ENV_VARS="${ENV_VARS},PORT=${{ matrix.service.port }}"
           
           # Deploy with preview configuration
           # For services that need secrets from Secret Manager, use --update-secrets instead
