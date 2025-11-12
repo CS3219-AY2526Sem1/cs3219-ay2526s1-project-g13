@@ -1,38 +1,35 @@
 # Collaboration Service
 
-The Collaboration Service is a microservice responsible for managing real-time collaborative coding sessions in PeerPrep. It provides WebSocket-based real-time document synchronization using Yjs (CRDT), room management, and asynchronous code execution capabilities.
+The Collaboration Service is a microservice responsible for managing real-time collaborative coding sessions in PeerPrep. It provides real-time collaborative coding sessions with WebSocket-based document synchronization using Yjs CRDT, room management, and asynchronous code execution.
 
-## Overview
-
-The Collaboration Service enables multiple users to collaborate on coding problems in real-time. Key features include:
+## Features
 
 - Real-time collaborative code editing using Yjs CRDT (Conflict-free Replicated Data Type)
-- Room-based session management
-- Asynchronous code execution with result broadcasting
-- Integration with matching service for automatic room creation
-- Persistent document storage in MongoDB
+- Room-based session management with automatic closure after inactivity
+- Integration with the Matching Service for automatic room creation
+- Integration with the Question Service to fetch question details
+- Integration with the Execution Service for asynchronous code execution
+- MongoDB persistence for rooms and documents
 - JWT-based authentication and authorization
 
-### Service Ports
+## Technology Stack
 
-- HTTP API: `8004`
-- WebSocket Server: `8005`
-
-### Technology Stack
-
-- Node.js 20
-- Express.js (HTTP API)
+- Node.js + Express
 - WebSocket (ws library)
-- Yjs (CRDT-based collaboration)
-- MongoDB (Room metadata and Yjs persistence)
-- Mongoose (ODM)
-- Message Queue (Google Pub/Sub in production)
+- Yjs + y-mongodb-provider
+- MongoDB + Mongoose
+- RabbitMQ/Google Pub/Sub (code execution events)
+- Kafka/Google Pub/Sub (room creation events)
 
-## Architecture & Deployment
+## Ports
+
+- HTTP API & WebSocket: `8004`
+
+## Architecture
 
 ### System Architecture
 
-The Collaboration Service integrates with several other microservices and infrastructure components:
+The Collaboration Service integrates with other microservices and infrastructure components as follows:
 
 ```mermaid
 graph TB
@@ -44,7 +41,7 @@ graph TB
     MQ1[Message Queue<br/>Room Creation]
     MQ2[Message Queue<br/>Code Execution]
     MongoDB[(MongoDB)]
-    
+
     Frontend -->|HTTP API| CS
     Frontend -->|WebSocket| CS
     MS -->|Publish| MQ1
@@ -60,7 +57,7 @@ graph TB
 
 ### Room Creation Flow
 
-When users are matched, the matching service triggers room creation through the message queue:
+When users are matched, the Matching Service triggers room creation through the message queue:
 
 ```mermaid
 sequenceDiagram
@@ -68,7 +65,7 @@ sequenceDiagram
     participant MQ as Message Queue
     participant CS as Collaboration Service
     participant DB as MongoDB
-    
+
     MS->>MQ: Publish room creation request
     Note over MQ: Topic: room_creation_topic
     MQ->>CS: Consume room creation event
@@ -78,29 +75,6 @@ sequenceDiagram
     Note over MQ: Topic: room_created_topic
     MQ->>MS: Consume room created event
     MS->>MS: Notify matched users
-```
-
-### Code Execution Flow
-
-Code execution is handled asynchronously through a message queue:
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CS as Collaboration Service
-    participant MQ as Message Queue
-    participant ES as Execution Service
-    participant Piston as Piston API
-    
-    Client->>CS: POST /api/v1/code/submit-code
-    CS->>CS: Broadcast execution started
-    CS->>MQ: Publish execution job
-    MQ->>ES: Consume execution job
-    ES->>Piston: Execute code
-    Piston-->>ES: Return execution result
-    ES->>CS: POST /api/v1/code/execute-callback
-    CS->>CS: Broadcast execution result
-    CS->>Client: WebSocket message
 ```
 
 ### WebSocket Collaboration Flow
@@ -114,23 +88,45 @@ sequenceDiagram
     participant WS as WebSocket Server
     participant YDoc as Yjs Document
     participant DB as MongoDB
-    
+
     Client1->>WS: Connect with JWT token
-    WS->>WS: Authenticate & authorize
-    WS->>YDoc: Load/create Yjs document
+    WS->>WS: Authenticate & Authorize
+    WS->>YDoc: Load/Create Yjs document
     YDoc->>DB: Load persisted state
     DB-->>YDoc: Return document state
     YDoc-->>Client1: Send initial state
-    
+
     Client1->>YDoc: Edit operation
     YDoc->>DB: Persist update
     YDoc->>WS: Broadcast update
     WS->>Client2: Send update
-    
+
     Client2->>YDoc: Edit operation
     YDoc->>DB: Persist update
     YDoc->>WS: Broadcast update
     WS->>Client1: Send update
+```
+
+### Code Execution Flow
+
+Code execution is handled asynchronously through a message queue:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant CS as Collaboration Service
+    participant MQ as Message Queue
+    participant ES as Execution Service
+    participant Piston as Piston API
+
+    Client->>CS: POST /api/v1/code/submit-code
+    CS->>Client: Broadcast execution started
+    CS->>MQ: Publish execution job
+    MQ->>ES: Consume execution job
+    ES->>Piston: Execute code
+    Piston-->>ES: Return execution result
+    ES->>CS: POST /api/v1/code/execute-callback
+    CS->>Client: Broadcast execution result
 ```
 
 ### Data Flow Diagram
@@ -149,7 +145,7 @@ flowchart TD
     Notify --> Connect[Users Connect via WebSocket]
     Connect --> Collab[Real-time Collaboration]
     Collab --> Execute[Code Execution Request]
-    Execute --> MQ3[Message Queue:<br/>execution_jobs]
+    Execute --> MQ3[Message Queue:<br/>job_execution_topic]
     MQ3 --> Worker[Execution Service]
     Worker --> Result[Execution Result]
     Result --> Callback[Callback to Collaboration Service]
@@ -158,31 +154,24 @@ flowchart TD
 
 ### Key Integrations
 
-1. **Matching Service**: Receives room creation requests via message queue
-2. **Question Service**: Fetches question details for room metadata
-3. **Execution Service**: Processes code execution jobs asynchronously
+1. **Matching Service**: Consumes room creation requests via message queue (Kafka or Google Pub/Sub)
+2. **Question Service**: Fetches question details for room metadata via HTTP
+3. **Execution Service**: Processes code execution jobs via message queue (RabbitMQ or Google Pub/Sub) and returns results via HTTP callback
 4. **MongoDB**: Stores room metadata and Yjs document state
-5. **Message Queue**: Handles asynchronous communication (room creation, code execution)
+5. **Frontend**: HTTP API and WebSocket connections for real-time collaboration
 
-## API Documentation
+## API
 
 ### Base URL
 
-```
-http://localhost:8004
-```
+- Local: `http://localhost:8004`
+- Public: `http://cs3219-ay2526s1-g13.com/api/collaboration`
 
 ### Authentication
 
-Most endpoints require JWT authentication via the `Authorization` header:
+Most endpoints require JWT via the `Authorization: Bearer <token>`. Token must contain a `username` field.
 
-```
-Authorization: Bearer <jwt_token>
-```
-
-The JWT token should contain a `username` field that identifies the user.
-
-### Endpoints
+### HTTP API
 
 #### Get User Rooms
 
@@ -191,9 +180,11 @@ Retrieve all rooms for a specific user.
 **Endpoint:** `GET /api/v1/rooms?userId=<userId>`
 
 **Query Parameters:**
+
 - `userId` (required): The ID of the user
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -220,6 +211,7 @@ Retrieve all rooms for a specific user.
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -234,11 +226,13 @@ Get room information and document content. Requires authentication and user must
 **Endpoint:** `GET /api/v1/rooms/:roomId`
 
 **Headers:**
-```
-Authorization: Bearer <jwt_token>
+
+```http
+Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -262,6 +256,7 @@ Authorization: Bearer <jwt_token>
 **Error Responses:**
 
 404 - Room not found or user not authorized:
+
 ```json
 {
   "success": false,
@@ -270,6 +265,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 401 - Missing or invalid token:
+
 ```json
 {
   "success": false,
@@ -279,17 +275,19 @@ Authorization: Bearer <jwt_token>
 
 #### Update Programming Language
 
-Set the programming language for a room. Requires authentication and user must be part of the room.
+Set the programming language for a room. Requires authentication and user must be part of the room. The change is broadcast as `language-change-notification` to all connected clients via WebSocket.
 
 **Endpoint:** `PATCH /api/v1/rooms/:roomId/language`
 
 **Headers:**
-```
-Authorization: Bearer <jwt_token>
+
+```http
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "language": "javascript"
@@ -297,9 +295,11 @@ Content-Type: application/json
 ```
 
 **Supported Languages:**
+
 - `c`, `cpp`, `csharp`, `go`, `java`, `javascript`, `kotlin`, `php`, `python`, `ruby`, `rust`, `swift`, `typescript`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -310,6 +310,7 @@ Content-Type: application/json
 **Error Responses:**
 
 400 - Invalid language or room closed:
+
 ```json
 {
   "success": false,
@@ -318,6 +319,7 @@ Content-Type: application/json
 ```
 
 404 - Room not found or user not authorized:
+
 ```json
 {
   "success": false,
@@ -327,11 +329,12 @@ Content-Type: application/json
 
 #### Submit Code for Execution
 
-Submit code to be executed asynchronously. The result will be broadcast to all clients in the room via WebSocket.
+Submit code to be executed asynchronously. The execution start and result are broadcast as `code-execution-started` and `code-execution-result` to all connected clients via WebSocket.
 
 **Endpoint:** `POST /api/v1/code/submit-code`
 
 **Request Body:**
+
 ```json
 {
   "room_id": "room_uuid",
@@ -341,6 +344,7 @@ Submit code to be executed asynchronously. The result will be broadcast to all c
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Job accepted"
@@ -350,13 +354,12 @@ Submit code to be executed asynchronously. The result will be broadcast to all c
 **Status Code:** `202 Accepted`
 
 **Error Response:**
+
 ```json
 {
   "error": "Internal Server Error"
 }
 ```
-
-**Note:** After submission, a `code-execution-started` message is broadcast to all clients in the room. The execution result will be sent via WebSocket when available (see WebSocket API section).
 
 #### Code Execution Callback
 
@@ -365,6 +368,7 @@ Internal endpoint used by the execution service to return execution results. Not
 **Endpoint:** `POST /api/v1/code/execute-callback`
 
 **Request Body:**
+
 ```json
 {
   "room_id": "room_uuid",
@@ -374,6 +378,7 @@ Internal endpoint used by the execution service to return execution results. Not
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Got result and broadcasted to room"
@@ -393,17 +398,19 @@ Internal endpoint used by the execution service to return execution results. Not
 
 Connect to the WebSocket server to enable real-time collaboration:
 
-```
-ws://localhost:8005/<roomId>?token=<jwt_token>
+```url
+ws://localhost:8004/<roomId>?token=<jwt_token>
 ```
 
 **Parameters:**
+
 - `roomId` (path): The room ID to join
 - `token` (query): JWT authentication token
 
 **Example:**
-```
-ws://localhost:8005/550e8400-e29b-41d4-a716-446655440000?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+```url
+ws://localhost:8004/550e8400-e29b-41d4-a716-446655440000?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### Connection Lifecycle
@@ -433,16 +440,18 @@ Document updates are handled automatically by Yjs. The WebSocket connection uses
 
 #### Custom Messages
 
-The service also broadcasts custom JSON messages for room events:
+The service also broadcasts custom JSON messages for relevant events:
 
-**Code Execution Started:**
+**Code Execution Started:** `code-execution-started`
+
 ```json
 {
   "type": "code-execution-started"
 }
 ```
 
-**Code Execution Result:**
+**Code Execution Result:** `code-execution-result`
+
 ```json
 {
   "type": "code-execution-result",
@@ -453,7 +462,8 @@ The service also broadcasts custom JSON messages for room events:
 }
 ```
 
-**Room Closure Notification:**
+**Room Closure Notification:** `room-close-notification`
+
 ```json
 {
   "type": "room-close-notification",
@@ -463,7 +473,8 @@ The service also broadcasts custom JSON messages for room events:
 }
 ```
 
-**Language Change Notification:**
+**Language Change Notification:** `language-change-notification`
+
 ```json
 {
   "type": "language-change-notification",
@@ -490,41 +501,32 @@ ytext.insert(0, "code content");
 1. **Check Dependencies:**
    - Verify MongoDB is accessible
    - Verify message queue connectivity
-   - Verify question service is reachable
+   - Verify environment variables are set
+   - Verify other dependent services (Question Service, Matching Service, Execution Service) are reachable
 
 2. **Start Service:**
+
    ```bash
    pnpm start
    ```
 
 3. **Verify Startup:**
-   - Check logs for "HTTP API server running on http://localhost:8004"
-   - Check logs for "WebSocket server running on ws://localhost:8005"
+   - Check logs for "HTTP API server running on <http://localhost:8004>"
+   - Check logs for "WebSocket server running on ws://localhost:8004"
    - Check logs for "Connected to Kafka" (or message queue connection confirmation)
    - Check logs for "Room creation Kafka consumer started" (or message queue consumer started)
-
-### Health Checks
-
-**HTTP Server:**
-```bash
-curl http://localhost:8004/api/v1/rooms?userId=test
-```
-
-**WebSocket Server:**
-```bash
-# Use a WebSocket client to connect
-wscat -c "ws://localhost:8005/test-room?token=test-token"
-```
 
 ### Common Issues
 
 #### Database Connection Issues
 
 **Symptoms:**
+
 - Service fails to start
 - Logs show "Failed to connect to MongoDB"
 
 **Resolution:**
+
 1. Verify MongoDB is running: `docker ps | grep mongodb`
 2. Check connection string in environment variables
 3. Verify network connectivity: `ping mongodb` (in Docker network)
@@ -533,11 +535,13 @@ wscat -c "ws://localhost:8005/test-room?token=test-token"
 #### Message Queue Connectivity Problems
 
 **Symptoms:**
+
 - Service starts but cannot consume messages
 - Logs show connection errors
 - Room creation requests are not processed
 
 **Resolution:**
+
 1. Verify message queue service is running
 2. Check environment variables: `KAFKA_HOST`, `KAFKA_PORT`, `KAFKA_BROKERS`
 3. Verify network connectivity to message queue
@@ -547,14 +551,18 @@ wscat -c "ws://localhost:8005/test-room?token=test-token"
 #### Room Not Found Errors
 
 **Symptoms:**
+
 - Clients cannot connect to rooms
 - 404 errors when fetching room details
 
 **Resolution:**
+
 1. Verify room exists in MongoDB:
+
    ```javascript
-   db.rooms.findOne({ roomId: "room_id" })
+   db.rooms.findOne({ roomId: "room_id" });
    ```
+
 2. Check if room is active: `isActive: true`
 3. Verify user is in `userIds` array
 4. Check room creation flow in logs
@@ -562,10 +570,12 @@ wscat -c "ws://localhost:8005/test-room?token=test-token"
 #### WebSocket Connection Failures
 
 **Symptoms:**
+
 - Clients cannot establish WebSocket connections
 - Connection closes immediately
 
 **Resolution:**
+
 1. Verify JWT token is valid and not expired
 2. Check token contains `username` field
 3. Verify `JWT_SECRET` matches user service
@@ -575,13 +585,15 @@ wscat -c "ws://localhost:8005/test-room?token=test-token"
 #### Code Execution Not Working
 
 **Symptoms:**
+
 - Code submission accepted but no results
 - Timeout errors
 
 **Resolution:**
+
 1. Verify execution service is running
 2. Check message queue connectivity for execution jobs
-3. Verify callback URL is correct: `http://collaboration-service:8004/api/v1/code/execute-callback`
+3. Verify callback URL is correct
 4. Check execution service logs
 5. Verify Piston API is accessible
 
@@ -591,7 +603,7 @@ wscat -c "ws://localhost:8005/test-room?token=test-token"
 
 ```javascript
 // MongoDB query
-db.rooms.find({ isActive: true })
+db.rooms.find({ isActive: true });
 ```
 
 #### Close a Room Manually
@@ -600,13 +612,13 @@ db.rooms.find({ isActive: true })
 // MongoDB update
 db.rooms.updateOne(
   { roomId: "room_id" },
-  { 
-    $set: { 
-      isActive: false, 
-      closedAt: new Date() 
-    } 
-  }
-)
+  {
+    $set: {
+      isActive: false,
+      closedAt: new Date(),
+    },
+  },
+);
 ```
 
 #### Clean Up Inactive Rooms
@@ -615,8 +627,8 @@ db.rooms.updateOne(
 // Find rooms closed more than 7 days ago
 db.rooms.find({
   isActive: false,
-  closedAt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-})
+  closedAt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+});
 ```
 
 ### Log Analysis
@@ -624,25 +636,29 @@ db.rooms.find({
 **Key Log Patterns:**
 
 1. **Room Creation:**
-   ```
+
+   ```bash
    Received room creation request: { matchId, requestData }
    Room created successfully: { matchId, roomId }
    ```
 
 2. **WebSocket Connections:**
-   ```
-   WebSocket server running on ws://localhost:8005
+
+   ```bash
+   WebSocket server running on ws://localhost:8004
    ```
 
 3. **Code Execution:**
-   ```
+
+   ```bash
    >>> Got code { room_id, language, source_code }
    >>> Sent job: { room_id }
    >>> Callback, broadcasted to room
    ```
 
 4. **Errors:**
-   ```
+
+   ```bash
    Failed to create room
    WebSocket authentication failed
    Error handling WebSocket connection
@@ -659,6 +675,7 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 - **Eventual consistency**: All clients converge to the same state
 
 **Implementation:**
+
 - Each room has a Yjs document identified by the room ID
 - The document uses a Y.Text type named `"monaco"` for code content
 - Updates are automatically synchronized via WebSocket
@@ -667,17 +684,20 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Room Lifecycle Management
 
 **Room States:**
+
 1. **Created**: Room created in database, Yjs document initialized
 2. **Active**: Room is open for collaboration, clients can connect
 3. **Inactive**: Room is closed, no new connections allowed
 
 **Lifecycle Events:**
+
 - **Creation**: Triggered by matching service via message queue
 - **Activation**: Automatic when first client connects
 - **Deactivation**: Automatic when no clients remain for `ROOM_TIMEOUT_MINUTES` (default: 10 minutes)
 - **Manual Closure**: Can be closed programmatically (currently automated)
 
 **Timeout Mechanism:**
+
 - When the last client disconnects, a timeout is started
 - If no clients reconnect within the timeout period, the room is automatically closed
 - Timeout duration is configurable via `ROOM_TIMEOUT_MINUTES` environment variable
@@ -685,11 +705,13 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Authentication and Authorization
 
 **Authentication:**
+
 - JWT tokens are used for both HTTP and WebSocket authentication
 - Tokens are verified using `JWT_SECRET` (must match user service)
 - Token must contain a `username` field identifying the user
 
 **Authorization:**
+
 - Users must be in the room's `userIds` array to access a room
 - Authorization is checked on:
   - HTTP API requests (via `authenticateHttp` middleware)
@@ -699,17 +721,20 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Persistence Strategy
 
 **Room Metadata:**
+
 - Stored in MongoDB using Mongoose
 - Collection: `rooms`
 - Indexed on `roomId` and `userIds` for efficient queries
 
 **Yjs Document State:**
+
 - Persisted using `y-mongodb-provider`
 - Each document gets its own collection in MongoDB
 - Updates are stored incrementally
 - Full document state is reconstructed on first client connection
 
 **Persistence Hooks:**
+
 - `bindState`: Called when first client connects, loads persisted state
 - `update`: Called on every document update, stores incremental changes
 - `writeState`: Called when all clients disconnect, final state save
@@ -717,16 +742,19 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Code Execution Architecture
 
 **Asynchronous Processing:**
+
 - Code execution is handled asynchronously to avoid blocking
 - Jobs are published to a message queue
 - Execution service processes jobs and returns results via HTTP callback
 
 **Timeout Handling:**
+
 - Each execution job has a timeout (60 seconds)
 - If timeout expires, a timeout message is broadcast to clients
 - Stale callbacks (after timeout) are ignored
 
 **Broadcasting:**
+
 - Execution start is immediately broadcast to all room clients
 - Execution results are broadcast to all room clients when received
 - Uses WebSocket for real-time delivery
@@ -734,16 +762,19 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Error Handling
 
 **Connection Errors:**
+
 - Database connection failures cause service startup to fail
 - Message queue connection failures are retried with exponential backoff
 - WebSocket errors are logged but don't crash the service
 
 **Validation Errors:**
+
 - Invalid requests return 400 with error message
 - Missing authentication returns 401
 - Unauthorized access returns 404 (privacy)
 
 **Graceful Degradation:**
+
 - If question service is unavailable, rooms are created without question details
 - Question details are fetched asynchronously when available
 - Room functionality continues even if question fetch fails
@@ -751,12 +782,14 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Scalability Considerations
 
 **Horizontal Scaling:**
+
 - Multiple instances can run behind a load balancer
 - WebSocket connections are per-instance (sticky sessions recommended)
 - Yjs documents are stored in MongoDB (shared state)
 - Message queue ensures room creation events reach all instances
 
 **Performance Optimizations:**
+
 - Yjs uses efficient binary protocol for updates
 - MongoDB indexes on frequently queried fields
 - Room timeouts prevent resource leaks
@@ -765,47 +798,53 @@ The service uses Yjs, a CRDT (Conflict-free Replicated Data Type) library, for r
 ### Security Considerations
 
 **Authentication:**
+
 - JWT tokens prevent unauthorized access
 - Token verification on every request/connection
 - Shared secret must be kept secure
 
 **Authorization:**
+
 - Room access restricted to authorized users
 - Privacy maintained (404 for unauthorized access)
 - User IDs validated against room membership
 
 **Input Validation:**
+
 - Programming language enum validation
 - Room ID format validation
 - Code execution input sanitization (handled by execution service)
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `HTTP_PORT` | HTTP API server port | `8004` |
-| `WS_PORT` | WebSocket server port | `8005` |
-| `MONGODB_URI` | MongoDB connection string | `mongodb://admin:password@localhost:27017/peerprepCollabService?authSource=admin` |
-| `ROOM_TIMEOUT_MINUTES` | Minutes before inactive room closes | `10` |
-| `QUESTION_SERVICE_URL` | Question service base URL | `http://localhost:8003` |
-| `JWT_SECRET` | JWT verification secret | `your-jwt-secret-here` |
-| `KAFKA_HOST` | Message queue host (implementation-specific variable name) | `localhost` |
-| `KAFKA_PORT` | Message queue port (implementation-specific variable name) | `29092` |
-| `KAFKA_BROKERS` | Message queue broker addresses (implementation-specific variable name) | `localhost:29092` |
-| `WEB_BASE_URL` | Frontend base URL for CORS | `http://localhost:3000` |
+| Variable               | Description                                                                       | Default                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `PORT`                 | HTTP & WebSocket server port                                                      | `8004`                                                                            |
+| `MONGODB_URI`          | MongoDB connection string                                                         | `mongodb://admin:password@localhost:27017/peerprepCollabService?authSource=admin` |
+| `ROOM_TIMEOUT_MINUTES` | Minutes before inactive room closes                                               | `10`                                                                              |
+| `QUESTION_SERVICE_URL` | Question service base URL                                                         | `http://localhost:8003`                                                           |
+| `JWT_SECRET`           | JWT verification secret (should match with other services)                        | `your-jwt-secret-here`                                                            |
+| `KAFKA_HOST`           | Message queue host (implementation-specific variable name)                        | `localhost`                                                                       |
+| `KAFKA_PORT`           | Message queue port (implementation-specific variable name)                        | `29092`                                                                           |
+| `KAFKA_BROKERS`        | Message queue broker addresses (implementation-specific variable name)            | `localhost:29092`                                                                 |
+| `RABBITMQ_URL`         | RabbitMQ connection URL                                                           | `amqp://user:password@rabbitmq`                                                   |
+| `PUBSUB_PROJECT_ID`    | Google Pub/Sub project ID (if using Google Pub/Sub to replace Kafka and RabbitMQ) |                                                                                   |
+| `WEB_BASE_URL`         | Frontend base URL for CORS                                                        | `http://localhost:3000`                                                           |
 
 ### Deployment
 
 **Docker:**
+
 ```bash
 docker build -f Dockerfile.collaboration -t collaboration-service .
-docker run -p 8004:8004 -p 8005:8005 collaboration-service
+docker run -p 8004:8004 collaboration-service
 ```
 
 **Docker Compose:**
 The service is included in the main `docker-compose.yml` file and will start automatically with all dependencies.
 
 **Production Considerations:**
+
 - Use environment variables for all configuration
 - Ensure `JWT_SECRET` matches user service
 - Configure proper CORS origins
@@ -814,4 +853,3 @@ The service is included in the main `docker-compose.yml` file and will start aut
 - Configure MongoDB connection pooling
 - Set up health check endpoints
 - Use reverse proxy for WebSocket connections
-
