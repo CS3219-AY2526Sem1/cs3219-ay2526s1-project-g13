@@ -1,0 +1,290 @@
+name: CD - Preview Deployment (Feature Branches)
+
+on:
+  push:
+    branches-ignore:
+      - dev
+      - staging
+      - production
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch name to deploy'
+        required: true
+        type: string
+
+# Cancel older runs on the same branch
+concurrency:
+  group: cd-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/docker-repo
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+
+jobs:
+  determine-branch:
+    name: Determine Branch Name
+    runs-on: ubuntu-latest
+    outputs:
+      branch-name: ${{ steps.set-branch.outputs.branch-name }}
+      sanitized-branch: ${{ steps.set-branch.outputs.sanitized-branch }}
+      is-pr: ${{ steps.set-branch.outputs.is-pr }}
+    steps:
+      - name: Determine branch name
+        id: set-branch
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+            IS_PR="true"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            BRANCH_NAME="${{ github.event.inputs.branch }}"
+            IS_PR="false"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+            IS_PR="false"
+          fi
+          
+          # Sanitize branch name for Cloud Run service name (max 63 chars, lowercase, alphanumeric and hyphens)
+          SANITIZED=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          # Truncate to 40 chars to leave room for service name prefix
+          SANITIZED="${SANITIZED:0:40}"
+          
+          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "sanitized-branch=$SANITIZED" >> $GITHUB_OUTPUT
+          echo "is-pr=$IS_PR" >> $GITHUB_OUTPUT
+          echo "Branch: $BRANCH_NAME"
+          echo "Sanitized: $SANITIZED"
+
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: determine-branch
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            context: backend/user-service
+            dockerfile: Dockerfile.user
+            port: 8001
+          - name: matching-service
+            context: backend/matching-service
+            dockerfile: Dockerfile.matching
+            port: 8002
+          - name: question-service
+            context: backend/question-service
+            dockerfile: Dockerfile.question
+            port: 8003
+          - name: collaboration-service
+            context: backend/collaboration-service
+            dockerfile: Dockerfile.collaboration
+            port: 8004
+          - name: execution-service
+            context: backend/execution-service
+            dockerfile: Dockerfile.execution
+            port: 8080
+          - name: video-call-service
+            context: backend/video-call-service
+            dockerfile: Dockerfile.video
+            port: 8011
+          - name: frontend
+            context: frontend
+            dockerfile: Dockerfile.frontend
+            port: 3000
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-branch.outputs.branch-name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Extract metadata for Docker tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.service.name }}
+          tags: |
+            type=raw,value=preview-${{ needs.determine-branch.outputs.sanitized-branch }}-${{ github.sha }}
+
+      - name: Build and push Docker image (backend services)
+        if: matrix.service.name != 'frontend'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image (frontend)
+        if: matrix.service.name == 'frontend'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            USER_SERVICE_URL=https://user-service-preview-${{ needs.determine-branch.outputs.sanitized-branch }}.${{ env.REGION }}.run.app
+            MATCHING_SERVICE_URL=https://matching-service-preview-${{ needs.determine-branch.outputs.sanitized-branch }}.${{ env.REGION }}.run.app
+            QUESTION_SERVICE_URL=https://question-service-preview-${{ needs.determine-branch.outputs.sanitized-branch }}.${{ env.REGION }}.run.app
+            COLLABORATION_SERVICE_URL=https://collaboration-service-preview-${{ needs.determine-branch.outputs.sanitized-branch }}.${{ env.REGION }}.run.app
+            VIDEO_CALL_SERVICE_URL=https://video-call-service-preview-${{ needs.determine-branch.outputs.sanitized-branch }}.${{ env.REGION }}.run.app
+
+  deploy-services:
+    name: Deploy Services to Cloud Run
+    runs-on: ubuntu-latest
+    needs: [determine-branch, build-and-push]
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            port: 8001
+          - name: matching-service
+            port: 8002
+          - name: question-service
+            port: 8003
+          - name: collaboration-service
+            port: 8004
+          - name: execution-service
+            port: 8080
+          - name: video-call-service
+            port: 8011
+          - name: frontend
+            port: 3000
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          BRANCH="${{ needs.determine-branch.outputs.sanitized-branch }}"
+          SERVICE_NAME="${{ matrix.service.name }}"
+          IMAGE_TAG="preview-${BRANCH}-${{ github.sha }}"
+          IMAGE="${{ env.REGISTRY }}/${{ matrix.service.name }}:${IMAGE_TAG}"
+          CLOUD_RUN_SERVICE="${SERVICE_NAME}-preview-${BRANCH}"
+          SERVICE_ACCOUNT="${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}"
+          
+          echo "Deploying $SERVICE_NAME for branch: ${{ needs.determine-branch.outputs.branch-name }}"
+          echo "Cloud Run Service: $CLOUD_RUN_SERVICE"
+          echo "Image: $IMAGE"
+          
+          # Deploy with preview configuration
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --image="$IMAGE" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --service-account="$SERVICE_ACCOUNT" \
+            --port=${{ matrix.service.port }} \
+            --min-instances=0 \
+            --max-instances=2 \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=300 \
+            --set-env-vars="ENVIRONMENT=preview,BRANCH=${{ needs.determine-branch.outputs.branch-name }}" \
+            --quiet
+          
+          # Get the service URL
+          SERVICE_URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --region="${{ env.REGION }}" \
+            --format="value(status.url)")
+          
+          echo "Deployed $SERVICE_NAME to $SERVICE_URL"
+
+  deployment-summary:
+    name: Preview Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-branch, deploy-services]
+    if: always()
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get service URLs and comment on PR
+        if: needs.determine-branch.outputs.is-pr == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = '${{ needs.determine-branch.outputs.sanitized-branch }}';
+            const region = '${{ env.REGION }}';
+            const services = [
+              'user-service', 'matching-service', 'question-service',
+              'collaboration-service', 'execution-service', 'video-call-service', 'frontend'
+            ];
+            
+            let summary = '## Preview Deployment\n\n';
+            summary += `**Branch:** \`${{ needs.determine-branch.outputs.branch-name }}\`\n`;
+            summary += `**Commit:** \`${{ github.sha }}\`\n\n`;
+            summary += '### Service URLs\n\n';
+            summary += '| Service | URL |\n';
+            summary += '|---------|-----|\n';
+            
+            for (const service of services) {
+              const serviceName = `${service}-preview-${branch}`;
+              const url = `https://${serviceName}-${region}.run.app`;
+              summary += `| ${service} | ${url} |\n`;
+            }
+            
+            summary += '\n**Note:** Services may take a few minutes to be fully available.\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Output summary
+        run: |
+          BRANCH="${{ needs.determine-branch.outputs.branch-name }}"
+          SANITIZED="${{ needs.determine-branch.outputs.sanitized-branch }}"
+          
+          echo "## Preview Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`$BRANCH\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Sanitized:** \`$SANITIZED\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Service URLs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Services are deployed with prefix: \`*-preview-${SANITIZED}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Example: \`user-service-preview-${SANITIZED}.${{ env.REGION }}.run.app\`" >> $GITHUB_STEP_SUMMARY
+

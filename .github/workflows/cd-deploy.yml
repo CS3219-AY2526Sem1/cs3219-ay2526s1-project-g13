@@ -1,0 +1,402 @@
+name: CD - Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - production
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+
+# Cancel older runs on the same branch
+concurrency:
+  group: cd-deploy-${{ github.ref }}
+  cancel-in-progress: false # Don't cancel - let deployments complete
+
+env:
+  REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/docker-repo
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+
+jobs:
+  determine-environment:
+    name: Determine Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      domain: ${{ steps.set-env.outputs.domain }}
+    steps:
+      - name: Set environment from branch or input
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          else
+            ENV="${{ github.ref_name }}"
+          fi
+          
+          case $ENV in
+            dev)
+              DOMAIN="dev.cs3219-ay2526s1-g13.com"
+              ;;
+            staging)
+              DOMAIN="staging.cs3219-ay2526s1-g13.com"
+              ;;
+            production)
+              DOMAIN="cs3219-ay2526s1-g13.com"
+              ;;
+            *)
+              echo "Unknown environment: $ENV"
+              exit 1
+              ;;
+          esac
+          
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
+          echo "Deploying to environment: $ENV"
+          echo "Domain: $DOMAIN"
+
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: determine-environment
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            context: backend/user-service
+            dockerfile: Dockerfile.user
+            port: 8001
+          - name: matching-service
+            context: backend/matching-service
+            dockerfile: Dockerfile.matching
+            port: 8002
+          - name: question-service
+            context: backend/question-service
+            dockerfile: Dockerfile.question
+            port: 8003
+          - name: collaboration-service
+            context: backend/collaboration-service
+            dockerfile: Dockerfile.collaboration
+            port: 8004
+          - name: execution-service
+            context: backend/execution-service
+            dockerfile: Dockerfile.execution
+            port: 8080
+          - name: video-call-service
+            context: backend/video-call-service
+            dockerfile: Dockerfile.video
+            port: 8011
+          - name: frontend
+            context: frontend
+            dockerfile: Dockerfile.frontend
+            port: 3000
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Extract metadata for Docker tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.service.name }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=${{ needs.determine-environment.outputs.environment }}-
+            type=raw,value=${{ needs.determine-environment.outputs.environment }}-${{ github.sha }}
+
+      - name: Build and push Docker image (backend services)
+        if: matrix.service.name != 'frontend'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image (frontend)
+        if: matrix.service.name == 'frontend'
+        uses: docker/build-push-action@v6
+        env:
+          DOMAIN: ${{ needs.determine-environment.outputs.domain }}
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            USER_SERVICE_URL=https://${{ needs.determine-environment.outputs.domain }}/api/user
+            MATCHING_SERVICE_URL=https://${{ needs.determine-environment.outputs.domain }}/api/matching
+            QUESTION_SERVICE_URL=https://${{ needs.determine-environment.outputs.domain }}/api/question
+            COLLABORATION_SERVICE_URL=https://${{ needs.determine-environment.outputs.domain }}/api/collaboration
+            VIDEO_CALL_SERVICE_URL=https://${{ needs.determine-environment.outputs.domain }}/api/video-call
+
+      - name: Output image info
+        run: |
+          echo "Built and pushed images:"
+          echo "${{ steps.meta.outputs.tags }}" | tr ' ' '\n' | while read tag; do
+            echo "  - ${{ env.REGISTRY }}/${{ matrix.service.name }}:$tag"
+          done
+
+  deploy-services:
+    name: Deploy Services to Cloud Run
+    runs-on: ubuntu-latest
+    needs: [determine-environment, build-and-push]
+    strategy:
+      matrix:
+        service:
+          - name: user-service
+            port: 8001
+            min-instances: 1
+            max-instances: 5
+          - name: matching-service
+            port: 8002
+            min-instances: 1
+            max-instances: 5
+          - name: question-service
+            port: 8003
+            min-instances: 1
+            max-instances: 5
+          - name: collaboration-service
+            port: 8004
+            min-instances: 1
+            max-instances: 5
+          - name: execution-service
+            port: 8080
+            min-instances: 1
+            max-instances: 5
+          - name: video-call-service
+            port: 8011
+            min-instances: 1
+            max-instances: 5
+          - name: frontend
+            port: 3000
+            min-instances: 1
+            max-instances: 5
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          SERVICE_NAME="${{ matrix.service.name }}"
+          IMAGE="${{ env.REGISTRY }}/${{ matrix.service.name }}:${{ ENV }}-${{ github.sha }}"
+          SERVICE_ACCOUNT="${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}"
+          
+          echo "Deploying $SERVICE_NAME to $ENV environment..."
+          echo "Image: $IMAGE"
+          
+          # Determine if service should be public or private
+          if [ "$ENV" == "production" ]; then
+            AUTH_FLAG="--allow-unauthenticated"
+            echo "Deploying as PUBLIC (production environment)"
+          else
+            AUTH_FLAG="--no-allow-unauthenticated"
+            echo "Deploying as PRIVATE (dev/staging environment - team access only)"
+          fi
+          
+          # Deploy with environment-specific configuration
+          gcloud run deploy "$SERVICE_NAME-$ENV" \
+            --image="$IMAGE" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            $AUTH_FLAG \
+            --service-account="$SERVICE_ACCOUNT" \
+            --port=${{ matrix.service.port }} \
+            --min-instances=${{ matrix.service.min-instances }} \
+            --max-instances=${{ matrix.service.max-instances }} \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=300 \
+            --set-env-vars="ENVIRONMENT=$ENV" \
+            --quiet
+          
+          # Grant access to team members for dev/staging environments
+          if [ "$ENV" != "production" ]; then
+            echo "Granting team access to $SERVICE_NAME-$ENV..."
+            # Grant access to all authenticated users in your GCP project
+            # This allows anyone with a Google account that has access to your GCP project
+            gcloud run services add-iam-policy-binding "$SERVICE_NAME-$ENV" \
+              --region="${{ env.REGION }}" \
+              --member="allAuthenticatedUsers" \
+              --role="roles/run.invoker" \
+              || echo "Note: Configure team member access manually in GCP Console"
+            
+            echo "Service is private. Only authenticated users with project access can use it."
+            echo "   To grant access to specific users, use GCP Console or update this workflow."
+          fi
+          
+          # Get the service URL
+          SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME-$ENV" \
+            --region="${{ env.REGION }}" \
+            --format="value(status.url)")
+          
+          echo "Deployed $SERVICE_NAME to $SERVICE_URL"
+
+  deploy-frontend:
+    name: Deploy Frontend with Environment Variables
+    runs-on: ubuntu-latest
+    needs: [determine-environment, build-and-push]
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get backend service URLs
+        id: get-urls
+        run: |
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          REGION="${{ env.REGION }}"
+          
+          USER_URL=$(gcloud run services describe "user-service-$ENV" \
+            --region="$REGION" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          MATCHING_URL=$(gcloud run services describe "matching-service-$ENV" \
+            --region="$REGION" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          QUESTION_URL=$(gcloud run services describe "question-service-$ENV" \
+            --region="$REGION" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          COLLAB_URL=$(gcloud run services describe "collaboration-service-$ENV" \
+            --region="$REGION" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          VIDEO_URL=$(gcloud run services describe "video-call-service-$ENV" \
+            --region="$REGION" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          
+          echo "user_url=$USER_URL" >> $GITHUB_OUTPUT
+          echo "matching_url=$MATCHING_URL" >> $GITHUB_OUTPUT
+          echo "question_url=$QUESTION_URL" >> $GITHUB_OUTPUT
+          echo "collab_url=$COLLAB_URL" >> $GITHUB_OUTPUT
+          echo "video_url=$VIDEO_URL" >> $GITHUB_OUTPUT
+
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          IMAGE="${{ env.REGISTRY }}/frontend:${{ ENV }}-${{ github.sha }}"
+          SERVICE_ACCOUNT="${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}"
+          
+          echo "Deploying frontend to $ENV environment..."
+          echo "Image: $IMAGE"
+          
+          # Determine if service should be public or private
+          if [ "$ENV" == "production" ]; then
+            AUTH_FLAG="--allow-unauthenticated"
+            echo "Deploying as PUBLIC (production environment)"
+          else
+            AUTH_FLAG="--no-allow-unauthenticated"
+            echo "Deploying as PRIVATE (dev/staging environment - team access only)"
+          fi
+          
+          gcloud run deploy "frontend-$ENV" \
+            --image="$IMAGE" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            $AUTH_FLAG \
+            --service-account="$SERVICE_ACCOUNT" \
+            --port=3000 \
+            --min-instances=1 \
+            --max-instances=5 \
+            --memory=512Mi \
+            --cpu=1 \
+            --timeout=300 \
+            --set-env-vars="ENVIRONMENT=$ENV" \
+            --quiet
+          
+          # Grant access to team members for dev/staging environments
+          if [ "$ENV" != "production" ]; then
+            echo "Granting team access to frontend-$ENV..."
+            # Grant access to all authenticated users in the project
+            gcloud run services add-iam-policy-binding "frontend-$ENV" \
+              --region="${{ env.REGION }}" \
+              --member="allAuthenticatedUsers" \
+              --role="roles/run.invoker" \
+              || echo "Note: Configure team member access manually in GCP Console"
+            
+            echo "Frontend is private. Team members need to authenticate to access."
+          fi
+          
+          FRONTEND_URL=$(gcloud run services describe "frontend-$ENV" \
+            --region="${{ env.REGION }}" \
+            --format="value(status.url)")
+          
+          echo "Frontend deployed to $FRONTEND_URL"
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-environment, deploy-services, deploy-frontend]
+    if: always()
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get service URLs
+        id: get-urls
+        run: |
+          ENV="${{ needs.determine-environment.outputs.environment }}"
+          REGION="${{ env.REGION }}"
+          
+          echo "## Deployment Summary - $ENV Environment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
+          
+          for service in user-service matching-service question-service collaboration-service execution-service video-call-service frontend; do
+            URL=$(gcloud run services describe "$service-$ENV" \
+              --region="$REGION" \
+              --format="value(status.url)" 2>/dev/null || echo "Not deployed")
+            echo "| $service | $URL |" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+

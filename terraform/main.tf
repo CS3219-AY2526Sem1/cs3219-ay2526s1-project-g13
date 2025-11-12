@@ -238,6 +238,36 @@ resource "google_cloud_run_v2_service" "user_service" {
         }
       }
 
+      env {
+        name = "ADMIN_EMAIL"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_email"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ADMIN_USERNAME"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_username"
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "ADMIN_PW"
+        value_source {
+          secret_key_ref {
+            secret  = "admin_pw"
+            version = "latest"
+          }
+        }
+      }
+
       resources {
         limits = {
           cpu    = "1"

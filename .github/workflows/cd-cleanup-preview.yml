@@ -1,0 +1,70 @@
+name: CD - Cleanup Preview Deployments
+
+on:
+  delete:
+    # Triggered when a branch is deleted
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch name to clean up'
+        required: true
+        type: string
+
+env:
+  REGION: ${{ secrets.GCP_REGION }}
+
+jobs:
+  cleanup:
+    name: Cleanup Preview Deployments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Determine branch to clean up
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            BRANCH="${{ github.event.inputs.branch }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          
+          # Sanitize branch name
+          SANITIZED=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          SANITIZED="${SANITIZED:0:40}"
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "sanitized=$SANITIZED" >> $GITHUB_OUTPUT
+          echo "Cleaning up preview deployments for branch: $BRANCH (sanitized: $SANITIZED)"
+
+      - name: Delete Cloud Run services
+        run: |
+          SANITIZED="${{ steps.branch.outputs.sanitized }}"
+          REGION="${{ env.REGION }}"
+          
+          SERVICES=(
+            "user-service-preview-${SANITIZED}"
+            "matching-service-preview-${SANITIZED}"
+            "question-service-preview-${SANITIZED}"
+            "collaboration-service-preview-${SANITIZED}"
+            "execution-service-preview-${SANITIZED}"
+            "video-call-service-preview-${SANITIZED}"
+            "frontend-preview-${SANITIZED}"
+          )
+          
+          for SERVICE in "${SERVICES[@]}"; do
+            echo "Deleting service: $SERVICE"
+            gcloud run services delete "$SERVICE" \
+              --region="$REGION" \
+              --quiet \
+              || echo "Service $SERVICE not found or already deleted"
+          done
+          
+          echo "Cleanup complete for branch: ${{ steps.branch.outputs.branch }}"
+
