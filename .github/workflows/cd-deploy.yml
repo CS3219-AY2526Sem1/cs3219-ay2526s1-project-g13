@@ -240,6 +240,11 @@ jobs:
           if [ "$SERVICE_NAME" == "execution-service" ]; then
             # Execution service needs PUBSUB_PROJECT_ID to start HTTP server for health checks
             ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+          elif [ "$SERVICE_NAME" == "matching-service" ]; then
+            # Matching service needs PUBSUB_PROJECT_ID for Pub/Sub
+            ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+            # Note: REDIS_URL and JWT_SECRET should be configured via Secret Manager
+            # or set in the Cloud Run service configuration
           fi
           
           # Deploy with environment-specific configuration

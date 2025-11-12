@@ -209,23 +209,59 @@ jobs:
             ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
             # Optional: Set callback URL if collaboration service is deployed
             # ENV_VARS="${ENV_VARS},CALLBACK_URL=https://collaboration-service-preview-${BRANCH}.${{ env.REGION }}.run.app/api/v1/code/execute-callback"
+          elif [ "$SERVICE_NAME" == "matching-service" ]; then
+            # Matching service needs PUBSUB_PROJECT_ID, REDIS_URL, and JWT_SECRET
+            ENV_VARS="${ENV_VARS},PUBSUB_PROJECT_ID=${{ env.PROJECT_ID }}"
+            # REDIS_URL - use GitHub secret or hardcode your Redis host
+            # Option 1: Use GitHub secret (recommended)
+            if [ -n "${{ secrets.REDIS_URL }}" ]; then
+              ENV_VARS="${ENV_VARS},REDIS_URL=${{ secrets.REDIS_URL }}"
+            # Option 2: Hardcode
+            # else
+            #   ENV_VARS="${ENV_VARS},REDIS_URL=redis://10.0.0.3:6379"
+            fi
+            # JWT_SECRET - use GitHub secret
+            if [ -n "${{ secrets.JWT_SECRET }}" ]; then
+              ENV_VARS="${ENV_VARS},JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            fi
           fi
           
           # Deploy with preview configuration
-          gcloud run deploy "$CLOUD_RUN_SERVICE" \
-            --image="$IMAGE" \
-            --region="${{ env.REGION }}" \
-            --platform=managed \
-            --allow-unauthenticated \
-            --service-account="$SERVICE_ACCOUNT" \
-            --port=${{ matrix.service.port }} \
-            --min-instances=0 \
-            --max-instances=2 \
-            --memory=512Mi \
-            --cpu=1 \
-            --timeout=300 \
-            --set-env-vars="$ENV_VARS" \
-            --quiet
+          # For services that need secrets from Secret Manager, use --update-secrets instead
+          if [ "$SERVICE_NAME" == "matching-service" ] && [ -z "${{ secrets.REDIS_URL }}" ]; then
+            # Use Secret Manager for REDIS_URL and JWT_SECRET if GitHub secrets not set
+            gcloud run deploy "$CLOUD_RUN_SERVICE" \
+              --image="$IMAGE" \
+              --region="${{ env.REGION }}" \
+              --platform=managed \
+              --allow-unauthenticated \
+              --service-account="$SERVICE_ACCOUNT" \
+              --port=${{ matrix.service.port }} \
+              --min-instances=0 \
+              --max-instances=2 \
+              --memory=512Mi \
+              --cpu=1 \
+              --timeout=300 \
+              --set-env-vars="$ENV_VARS" \
+              --update-secrets=JWT_SECRET=jwt_secret:latest \
+              --quiet || echo "Note: If secrets don't exist, create them in Secret Manager first"
+          else
+            # Standard deployment with environment variables
+            gcloud run deploy "$CLOUD_RUN_SERVICE" \
+              --image="$IMAGE" \
+              --region="${{ env.REGION }}" \
+              --platform=managed \
+              --allow-unauthenticated \
+              --service-account="$SERVICE_ACCOUNT" \
+              --port=${{ matrix.service.port }} \
+              --min-instances=0 \
+              --max-instances=2 \
+              --memory=512Mi \
+              --cpu=1 \
+              --timeout=300 \
+              --set-env-vars="$ENV_VARS" \
+              --quiet
+          fi
           
           # Get the service URL
           SERVICE_URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" \
